@@ -52,11 +52,12 @@ export function useCart() {
     // Derived State
     const items = $derived(query.data?.map((item: CartItem) => ({
         ...item,
+        price: parsePrice(item.price), // Ensure price is always a number
         cartItemId: `${item.id}-${item.variantId || 'base'}`
     })) || []);
     
     const count = $derived(items.reduce((acc, item) => acc + item.quantity, 0));
-    const subtotal = $derived(items.reduce((acc, item) => acc + ((item.price || 0) * item.quantity), 0));
+    const subtotal = $derived(items.reduce((acc, item) => acc + (item.price * item.quantity), 0));
 
     // 2. Optimized Mutation Helpers
     const performOptimisticUpdate = async (updateFn: (old: CartItem[]) => CartItem[]) => {

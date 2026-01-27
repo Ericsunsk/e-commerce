@@ -17,6 +17,7 @@
     // Login Form (SPA Mode)
     const { form: loginForm, errors: loginErrors, enhance: loginEnhance, submitting: loginSubmitting } = superForm(data.loginForm, {
         SPA: true,
+        id: 'login-form',
         validators: zod(loginSchema),
         onUpdate: async ({ form }) => {
             if (form.valid) {
@@ -32,6 +33,7 @@
     // Register Form (SPA Mode)
     const { form: regForm, errors: regErrors, enhance: regEnhance, submitting: regSubmitting } = superForm(data.registerForm, {
         SPA: true,
+        id: 'register-form',
         validators: zod(registerSchema),
         onUpdate: async ({ form }) => {
             if (form.valid) {
@@ -52,6 +54,7 @@
     // Recover Form (SPA Mode)
     const { form: recForm, errors: recErrors, enhance: recEnhance, submitting: recSubmitting } = superForm(data.recoverForm, {
         SPA: true,
+        id: 'recover-form',
         validators: zod(passwordRecoverySchema),
         onUpdate: async ({ form }) => {
             if (form.valid) {

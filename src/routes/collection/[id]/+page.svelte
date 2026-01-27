@@ -49,7 +49,7 @@
         (data.product.attributes?.shipping as string) ?? "",
     );
 
-    let product = $derived({
+    let product = $derived(data.product ? {
         ...data.product,
         image: data.product.image,
         images: data.product.images ?? [data.product.image],
@@ -58,7 +58,7 @@
         material,
         details,
         shipping,
-    });
+    } : null);
     let relatedProducts = $derived(data.related);
 
     let selectedSize = $state("");
@@ -79,7 +79,7 @@
     });
 
     function addToBag() {
-        if (!selectedSize) {
+        if (!product || !selectedSize) {
             sizeError = true;
             // Removed redundant toast, visual shake is enough
             setTimeout(() => (sizeError = false), 1000);
@@ -89,22 +89,32 @@
         isAdding = true;
         // Simulate network delay for UX
         setTimeout(() => {
-            cart.addItem(product, selectedColor, selectedSize);
-            toastStore.success(MESSAGES.SUCCESS.ADDED_TO_BAG(product.title));
-            isAdding = false;
+            if (product) {
+                cart.addItem(product, selectedColor, selectedSize);
+                toastStore.success(MESSAGES.SUCCESS.ADDED_TO_BAG(product.title));
+                isAdding = false;
+            }
         }, 500);
     }
 </script>
 
 <svelte:head>
-    <title>{product.title} | {data.settings.siteName}</title>
-    <meta name="description" content={product.description} />
-    <meta property="og:image" content={product.image} />
+    {#if product}
+        <title>{product.title} | {data.settings.siteName}</title>
+        <meta name="description" content={product.description} />
+        <meta property="og:image" content={product.image} />
+    {/if}
 </svelte:head>
 
-<div
-    class="max-w-[1800px] mx-auto pt-24 pb-20 bg-background-light dark:bg-background-dark min-h-screen"
->
+{#if !product}
+    <div class="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark">
+        <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>
+{:else}
+    <div
+        class="max-w-[1800px] mx-auto pt-24 pb-20 bg-background-light dark:bg-background-dark min-h-screen"
+    >
+
     <div class="lg:flex lg:gap-12 xl:gap-24">
         <!-- Left Column: Vertical Gallery -->
         <div class="lg:w-[60%] xl:w-[65%] flex flex-col gap-1">
@@ -373,7 +383,8 @@
             </div>
         </section>
     {/if}
-</div>
+    </div>
+{/if}
 
 <style>
     /* Hide scrollbar but keep functionality */

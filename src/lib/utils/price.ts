@@ -4,16 +4,19 @@
  */
 
 /**
- * 从价格字符串解析数值 (如 "$99.00" → 99)
+ * 从价格字符串解析数值 (如 ".00" → 99)
  */
-export function parsePrice(priceString: string): number {
+export function parsePrice(priceString: string | number | undefined | null): number {
+    if (typeof priceString === 'number') return priceString;
     if (typeof priceString !== 'string') return 0;
-    return parseFloat(priceString.replace(/[^0-9.]/g, '')) || 0;
+    // Remove all non-numeric chars except period and minus
+    const clean = priceString.replace(/[^0-9.-]/g, '');
+    return parseFloat(clean) || 0;
 }
 
 /**
  * 将价格字符串转换为分 (Stripe 所需格式)
- * "$99.00" → 9900
+ * ".00" → 9900
  */
 export function priceToCents(priceString: string): number {
     return Math.round(parsePrice(priceString) * 100);

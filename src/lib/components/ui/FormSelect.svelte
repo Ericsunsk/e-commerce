@@ -15,6 +15,7 @@
         disabled?: boolean;
         required?: boolean;
         className?: string;
+        hideLabel?: boolean;
     }
 
     let {
@@ -25,21 +26,19 @@
         disabled = false,
         required = false,
         className = "",
+        hideLabel = false,
     }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-1 {className}">
-    <label for={id} class="{TYPOGRAPHY.label} {COLORS.text}">
-        {label}
-    </label>
+<div class="group relative {className}">
     <select
         {id}
         bind:value
         {disabled}
         {required}
-        class="h-12 border-b border-primary dark:border-white bg-transparent focus:border-primary dark:focus:border-white {TRANSITIONS.colors} outline-none text-sm disabled:opacity-50 cursor-pointer"
+        class="w-full bg-transparent border-b py-4 text-sm tracking-widest outline-none focus:outline-none focus:ring-0 rounded-none appearance-none transition-colors duration-300 border-primary dark:border-white disabled:opacity-50 peer"
     >
-        <option value="" disabled selected>Select an option</option>
+        <option value="" disabled selected></option>
         {#each options as option}
             {#if typeof option === "string"}
                 <option value={option}>{option}</option>
@@ -48,4 +47,23 @@
             {/if}
         {/each}
     </select>
+    
+    <label
+        for={id}
+        class="absolute left-0 top-4 text-xs font-bold uppercase tracking-[0.15em] transition-all 
+               peer-focus:-top-4 peer-focus:text-[10px] 
+               peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-[10px] 
+               {value ? '-top-4 text-[10px]' : ''} 
+               {hideLabel && (value || $state.snapshot(value)) ? 'opacity-0' : ''}
+               pointer-events-none text-primary/40 dark:text-white/40 
+               peer-focus:text-primary dark:peer-focus:text-white
+               {hideLabel && 'peer-focus:opacity-0'}"
+    >
+        {label}
+    </label>
+
+    <!-- Chevron Icon -->
+    <div class="absolute right-0 top-4 pointer-events-none">
+        <span class="material-symbols-outlined text-sm">expand_more</span>
+    </div>
 </div>

@@ -156,8 +156,14 @@
 
         try {
             // 1. Create PaymentIntent on server & Create Pending Order
+            if (cart.items.length === 0) {
+                 alert("Your cart appears to be empty. Please refresh the page.");
+                 loading = false;
+                 return;
+            }
+
             const payload: any = {
-                items: cart.items,
+                items: $state.snapshot(cart.items),
                 shippingInfo: {
                     name: `${$form.firstName} ${$form.lastName}`,
                     line1: $form.address,
