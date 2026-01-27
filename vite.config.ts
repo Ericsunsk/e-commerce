@@ -11,5 +11,8 @@ export default defineConfig({
 	],
 	ssr: {
 		noExternal: ['sveltekit-superforms']
+	},
+	optimizeDeps: {
+		exclude: ['@valibot/to-json-schema']
 	}
 });
