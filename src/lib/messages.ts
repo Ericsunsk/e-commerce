@@ -1,0 +1,50 @@
+/**
+ * Centralized UI messages for consistent user feedback.
+ * All messages are in UPPERCASE to match brand aesthetics.
+ */
+
+export const MESSAGES = {
+    // ============ SUCCESS ============
+    SUCCESS: {
+        WELCOME_BACK: "WELCOME BACK",
+        SIGNED_OUT: "YOU HAVE BEEN SIGNED OUT",
+        EMAIL_VERIFICATION_SENT: "PLEASE CHECK YOUR EMAIL FOR VERIFICATION",
+        PASSWORD_RESET_SENT: "PASSWORD RESET DETAILS SENT TO YOUR EMAIL",
+        MESSAGE_SENT: "MESSAGE SENT SUCCESSFULLY",
+        SUBSCRIBED: "THANK YOU FOR SUBSCRIBING",
+        ADDED_TO_BAG: (title: string) => `ADDED ${title.toUpperCase()} TO BAG`,
+        ADDRESS_ADDED: "ADDRESS ADDED",
+        ADDRESS_UPDATED: "ADDRESS UPDATED",
+        ADDRESS_DELETED: "ADDRESS DELETED",
+        DEFAULT_ADDRESS_UPDATED: "DEFAULT ADDRESS UPDATED",
+    },
+
+    // ============ ERRORS ============
+    ERROR: {
+        // Form Validation
+        REQUIRED: "REQUIRED",
+        INVALID_EMAIL: "INVALID EMAIL",
+        PLEASE_ENTER_VALID_EMAIL: "PLEASE ENTER A VALID EMAIL",
+        PASSWORDS_DO_NOT_MATCH: "PASSWORDS DO NOT MATCH",
+        PASSWORD_TOO_SHORT: "PASSWORD MUST BE AT LEAST 8 CHARACTERS",
+
+        // Product
+        OUT_OF_STOCK: "SORRY, THIS VARIANT IS OUT OF STOCK",
+
+        // Address
+        FAILED_TO_SAVE_ADDRESS: "FAILED TO SAVE ADDRESS",
+        FAILED_TO_DELETE_ADDRESS: "FAILED TO DELETE ADDRESS",
+        FAILED_TO_UPDATE_DEFAULT: "FAILED TO UPDATE DEFAULT ADDRESS",
+
+        // Coupon
+        FAILED_TO_VERIFY_COUPON: "FAILED TO VERIFY COUPON",
+
+        // Payment
+        PAYMENT_ERROR: "PAYMENT ERROR",
+    },
+
+    // ============ INFO ============
+    INFO: {
+        COUPON_APPLIED: (code: string) => `APPLIED: ${code.toUpperCase()}`,
+    },
+} as const;
