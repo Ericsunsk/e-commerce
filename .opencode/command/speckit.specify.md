@@ -1,5 +1,5 @@
 ---
-description: Create or update the feature specification from a natural language feature description.
+description: 将自然语言描述转化为结构化功能规范，定义核心逻辑与系统边界。
 handoffs: 
   - label: Build Technical Plan
     agent: speckit.plan

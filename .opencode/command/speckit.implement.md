@@ -1,5 +1,5 @@
 ---
-description: Execute the implementation plan by processing and executing all tasks defined in tasks.md
+description: 自动化执行开发计划，按序处理 tasks.md 中的编码与测试任务。
 ---
 
 ## User Input

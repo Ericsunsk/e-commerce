@@ -1,4 +1,25 @@
-# E-Commerce Project Constitution
+<!--
+SYNC IMPACT REPORT
+Version: 1.0.0 -> 1.1.0
+Ratified: 2026-01-27
+Last Amended: 2026-01-27
+
+Modified Principles:
+- Title: E-Commerce Project Constitution -> ELEMENTHIC Project Constitution
+
+Added Sections:
+- VIII. Spec-Driven Workflow (The Law)
+
+Templates Checked:
+- .specify/templates/plan-template.md (✅ aligned)
+- .specify/templates/spec-template.md (✅ aligned)
+- .specify/templates/tasks-template.md (✅ aligned)
+
+Follow-up TODOs:
+- None.
+-->
+
+# ELEMENTHIC Project Constitution
 
 ## Core Principles
 
@@ -46,8 +67,14 @@
 - **Stability & Performance**: Prioritize built-in platform features (Svelte native runes, fetch, etc.) over third-party bloat.
 - **Maintainability**: Prefer declarative patterns over imperative ones. Every line must serve a purpose; if it's "nice to have," it's "too much."
 
+### VIII. Spec-Driven Workflow (The Law)
+- **No "Vibe Coding"**: Every line of code must trace back to a ratified Task from a `speckit` plan. "Feeling" the code is strictly prohibited.
+- **Chain of Custody**: Features must progress strictly through: `Constitution` -> `Spec` -> `Plan` -> `Tasks` -> `Code`.
+- **Plan Fidelity**: Deviations from `plan.md` during implementation require a documented amendment to the plan; silent drift is a violation.
+
 ## Governance
 - This constitution supersedes all other coding practices in the project.
 - Every new feature must be validated against these rules during the `Plan` and `Analyze` phases.
+- **Compliance**: Pull Requests violating these principles must be rejected, regardless of functional correctness.
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
+**Version**: 1.1.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27

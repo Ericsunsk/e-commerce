@@ -1,5 +1,5 @@
 ---
-description: Convert existing tasks into actionable, dependency-ordered GitHub issues for the feature based on available design artifacts.
+description: 将本地任务列表批量转换为 GitHub Issues，同步保持任务依赖关系。
 tools: ['github/github-mcp-server/issue_write']
 ---
 

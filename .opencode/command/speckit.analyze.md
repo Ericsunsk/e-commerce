@@ -1,5 +1,5 @@
 ---
-description: Perform a non-destructive cross-artifact consistency and quality analysis across spec.md, plan.md, and tasks.md after task generation.
+description: 深度扫描需求、计划与任务文档，检测跨文档的一致性与质量缺陷。
 ---
 
 ## User Input

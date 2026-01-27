@@ -3,6 +3,13 @@
     import { flip } from "svelte/animate";
     import { Z_INDEX, TRANSITIONS } from "$lib/constants";
     import { toastStore } from "$lib/stores/toast.svelte";
+    import { cubicOut } from "svelte/easing";
+
+    // Custom Apple-style easing
+    const appleEase = (t: number) => {
+        // Approximation of cubic-bezier(0.16, 1, 0.3, 1)
+        return 1 - Math.pow(1 - t, 4); 
+    };
 </script>
 
 <!-- Toast Container: Top Center -->
@@ -13,9 +20,9 @@
 >
     {#each toastStore.items as item (item.id)}
         <div
-            in:fly={{ y: -20, duration: 400 }}
+            in:fly={{ y: -20, duration: 600, easing: appleEase }}
             out:fade={{ duration: 200 }}
-            animate:flip={{ duration: 300 }}
+            animate:flip={{ duration: 400, easing: appleEase }}
             class="pointer-events-auto flex items-center justify-between gap-6 px-6 py-4 bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-black/5 dark:border-white/10 shadow-xl w-auto min-w-[320px]"
             role="alert"
         >

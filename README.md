@@ -10,7 +10,7 @@ ELEMENTHIC 是一个基于 **SvelteKit 5 + Svelte 5** 构建的现代化高性�
 
 | 组件 | 职责 | 存储核心 |
 |------|------|----------|
-| **SvelteKit 5** | **缝合器 (The Gluer)** | SSR 渲染、服务端业务逻辑与 Webhook 调度。使用 Svelte 5 Runes。 |
+| **SvelteKit 5** | **缝合器 (The Gluer)** | SSR 渲染、服务端业务逻辑 (Server Hooks Auth Sync) 与 Webhook 调度。 |
 | **PocketBase** | **全能后端 (CMS + DB)** | 三层存储：核心展示层、运营统计层、JSON 扩展层。 |
 | **Stripe** | **财务大脑 (FinGate)** | 价格源头、支付状态机、库存同步引擎、自动税务计算。 |
 | **Spec Kit** | **开发管理 (The Spec)** | 通过规范驱动开发，标准化需求、计划与任务流。 |
@@ -95,8 +95,9 @@ npm run dev
 - [x] **Spec-Driven Integration**: 引入 Spec Kit 标准化工作流。
 
 ### 🔄 Phase 13: 体验与自动化进化 (In Progress)
+- [x] **Core Architecture Audit**: 完成服务端认证 (Hooks) 修复与安全性审计 (npm audit 0 vulnerabilities)。
 - [x] **Universal Spec Template**: 升级规范模板，支持领域建模。
-- [ ] **001-UX Evolution**: 深度对齐 Apple UX 细节动画与毛玻璃效果。
+- [x] **001-UX Evolution**: 引入 Apple Spring 动画曲线与 Toast 组件重构。
 - [ ] **002-Cart Recovery**: 建立基于 Stripe Webhook + n8n 的废弃购物车召回系统。
 
 ---
@@ -112,7 +113,7 @@ npm run dev
     --font-display: "Optima", "Georgia", serif;
     
     /* 动画：优先使用 GPU 加速属性 */
-    --animation-apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
 }
 ```
 

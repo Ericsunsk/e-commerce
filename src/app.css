@@ -18,6 +18,9 @@
     --content-offset: 128px;
     /* Header height + extra spacing for pages */
 
+    /* Animation */
+    --ease-apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
     /* Z-Index Design System */
     --z-base: 0;
     --z-content: 10;

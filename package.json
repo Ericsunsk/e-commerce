@@ -44,6 +44,10 @@
 		"stripe": "^17.7.0",
 		"sveltekit-rate-limiter": "^0.7.0",
 		"sveltekit-superforms": "^2.29.1",
-		"zod": "^3.25.76"
+		"zod": "^4.3.6"
+	},
+	"overrides": {
+		"cookie": "^0.7.2",
+		"tar": "^7.5.6"
 	}
 }

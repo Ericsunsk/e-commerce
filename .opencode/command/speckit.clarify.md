@@ -1,5 +1,5 @@
 ---
-description: Identify underspecified areas in the current feature spec by asking up to 5 highly targeted clarification questions and encoding answers back into the spec.
+description: 识别需求模糊点，通过针对性问答交互完善规范细节，消除歧义。
 handoffs: 
   - label: Build Technical Plan
     agent: speckit.plan
