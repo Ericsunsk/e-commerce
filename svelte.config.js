@@ -1,9 +1,9 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import dotenv from 'dotenv';
+import { loadEnv } from 'vite';
 
-// Load .env file manually for CSP configuration
-dotenv.config();
+// Load env vars using Vite's built-in helper
+const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
 
 // Helper to extract domain from script tag (Basic implementation)
 function extractDomain(htmlCode) {
@@ -20,7 +20,7 @@ function extractDomain(htmlCode) {
     return null;
 }
 
-const analyticsDomain = extractDomain(process.env.PUBLIC_ANALYTICS_CODE);
+const analyticsDomain = extractDomain(env.PUBLIC_ANALYTICS_CODE);
 
 // Define base CSP sources
 const scriptSrc = [
