@@ -135,7 +135,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         });
 
         // Map line items to our OrderItem format
-        const items: OrderItem[] = lineItems.data.map(item => {
+        const items: any[] = lineItems.data.map(item => {
             const product = item.price?.product as Stripe.Product | undefined;
             return {
                 productId: product?.id || '',

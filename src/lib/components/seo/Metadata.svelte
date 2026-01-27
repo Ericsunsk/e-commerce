@@ -21,7 +21,7 @@
     }: Props = $props();
 
     // Avoid double pipe if title already contains it
-    const fullTitle = title.includes('|') ? title : `${title} | ${siteName}`;
+    const fullTitle = $derived(title.includes('|') ? title : `${title} | ${siteName}`);
 </script>
 
 <svelte:head>

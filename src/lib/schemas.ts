@@ -6,23 +6,24 @@ import { MESSAGES } from '$lib/messages';
 // =============================================================================
 
 export const loginSchema = z.object({
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(1, { message: "Password is required" })
+    email: z.string().email({ message: "Invalid email address" }).default(''),
+    password: z.string().min(1, { message: "Password is required" }).default('')
 });
 
 export const registerSchema = z.object({
-    firstName: z.string().min(1, { message: "First name is required" }),
-    lastName: z.string().min(1, { message: "Last name is required" }),
-    email: z.string().email({ message: "Invalid email address" }),
-    password: z.string().min(8, { message: MESSAGES.ERROR.PASSWORD_TOO_SHORT }),
-    confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-    message: MESSAGES.ERROR.PASSWORDS_DO_NOT_MATCH,
-    path: ["confirmPassword"],
+    firstName: z.string().min(1, { message: "First name is required" }).default(''),
+    lastName: z.string().min(1, { message: "Last name is required" }).default(''),
+    email: z.string().email({ message: "Invalid email address" }).default(''),
+    password: z.string().min(8, { message: MESSAGES.ERROR.PASSWORD_TOO_SHORT }).default(''),
+    confirmPassword: z.string().default('')
 });
+// .refine((data) => data.password === data.confirmPassword, {
+//     message: MESSAGES.ERROR.PASSWORDS_DO_NOT_MATCH,
+//     path: ["confirmPassword"],
+// });
 
 export const passwordRecoverySchema = z.object({
-    email: z.string().email({ message: "Invalid email address" })
+    email: z.string().email({ message: "Invalid email address" }).default('')
 });
 
 // =============================================================================
@@ -61,7 +62,8 @@ export type ShippingAddressSchema = z.infer<typeof shippingAddressSchema>;
 export const cartItemSchema = z.object({
     id: z.string(),
     title: z.string(),
-    price: z.string(), // e.g. "$100.00"
+    price: z.string(), // e.g. "$100.00" - Display price
+    priceValue: z.number().optional(), // Raw numeric price for calculations
     image: z.string().optional(),
     quantity: z.number().int().positive(),
     color: z.string().optional(),

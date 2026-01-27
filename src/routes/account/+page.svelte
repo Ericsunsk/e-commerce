@@ -8,7 +8,7 @@
     import { MESSAGES } from "$lib/messages";
     import FormInput from "$lib/components/ui/FormInput.svelte";
     import { superForm } from 'sveltekit-superforms';
-    import { zod } from 'sveltekit-superforms/adapters';
+    import { zod4 as zod } from 'sveltekit-superforms/adapters';
     import { loginSchema, registerSchema, passwordRecoverySchema } from "$lib/schemas";
     import type { PageData } from './$types';
 

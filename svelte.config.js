@@ -26,6 +26,7 @@ const analyticsDomain = extractDomain(process.env.PUBLIC_ANALYTICS_CODE);
 const scriptSrc = [
     'self',
     'unsafe-inline',
+    'unsafe-eval',
     'https://js.stripe.com',
     'https://*.umami.is', 
     'https://analytics.elementhic.com'
@@ -61,7 +62,7 @@ const config = {
             entries: ['*', '/robots.txt', '/sitemap.xml']
         },
         csp: {
-            mode: 'auto',
+            // mode: 'auto', // Commented out to allow 'unsafe-inline' to work for event handlers
             directives: {
                 'default-src': ['self'],
                 'script-src': scriptSrc,
@@ -72,7 +73,8 @@ const config = {
                     'blob:', 
                     'https://pb.elementhic.com', 
                     'https://img.elementhic.com',
-                    'https://*.stripe.com'
+                    'https://*.stripe.com',
+                    'https://images.unsplash.com'
                 ],
                 'font-src': ['self', 'https://fonts.gstatic.com'],
                 'connect-src': connectSrc,

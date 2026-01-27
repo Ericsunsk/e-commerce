@@ -1,7 +1,7 @@
 import { env } from '$env/dynamic/public';
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate, message } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
+import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { shippingAddressSchema } from '$lib/schemas';
 import { fail } from '@sveltejs/kit';
 

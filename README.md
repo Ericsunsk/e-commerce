@@ -21,7 +21,7 @@ ELEMENTHIC 是一个基于 **SvelteKit 5 + Svelte 5** 构建的现代化高性�
 
 - **前端**: Svelte 5 (Runes) + Tailwind CSS v4 (CSS-first)
 - **状态管理**: TanStack Query v5 (Server Sync) + Svelte 5 Runes
-- **表单**: Superforms + Zod / Valibot (Type-safe Validation)
+- **表单**: Superforms + Zod (Type-safe Validation)
 - **后端**: PocketBase (SQLite / Go) + Rate Limiting
 - **支付**: Stripe Connect / Elements / Tax (Automatic VAT/Sales Tax)
 - **开发工具**: OpenCode / Antigravity + GitHub Spec Kit

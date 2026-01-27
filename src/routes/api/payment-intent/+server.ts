@@ -137,7 +137,18 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
         const product = await getProductByPbId(item.id);
         if (!product) {
             console.error(`Product not found during checkout: ${item.id}`);
-            throw { status: 400, message: `Product not found: ${item.title}` };
+            // Return explicit error with item details
+            throw { 
+                status: 400, 
+                message: `Item not available: ${item.title || item.id}. Please remove it from your cart.` 
+            };
+        }
+        
+        if (product.stockStatus === 'out_of_stock') {
+             throw { 
+                status: 400, 
+                message: `Item out of stock: ${item.title}. Please remove it from your cart.` 
+            };
         }
         
         // product.priceValue is in dollars (float), convert to cents

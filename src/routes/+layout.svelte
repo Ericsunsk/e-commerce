@@ -58,6 +58,7 @@
     }
 
     import type { NavItem } from "$lib/types";
+    import { NavigationLocationOptions } from "$lib/pocketbase-types";
 
     // Fallback navigation if data is missing or sparse
     let headerNav = $derived.by(() => {
@@ -66,14 +67,14 @@
         }
         // Default items if backend navigation is insufficient
         const defaults: NavItem[] = [
-            { label: "Shop", url: "/shop", id: "default-shop", location: "header", order: 1, isVisible: true },
-            { label: "Collection", url: "/collection", id: "default-collection", location: "header", order: 2, isVisible: true },
+            { label: "Shop", url: "/shop", id: "default-shop", location: NavigationLocationOptions.header, order: 1, isVisible: true } as NavItem,
+            { label: "Collection", url: "/collection", id: "default-collection", location: NavigationLocationOptions.header, order: 2, isVisible: true } as NavItem,
         ];
         // If data has at least one item, merge it? Or just override?
         // Strategy: If data has only 1 item, preprend "Shop" if not present.
         if (data.headerNav && data.headerNav.length === 1) {
              const hasShop = data.headerNav.some(n => n.url === '/shop');
-             const shopItem: NavItem = { label: "Shop", url: "/shop", id: "default-shop-prefix", location: "header", order: 0, isVisible: true };
+             const shopItem = { label: "Shop", url: "/shop", id: "default-shop-prefix", location: NavigationLocationOptions.header, order: 0, isVisible: true } as NavItem;
              return hasShop ? data.headerNav : [shopItem, ...data.headerNav];
         }
         return defaults;

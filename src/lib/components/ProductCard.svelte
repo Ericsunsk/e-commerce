@@ -43,7 +43,7 @@
         <RemoteImage
             src={product.image}
             alt={product.title}
-            className="w-full h-full absolute inset-0 group-hover:scale-105 {TRANSITIONS.transform} ease-[cubic-bezier(0.16,1,0.3,1)]"
+            className="w-full h-full absolute inset-0 group-hover:scale-105 {TRANSITIONS.transform} ease-apple-spring"
         />
 
         <button

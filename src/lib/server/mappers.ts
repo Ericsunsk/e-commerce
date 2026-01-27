@@ -58,25 +58,41 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
     }
 
     // Omit attributes from spread to handle null-check manually
-    const { attributes, ...rest } = record;
+    // const { attributes, ...rest } = record;
 
     return {
-        ...rest,
-        // Override or Mapped fields
-        id: (record.slug || record.id), // Prefer slug for frontend routing ID
+        // Base Identity
+        id: (record.slug || record.id),
+        collectionId: collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        updated: record.updated,
+
+        // Core Data
+        title: record.title,
+        slug: record.slug,
+        description: record.description,
+
+        // Frontend Specific / Computed
         price: "Loading...",
         priceValue: 0,
         image: mainImage,
         images: galleryImages.length > 0 ? galleryImages : [mainImage],
+        
+        variants: variants.length > 0 ? variants : undefined,
         categories: categories,
         categoryIds: categoryIds,
-        attributes: (attributes as Record<string, any>) || {},
+        
+        attributes: (record.attributes as Record<string, any>) || {},
+
+        // Status Flags
         isFeature: !!record.is_featured,
         hasVariants: !!record.has_variants,
-        variants: variants.length > 0 ? variants : undefined,
-        stripePriceId: record.stripe_price_id,
         stockStatus: record.stock_status || 'in_stock',
-        gender: gender
+        gender: gender,
+        
+        stripePriceId: record.stripe_price_id
+        // tag: record.tag // Not in PB types yet
     };
 }
 
@@ -87,7 +103,16 @@ export function mapVariantsFromExpand(expandedVariants: ProductVariantsResponse[
     if (!expandedVariants) return [];
 
     return expandedVariants.map(v => ({
-        ...v,
+        id: v.id,
+        collectionId: v.collectionId,
+        collectionName: v.collectionName,
+        
+        product: v.product,
+        color: v.color,
+        size: v.size,
+        sku: v.sku,
+
+        // Mapped
         image: v.variant_image ? getFileUrl(v.collectionId, v.id, v.variant_image) : undefined,
         stockQuantity: v.stock_quantity,
         priceOverride: v.price_override
@@ -103,7 +128,17 @@ export function mapVariantsFromExpand(expandedVariants: ProductVariantsResponse[
  */
 export function mapRecordToCategory(record: CategoriesResponse): Category {
     return {
-        ...record,
+        id: record.id,
+        collectionId: record.collectionId,
+        collectionName: record.collectionName,
+        created: record.created,
+        updated: record.updated,
+        
+        title: record.name,
+        name: record.name,
+        slug: record.slug,
+        
+        // Mapped fields
         image: record.image ? getFileUrl('categories', record.id, record.image) : undefined,
         isVisible: !!record.is_visible,
         sortOrder: record.sort_order || 0
@@ -117,7 +152,15 @@ export function mapCategoryFromExpand(expandedCategory: CategoriesResponse | und
     if (!expandedCategory) return undefined;
 
     return {
-        ...expandedCategory,
+        id: expandedCategory.id,
+        collectionId: expandedCategory.collectionId,
+        collectionName: expandedCategory.collectionName,
+        created: expandedCategory.created,
+        updated: expandedCategory.updated,
+        
+        title: expandedCategory.name,
+        slug: expandedCategory.slug,
+
         image: expandedCategory.image ? getFileUrl('categories', expandedCategory.id, expandedCategory.image) : undefined,
         isVisible: !!expandedCategory.is_visible,
         sortOrder: expandedCategory.sort_order || 0
@@ -138,7 +181,15 @@ export function mapCategoriesFromExpand(expandedCategories: CategoriesResponse |
     return categoriesArray
         .filter(c => c != null)
         .map(c => ({
-            ...c,
+            id: c.id,
+            collectionId: c.collectionId,
+            collectionName: c.collectionName,
+            created: c.created,
+            updated: c.updated,
+            
+            title: c.name,
+            slug: c.slug,
+
             image: c.image ? getFileUrl('categories', c.id, c.image) : undefined,
             isVisible: !!c.is_visible,
             sortOrder: c.sort_order || 0

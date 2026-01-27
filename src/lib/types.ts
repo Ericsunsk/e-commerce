@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type {
     ProductVariantsResponse,
     ProductsResponse,
@@ -10,78 +11,124 @@ import type {
     OrdersResponse,
     OrderItemsResponse,
     CouponsResponse,
-    UserListsResponse,
-    UserAddressesResponse
+    UserListsResponse
 } from './pocketbase-types';
 
 // =============================================================================
-// Core Types
+// Core Zod Schemas & Types
 // =============================================================================
 
-export type ProductVariant = ProductVariantsResponse & {
-    image?: string; // Resolved URL
-    stockQuantity?: number; // Alias for stock_quantity
-    priceOverride?: number; // Alias for price_override
-};
+// --- Category ---
+export const CategorySchema = z.object({
+    // Base fields
+    id: z.string(),
+    collectionId: z.string(),
+    collectionName: z.string(),
+    created: z.string(),
+    updated: z.string(),
+    
+    title: z.string(),
+    name: z.string().optional(),
+    slug: z.string(),
+    parent: z.string().optional(),
+    
+    // Some legacy code might expect name, let's include it if present in DB
+    // or map it. For now, strict Zod schema based on usage.
+    
+    // Enhanced/Mapped fields
+    isVisible: z.boolean().default(true),
+    sortOrder: z.number().default(0),
+    image: z.string().optional(), // Resolved URL
+});
+// Pure Zod inference, no intersection with PB types to avoid brand type conflicts
+export type Category = z.infer<typeof CategorySchema>;
 
-export type Product = Omit<ProductsResponse, 'attributes'> & {
-    // Frontend-specific / Transformed fields
-    price: string;        // Formatted price string
-    priceValue: number;   // Raw numeric price
-    image: string;        // Main image URL
-    images: string[];     // All image URLs
-    variants?: ProductVariant[];
-    categories?: Category[]; // Resolved categories
-    attributes?: Record<string, any>;
+
+// --- Product Variant ---
+export const ProductVariantSchema = z.object({
+    id: z.string(),
+    collectionId: z.string(),
+    collectionName: z.string(),
     
-    // UI Helpers
-    isFeature: boolean;   // mapped from is_featured?
-    hasVariants: boolean; // mapped from has_variants
+    product: z.string(),
+    color: z.string(),
+    size: z.string(),
+    sku: z.string(),
     
-    // Mapped fields (renamed or computed)
-    categoryIds?: string[];
-    gender: 'mens' | 'womens' | 'unisex'; // derived
-    stripePriceId?: string; // Alias for stripe_price_id
-    stockStatus?: 'in_stock' | 'low_stock' | 'out_of_stock'; // Alias for stock_status
-};
+    // Mapped
+    image: z.string().optional(),
+    stockQuantity: z.number().optional(), // alias
+    priceOverride: z.number().optional(), // alias
+});
+export type ProductVariant = z.infer<typeof ProductVariantSchema>;
+
+
+// --- Product ---
+export const ProductSchema = z.object({
+    // Base Identity
+    id: z.string(),
+    collectionId: z.string(),
+    collectionName: z.string(),
+    created: z.string(),
+    updated: z.string(),
+
+    // Core Data
+    title: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    
+    // Frontend Specific / Computed
+    price: z.string(),        // Formatted "$100.00"
+    priceValue: z.number(),   // Raw 100.00
+    image: z.string(),        // Main image URL
+    images: z.array(z.string()), // Gallery URLs
+    
+    variants: z.array(ProductVariantSchema).optional(),
+    categories: z.array(CategorySchema).optional(),
+    categoryIds: z.array(z.string()).optional(),
+    
+    attributes: z.record(z.string(), z.any()).optional(),
+
+    // Status Flags
+    isFeature: z.boolean(),
+    hasVariants: z.boolean(),
+    stockStatus: z.enum(['in_stock', 'low_stock', 'out_of_stock']).default('in_stock'),
+    gender: z.enum(['mens', 'womens', 'unisex']).default('unisex'),
+    
+    stripePriceId: z.string().optional(),
+    tag: z.string().optional(),
+});
+export type Product = z.infer<typeof ProductSchema>;
+
 
 // =============================================================================
-// Site Module Types
+// Site / Content Types
 // =============================================================================
 
 export type GlobalSettings = Omit<GlobalSettingsResponse, 'icon'> & {
-    // Aggregated image assets
     storyImage?: string;
     aboutHeroImage?: string;
     aboutSectionImage?: string;
     emptyWishlistImage?: string;
-    
-    icon?: string; // Resolved URL
-    
-    // Alias for camelCase usage if needed, but try to use snake_case from DB
-    shippingThreshold: number; // Alias for shipping_threshold
-    currencyCode: string;      // Alias for currency_code
-    currencySymbol: string;    // Alias for currency_symbol
-    siteName: string;          // Alias for site_name
-    maintenanceMode: boolean;  // Alias for maintenance_mode
+    icon?: string;
+    shippingThreshold: number;
+    currencyCode: string;
+    currencySymbol: string;
+    siteName: string;
+    maintenanceMode: boolean;
 };
 
 export type NavItem = NavigationResponse & {
-    isVisible: boolean; // mapped from is_visible
+    isVisible: boolean;
     children?: NavItem[];
 };
 
-// =============================================================================
-// Content Module Types
-// =============================================================================
-
 export type Page = Omit<PagesResponse, 'hero_image' | 'og_image'> & {
-    metaDescription: string; // mapped from meta_description
-    ogImage?: string;        // mapped from og_image (URL)
-    heroImage?: string;      // mapped from hero_image (URL)
-    
-    // Keep raw filenames if needed, but usually we use mapped camelCase
-    hero_image?: string; // Optional raw
+    metaDescription: string;
+    ogImage?: string;
+    heroImage?: string;
+    // Legacy support
+    hero_image?: string;
     og_image?: string;
 };
 
@@ -103,46 +150,37 @@ export interface UISectionSettings {
 }
 
 export type UISection = Omit<UiSectionsResponse<UISectionSettings>, 'image' | 'video' | 'type'> & {
-    pageId: string; // mapped from page
-    type: SectionType; // Override with string union
+    pageId: string;
+    type: SectionType;
     imageUrl?: string;
     videoUrl?: string;
     imageGallery?: string[];
     videoGallery?: string[];
-    sortOrder: number; // mapped from sort_order
-    isActive: boolean; // mapped from is_active
-    scheduleStart?: string; // mapped from schedule_start
-    scheduleEnd?: string;   // mapped from schedule_end
-    
-    // Raw fields override (optional)
-    image?: string[]; // Raw filenames
-    video?: string;   // Raw filename
+    sortOrder: number;
+    isActive: boolean;
+    scheduleStart?: string;
+    scheduleEnd?: string;
+    image?: string[];
+    video?: string;
 };
 
 export type UIAsset = Omit<UiAssetsResponse, 'image'> & {
     url: string;
-    altText?: string; // mapped from alt_text
-    image?: string; // Raw filename
+    altText?: string;
+    image?: string;
 };
 
 // =============================================================================
-// Commerce Module Types
+// Commerce / Order Types
 // =============================================================================
-
-export type Category = Omit<CategoriesResponse, 'image'> & {
-    isVisible: boolean; // mapped from is_visible
-    sortOrder: number;  // mapped from sort_order
-    image?: string;     // URL resolved
-};
 
 export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'returned';
 
 export type OrderItem = OrderItemsResponse & {
-    productId: string; // mapped from product_id
-    variantId?: string; // mapped from variant_id
-    title: string;      // mapped from product_title_snap
-    price: number;      // mapped from price_snap
-    // ... extra fields potentially
+    productId: string;
+    variantId?: string;
+    title: string;
+    price: number;
     image?: string;
     color?: string;
     size?: string;
@@ -159,24 +197,20 @@ export interface ShippingAddress {
 }
 
 export type Order = OrdersResponse<ShippingAddress> & {
-    userId?: string; // mapped from user
-    stripeSessionId: string; // mapped from stripe_session_id
-    stripePaymentIntent?: string; // mapped from stripe_payment_intent
-    customerEmail: string; // mapped from customer_email
-    customerName?: string; // mapped from customer_name
+    userId?: string;
+    stripeSessionId: string;
+    stripePaymentIntent?: string;
+    customerEmail: string;
+    customerName?: string;
     items: OrderItem[];
-    amountSubtotal: number; // mapped from amount_subtotal
-    amountShipping: number; // mapped from amount_shipping
+    amountSubtotal: number;
+    amountShipping: number;
     amountTax?: number;
-    amountTotal: number; // mapped from amount_total
-    shippingAddress: ShippingAddress; // mapped from shipping_address
-    trackingNumber?: string; // mapped from tracking_number
-    trackingCarrier?: string; // mapped from tracking_carrier
+    amountTotal: number;
+    shippingAddress: ShippingAddress;
+    trackingNumber?: string;
+    trackingCarrier?: string;
 };
-
-// =============================================================================
-// Marketing Module Types
-// =============================================================================
 
 export type Coupon = Omit<CouponsResponse, 'type'> & {
     type: 'percentage' | 'fixed_amount';
@@ -186,25 +220,30 @@ export type Coupon = Omit<CouponsResponse, 'type'> & {
     usage_count?: number;
 };
 
-
 // =============================================================================
-// System Module Types - User Lists (Cart, Wishlist, etc.)
+// Cart & List Types (Zod Enhanced)
 // =============================================================================
 
-export interface CartItem {
-    id: string; // Product ID
-    variantId?: string;
-    quantity: number;
-    title?: string;
-    price?: number; // Store as number for calculation
-    image?: string;
-    slug?: string;
-    stripePriceId?: string;
-    color?: string;
-    size?: string;
-    // Add cartItemId for composite key
-    cartItemId?: string; 
-}
+export const CartItemSchema = z.object({
+    id: z.string(),         // Product ID
+    variantId: z.string().optional(),
+    quantity: z.number().min(1),
+    
+    // Snapshot data (for UI display without refetching product)
+    title: z.string().optional(),
+    price: z.number().optional(),
+    image: z.string().optional(),
+    slug: z.string().optional(),
+    
+    color: z.string().optional(),
+    size: z.string().optional(),
+    
+    stripePriceId: z.string().optional(),
+    
+    // Computed locally
+    cartItemId: z.string().optional()
+});
+export type CartItem = z.infer<typeof CartItemSchema>;
 
 export interface UserListItem {
     productId: string;
@@ -213,5 +252,5 @@ export interface UserListItem {
 }
 
 export type UserList = UserListsResponse<UserListItem[]> & {
-    userId: string; // mapped from user
+    userId: string;
 };

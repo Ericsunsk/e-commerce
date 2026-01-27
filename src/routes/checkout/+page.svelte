@@ -79,7 +79,7 @@
 
     // handleStep1 removed, logic moved to superForm onResult
 
-    function handleStep2({ cancel }: { cancel: () => void }) {
+    function handleStep2({ cancel }: any) {
         cancel();
         initializePayment();
     }
@@ -157,15 +157,15 @@
             const payload: any = {
                 items: cart.items,
                 shippingInfo: {
-                    name: `${form.firstName} ${form.lastName}`,
-                    line1: form.address,
-                    city: form.city,
-                    postalCode: form.zip,
-                    country: form.country,
+                    name: `${$form.firstName} ${$form.lastName}`,
+                    line1: $form.address,
+                    city: $form.city,
+                    postalCode: $form.zip,
+                    country: $form.country,
                 },
                 customerInfo: {
-                    email: form.email,
-                    name: `${form.firstName} ${form.lastName}`,
+                    email: $form.email,
+                    name: `${$form.firstName} ${$form.lastName}`,
                     userId:
                         auth.user && !auth.user.isAdmin
                             ? auth.user.id
@@ -238,12 +238,12 @@
                 return_url: `${window.location.origin}/checkout/success`,
                 payment_method_data: {
                     billing_details: {
-                        name: `${form.firstName} ${form.lastName}`,
-                        email: form.email,
+                        name: `${$form.firstName} ${$form.lastName}`,
+                        email: $form.email,
                         address: {
-                            line1: form.address,
-                            city: form.city,
-                            postal_code: form.zip,
+                            line1: $form.address,
+                            city: $form.city,
+                            postal_code: $form.zip,
                             country: "US", // Simplification for demo
                         },
                     },
@@ -472,63 +472,6 @@
                             >
                                 Back
                             </Button>
-                        </div>
-                    </form>
-                </div>
-
-
-                <!-- Step 2: Shipping -->
-            {:else if step === 2}
-                <div
-                    in:fly={{
-                        y: 20,
-                        duration: 600,
-                        delay: 200,
-                        easing: cubicOut,
-                    }}
-                    out:fade={{ duration: 200 }}
-                >
-                    <h2 class={stepHeading}>Shipping Method</h2>
-
-                    <div class="border {COLORS.border} p-4 mb-8">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="{TYPOGRAPHY.labelLg} {COLORS.text}"
-                                >Contact</span
-                            >
-                            <span class="text-xs font-medium">{form.email}</span
-                            >
-                        </div>
-                        <div class="h-px bg-primary dark:bg-white my-2"></div>
-                        <div class="flex justify-between items-center">
-                            <span class="{TYPOGRAPHY.labelLg} {COLORS.text}"
-                                >Ship to</span
-                            >
-                            <span class="text-xs font-medium"
-                                >{form.address}, {form.city}, {form.zip}</span
-                            >
-                        </div>
-                    </div>
-
-                    <form method="POST" use:enhance={handleStep2}>
-                        <div class="flex flex-col gap-4">
-                            {#each shippingOptions as option}
-                                <ShippingOption
-                                    {option}
-                                    selected={selectedShipping === option.id}
-                                    onSelect={(id) => (selectedShipping = id)}
-                                />
-                            {/each}
-                        </div>
-
-                        <div class="flex gap-4 mt-8">
-                            <Button
-                                variant="outline"
-                                size="lg"
-                                className="flex-1"
-                                onclick={() => (step = 1)}
-                            >
-                                Back
-                            </Button>
                             <Button
                                 type="submit"
                                 size="lg"
@@ -595,7 +538,7 @@
 
         <!-- Right Column: Order Summary -->
         <div
-            class="lg:col-span-5 bg-primary/5 dark:bg-white/5 p-8 h-fit lg:sticky lg:top-32"
+            class="lg:col-span-5 bg-primary/5 dark:bg-white/5 p-8 h-fit lg:sticky lg:top-32 z-[var(--z-sticky)]"
         >
             <h3 class="text-sm font-bold uppercase tracking-widest mb-6">
                 Order Summary

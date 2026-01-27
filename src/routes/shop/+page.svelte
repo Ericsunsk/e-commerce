@@ -17,7 +17,7 @@
         ...data.categories
             .filter((c) => !data.navCategorySlugs.includes(c.slug))
             .map((c) => ({
-                name: c.name.toUpperCase(),
+                name: c.name ? c.name.toUpperCase() : "UNKNOWN",
                 slug: c.slug
             })),
     ]);

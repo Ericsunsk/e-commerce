@@ -1,14 +1,14 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.0.0 -> 1.1.0
+Version: 1.1.0 -> 1.2.0
 Ratified: 2026-01-27
 Last Amended: 2026-01-27
 
 Modified Principles:
-- Title: E-Commerce Project Constitution -> ELEMENTHIC Project Constitution
+- IV. Type Safety (Type Convergence) -> Added strict Zod v4 / Superforms adapter mandate.
 
 Added Sections:
-- VIII. Spec-Driven Workflow (The Law)
+- None.
 
 Templates Checked:
 - .specify/templates/plan-template.md (✅ aligned)
@@ -47,6 +47,7 @@ Follow-up TODOs:
 ### IV. Type Safety (Type Convergence)
 - **Source of Truth**: Always extend from `src/lib/pocketbase-types.ts` (generated from DB).
 - **Domain Types**: Define View Models in `src/lib/types.ts` by extending DB types.
+- **Validation**: Strict use of **Zod v4** (imported as `zod`) for all schemas. `sveltekit-superforms` must use the `zod4` adapter. No `zod/v3` legacy imports allowed.
 
 ### V. Backend & Architecture (Adaptive Edge)
 - **Three-Tier Architecture**:
@@ -77,4 +78,4 @@ Follow-up TODOs:
 - Every new feature must be validated against these rules during the `Plan` and `Analyze` phases.
 - **Compliance**: Pull Requests violating these principles must be rejected, regardless of functional correctness.
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
+**Version**: 1.2.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
