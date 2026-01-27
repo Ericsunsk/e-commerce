@@ -5,6 +5,7 @@ import { env } from '$env/dynamic/private';
 const secretKey = env.STRIPE_SECRET_KEY || 'sk_test_placeholder_for_dev_mode';
 
 export const stripe = new Stripe(secretKey, {
+    apiVersion: '2025-02-24.acacia',
     typescript: true,
 });
 

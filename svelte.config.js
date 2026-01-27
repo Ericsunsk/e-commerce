@@ -29,7 +29,8 @@ const scriptSrc = [
     'unsafe-eval',
     'https://js.stripe.com',
     'https://*.umami.is', 
-    'https://analytics.elementhic.com'
+    'https://analytics.elementhic.com',
+    'https://static.cloudflareinsights.com'
 ];
 
 const connectSrc = [
