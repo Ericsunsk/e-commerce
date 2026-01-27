@@ -40,12 +40,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
         case 'checkout.session.expired':
             const expiredSession = event.data.object as Stripe.Checkout.Session;
-            console.log(`Checkout session expired: ${expiredSession.id}`);
             break;
 
         case 'payment_intent.payment_failed':
             const failedIntent = event.data.object as Stripe.PaymentIntent;
-            console.log(`Payment failed for intent: ${failedIntent.id}`);
+            console.error(`Payment failed for intent: ${failedIntent.id}`);
             break;
 
         // Product Sync Events (Hybrid Driver)
@@ -63,7 +62,7 @@ export const POST: RequestHandler = async ({ request }) => {
         //     break;
 
         default:
-            console.log(`Unhandled event type: ${event.type}`);
+            // Unhandled event type
     }
 
     return json({ received: true });
@@ -73,8 +72,7 @@ export const POST: RequestHandler = async ({ request }) => {
  * Handle successful payment intent (Stripe Elements)
  */
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-    console.log(`Processing payment_intent.succeeded: ${paymentIntent.id}`);
-
+    
     try {
         // Find the pending order created by the client/server flow
         const order = await getOrderByPaymentIntent(paymentIntent.id);
@@ -85,11 +83,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         }
 
         if (order.status === 'paid') {
-            console.log(`Order ${order.id} is already paid. Skipping.`);
             return;
         }
-
-        console.log(`✅ Found pending order ${order.id}. Updating status to paid.`);
 
         // Update status to paid
         const updatedOrder = await updateOrderStatus(order.id, 'paid');
@@ -119,13 +114,11 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
  */
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     // ... (Keep existing implementation for backward compatibility if needed)
-    console.log(`Processing checkout.session.completed: ${session.id}`);
 
     try {
         // Check if order already exists (idempotency)
         const existingOrder = await getOrderBySessionId(session.id);
         if (existingOrder) {
-            console.log(`Order already exists for session: ${session.id}`);
             return;
         }
 
@@ -187,8 +180,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         });
 
         if (order) {
-            console.log(`✅ Order created successfully: ${order.id}`);
-
             // Deduct stock for each item
             // Note: In Checkout Session flow, we need to know the PB ID. 
             // The item.productId is the STRIPE product ID. 
@@ -214,17 +205,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
  * Automatically creates a mirror record in PocketBase and links them via metadata
  */
 async function handleProductCreated(stripeProduct: Stripe.Product) {
-    console.log(`Processing product.created: ${stripeProduct.id} (${stripeProduct.name})`);
 
     // Check if it already has a pb_product_id (prevent loops or double creation)
     if (stripeProduct.metadata?.pb_product_id) {
-        console.log(`Product ${stripeProduct.id} already has a PB ID. Skipping creation.`);
         return;
     }
 
     try {
         const pbRecord = await createProductFromStripe(stripeProduct);
-        console.log(`✅ Automatically created PB product ${pbRecord.id} for Stripe product ${stripeProduct.id}`);
     } catch (e) {
         console.error('Error auto-creating product from Stripe:', e);
     }
@@ -235,19 +223,15 @@ async function handleProductCreated(stripeProduct: Stripe.Product) {
  * Syncs product active/archived status to PocketBase
  */
 async function handleProductUpdated(stripeProduct: Stripe.Product) {
-    console.log(`Processing product.updated: ${stripeProduct.id} (active: ${stripeProduct.active})`);
-
     // Extract PB product ID from Stripe metadata (convention: pb_product_id)
     const pbProductId = stripeProduct.metadata?.pb_product_id;
 
     if (!pbProductId) {
-        console.warn(`⚠️ Stripe product ${stripeProduct.id} has no pb_product_id in metadata. Cannot sync.`);
         return;
     }
 
     try {
         await syncProductStatusFromStripe(pbProductId, stripeProduct.active);
-        console.log(`✅ PB product ${pbProductId} synced: stock_status -> ${stripeProduct.active ? 'in_stock' : 'out_of_stock'}`);
     } catch (e) {
         console.error('Error syncing product status:', e);
     }
@@ -258,18 +242,14 @@ async function handleProductUpdated(stripeProduct: Stripe.Product) {
  * Marks PocketBase product as out_of_stock
  */
 async function handleProductDeleted(stripeProduct: Stripe.Product) {
-    console.log(`Processing product.deleted: ${stripeProduct.id}`);
-
     const pbProductId = stripeProduct.metadata?.pb_product_id;
 
     if (!pbProductId) {
-        console.warn(`⚠️ Stripe product ${stripeProduct.id} has no pb_product_id. Cannot sync deletion.`);
         return;
     }
 
     try {
         await syncProductStatusFromStripe(pbProductId, false);
-        console.log(`✅ PB product ${pbProductId} marked as out_of_stock due to Stripe deletion.`);
     } catch (e) {
         console.error('Error handling product deletion:', e);
     }
@@ -285,7 +265,6 @@ async function handleProductDeleted(stripeProduct: Stripe.Product) {
  */
 async function triggerN8nOrderNotification(order: Order): Promise<void> {
     if (!n8nWebhookUrl) {
-        console.warn('⚠️ N8N_WEBHOOK_URL not configured. Skipping n8n notification.');
         return;
     }
 
@@ -323,9 +302,7 @@ async function triggerN8nOrderNotification(order: Order): Promise<void> {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }).then(res => {
-            if (res.ok) {
-                console.log(`✅ n8n webhook triggered for order ${order.id}`);
-            } else {
+            if (!res.ok) {
                 console.warn(`⚠️ n8n webhook responded with status ${res.status}`);
             }
         }).catch(err => {

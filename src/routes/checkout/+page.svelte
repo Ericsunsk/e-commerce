@@ -209,7 +209,6 @@
                 );
             }
 
-            console.log("💳 Mounting Stripe Payment Element...");
             elements = stripe.elements({
                 clientSecret,
                 appearance: {
