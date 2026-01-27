@@ -46,7 +46,7 @@ export function useCart() {
     const query = createQuery<CartItem[]>(() => ({
         queryKey: cartKey,
         queryFn: async () => auth.isAuthenticated ? fetchCart() : getGuestCart(),
-        initialData: [],
+        // initialData: [], // Removed to force fetch on mount
     }));
 
     // Derived State
