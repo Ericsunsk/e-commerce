@@ -342,8 +342,7 @@
             <!-- Step 1: Information -->
             {#if step === 1}
                 <div
-                    in:fly={{ y: 20, duration: 600, easing: cubicOut }}
-                    out:fade={{ duration: 200 }}
+                    in:fly={{ y: 20, duration: 600, easing: cubicOut, delay: 200 }}
                 >
                     <h2 class={stepHeading}>Contact Information</h2>
                     <form
@@ -385,7 +384,7 @@
                             error={$errors.address ? $errors.address[0] : ""}
                         />
 
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormInput
                                 id="zip"
                                 label="Zip Code"
@@ -431,7 +430,6 @@
                         delay: 200,
                         easing: cubicOut,
                     }}
-                    out:fade={{ duration: 200 }}
                 >
                     <h2 class={stepHeading}>Shipping Method</h2>
 
