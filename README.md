@@ -24,6 +24,7 @@ ELEMENTHIC 是一个基于 **SvelteKit 5 + Svelte 5** 构建的现代化高性�
 - **表单**: Superforms + Zod (Type-safe Validation)
 - **后端**: PocketBase (SQLite / Go) + Rate Limiting
 - **支付**: Stripe Connect / Elements / Tax (Automatic VAT/Sales Tax)
+- **测试**: Playwright (E2E) + Vitest (Unit)
 - **开发工具**: OpenCode / Antigravity + GitHub Spec Kit
 
 ---
@@ -68,6 +69,9 @@ npm install
 
 # 安装 Spec Kit 必需工具 uv (Python 环境管理)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 安装 Playwright 浏览器 (用于测试)
+npx playwright install
 ```
 
 ### 2. 配置环境变量
@@ -84,6 +88,15 @@ cp .env.example .env
 npm run dev
 ```
 
+### 4. 运行测试
+```bash
+# 运行单元测试
+npm run test
+
+# 运行 E2E 测试 (Checkout Flow)
+npm run test:e2e
+```
+
 ---
 
 ## 📊 项目进度 (Roadmap)
@@ -97,7 +110,8 @@ npm run dev
 ### 🔄 Phase 13: 体验与自动化进化 (In Progress)
 - [x] **Core Architecture Audit**: 完成服务端认证 (Hooks) 修复与安全性审计 (npm audit 0 vulnerabilities)。
 - [x] **Universal Spec Template**: 升级规范模板，支持领域建模。
-- [x] **001-UX Evolution**: 引入 Apple Spring 动画曲线与 Toast 组件重构。
+- [x] **UX Evolution**: 引入 Apple Spring 动画曲线与 Toast 组件重构。
+- [x] **Checkout & Payment**: 完整的 Stripe Elements 支付流程，服务端价格计算与 Webhook 处理。
 - [ ] **002-Cart Recovery**: 建立基于 Stripe Webhook + n8n 的废弃购物车召回系统。
 
 ---

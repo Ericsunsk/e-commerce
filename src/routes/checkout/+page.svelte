@@ -23,7 +23,7 @@
 
     // Superforms init
     const { form, errors, constraints, enhance, message } = superForm<ShippingAddressSchema>(data.form, {
-        validators: zodClient(shippingAddressSchema),
+        validators: zodClient(shippingAddressSchema as any),
         onResult: ({ result }) => {
             if (result.type === 'success') {
                 step = 2;
