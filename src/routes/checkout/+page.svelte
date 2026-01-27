@@ -13,8 +13,9 @@
     import { DEFAULTS, COLORS, TYPOGRAPHY } from "$lib/constants";
     import type { Stripe, StripeElements } from "@stripe/stripe-js";
     import { superForm } from 'sveltekit-superforms';
+    import { zodClient } from 'sveltekit-superforms/adapters';
     import type { PageData } from './$types';
-    import type { ShippingAddressSchema } from '$lib/schemas';
+    import { shippingAddressSchema, type ShippingAddressSchema } from '$lib/schemas';
 
     const cart = useCart();
 
@@ -22,6 +23,7 @@
 
     // Superforms init
     const { form, errors, constraints, enhance, message } = superForm<ShippingAddressSchema>(data.form, {
+        validators: zodClient(shippingAddressSchema),
         onResult: ({ result }) => {
             if (result.type === 'success') {
                 step = 2;
@@ -352,9 +354,11 @@
                         novalidate
                     >
                         <FormInput
-                            id="email"
+                            id="checkout-email"
+                            name="email"
                             label="Email Address"
                             type="email"
+                            autocomplete="email"
                             bind:value={$form.email}
                             error={$errors.email ? $errors.email[0] : ""}
                             placeholder="john@example.com"
@@ -364,47 +368,58 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <FormInput
-                                id="first-name"
+                                id="checkout-first-name"
+                                name="firstName"
                                 label="First Name"
+                                autocomplete="given-name"
                                 bind:value={$form.firstName}
                                 error={$errors.firstName ? $errors.firstName[0] : ""}
                             />
                             <FormInput
-                                id="last-name"
+                                id="checkout-last-name"
+                                name="lastName"
                                 label="Last Name"
+                                autocomplete="family-name"
                                 bind:value={$form.lastName}
                                 error={$errors.lastName ? $errors.lastName[0] : ""}
                             />
                         </div>
 
                         <FormInput
-                            id="address"
+                            id="checkout-address"
+                            name="address"
                             label="Address"
+                            autocomplete="address-line1"
                             bind:value={$form.address}
                             error={$errors.address ? $errors.address[0] : ""}
                         />
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <FormInput
-                                id="zip"
+                                id="checkout-zip"
+                                name="zip"
                                 label="Zip Code"
+                                autocomplete="postal-code"
                                 bind:value={$form.zip}
                                 error={$errors.zip ? $errors.zip[0] : ""}
                                 className="col-span-1"
                             />
                             <FormInput
-                                id="city"
+                                id="checkout-city"
+                                name="city"
                                 label="City"
+                                autocomplete="address-level2"
                                 bind:value={$form.city}
                                 error={$errors.city ? $errors.city[0] : ""}
                                 className="col-span-1"
                             />
                             <FormSelect
-                                id="country"
+                                id="checkout-country"
                                 label="Country"
                                 bind:value={$form.country}
                                 options={countries}
                                 className="col-span-1"
+                                hideLabel={true}
                             />
                         </div>
 
@@ -574,7 +589,7 @@
                             </p>
                         </div>
                         <div class="flex flex-col justify-center">
-                            <span class="text-xs font-bold">{item.price}</span>
+                            <span class="text-xs font-bold">{formatMoney(item.price || 0)}</span>
                         </div>
                     </div>
                 {/each}

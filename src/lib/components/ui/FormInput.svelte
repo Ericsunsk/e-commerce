@@ -2,8 +2,9 @@
     interface Props {
         id: string;
         label: string;
-        type?: "text" | "email" | "tel" | "password";
         value: string;
+        name?: string; // Add name prop
+        type?: "text" | "email" | "tel" | "password";
         error?: string; // String error message
         placeholder?: string;
         disabled?: boolean;
@@ -11,13 +12,15 @@
         className?: string;
         autocomplete?: string;
         oninput?: (e: Event) => void;
+        [key: string]: any; // Allow other props
     }
 
     let {
         id,
         label,
-        type = "text",
         value = $bindable(""),
+        name,
+        type = "text",
         error = "",
         placeholder = "",
         disabled = false,
@@ -25,19 +28,25 @@
         className = "",
         autocomplete,
         oninput,
+        ...rest
     }: Props = $props();
+
+    // Default name to id if not provided, for Form Data
+    const inputName = name || id;
 </script>
 
 <div class="group relative {className}">
     <input
         {type}
         {id}
+        name={inputName}
         bind:value
         {disabled}
         {required}
         placeholder={label}
         autocomplete={autocomplete as any}
         {oninput}
+        {...rest}
         class="w-full bg-transparent border-b py-4 text-sm tracking-widest outline-none focus:outline-none focus:ring-0 rounded-none placeholder:text-transparent peer autofill:shadow-[0_0_0_30px_white_inset] dark:autofill:shadow-[0_0_0_30px_black_inset] autofill:text-fill-primary dark:autofill:text-fill-white transition-colors duration-300 border-primary dark:border-white {error ? 'text-red-500 border-red-500' : ''} disabled:opacity-50"
     />
     <label
