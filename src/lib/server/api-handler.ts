@@ -1,6 +1,6 @@
 import { error, json, type RequestEvent } from '@sveltejs/kit';
 
-type ApiHandler<T = any> = (event: RequestEvent) => Promise<T>;
+type ApiHandler<T = unknown> = (event: RequestEvent) => Promise<T>;
 
 interface ApiHandlerOptions {
 	auth?: boolean; // If true, requires locals.user
@@ -23,17 +23,18 @@ export function apiHandler(handler: ApiHandler, options: ApiHandlerOptions = {})
 			// If result is null/undefined, return empty json or null?
 			// json(undefined) is technically valid (void response body?)
 			return json(result ?? {});
-		} catch (err: any) {
+		} catch (err: unknown) {
 			// Check if it's a SvelteKit error (thrown by error())
 			// SvelteKit errors look like { status: number, body: { message: string } }
 			// But 'error' function throws an HttpError object.
+			const e = err as any;
 
-			const status = err.status || 500;
-			const message = err.body?.message || err.message || 'Internal Server Error';
+			const status = e.status || 500;
+			const message = e.body?.message || e.message || 'Internal Server Error';
 
 			// Only log 500s or unexpected errors
 			if (status >= 500) {
-				console.error('API Handler Error:', err);
+				console.error('API Handler Error:', e);
 			}
 
 			return json({ error: message }, { status });

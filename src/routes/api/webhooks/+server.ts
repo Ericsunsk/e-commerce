@@ -11,7 +11,8 @@ import {
 	createOrder,
 	getOrderBySessionId,
 	getOrderByPaymentIntent,
-	updateOrderStatus
+	updateOrderStatus,
+	type CreateOrderItemDTO
 } from '$lib/server/orders';
 import type { ShippingAddress, Order } from '$lib/types';
 import type Stripe from 'stripe';
@@ -137,8 +138,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 			expand: ['data.price.product']
 		});
 
-		// Map line items to our OrderItem format
-		const items: any[] = lineItems.data.map((item) => {
+		// Map line items to our CreateOrderItemDTO format
+		const items: CreateOrderItemDTO[] = lineItems.data.map((item) => {
 			const product = item.price?.product as Stripe.Product | undefined;
 			return {
 				productId: product?.id || '',

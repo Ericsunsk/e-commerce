@@ -1,11 +1,25 @@
 import { pb } from './pocketbase';
 import type { Order, OrderItem, ShippingAddress, OrderStatus } from '$lib/types';
 import { Collections } from '$lib/pocketbase-types';
+import type { OrdersResponse, OrderItemsResponse } from '$lib/pocketbase-types';
 import { withAdmin } from '$lib/server/admin';
 
 // =============================================================================
 // Commerce Module - Orders
 // =============================================================================
+
+// DTO for creating an order item
+export interface CreateOrderItemDTO {
+	productId: string;
+	title: string;
+	price: number;
+	quantity: number;
+	variantId?: string;
+	skuSnap?: string;
+	color?: string;
+	size?: string;
+	image?: string;
+}
 
 // DTO for creating an order (excludes system fields)
 export interface CreateOrderDTO {
@@ -14,7 +28,7 @@ export interface CreateOrderDTO {
 	stripePaymentIntent?: string;
 	customerEmail: string;
 	customerName?: string;
-	items: any[]; // Input items (from cart/checkout)
+	items: CreateOrderItemDTO[]; // Input items (from cart/checkout or stripe)
 	amountSubtotal: number;
 	amountShipping: number;
 	amountTax?: number;
@@ -42,7 +56,7 @@ export async function createOrder(orderData: CreateOrderDTO): Promise<Order | nu
 			amount_tax: orderData.amountTax || 0,
 			amount_total: orderData.amountTotal,
 			currency: orderData.currency,
-			status: orderData.status,
+			status: orderData.status as unknown as import('$lib/pocketbase-types').OrdersStatusOptions,
 			shipping_address: orderData.shippingAddress,
 			tracking_number: orderData.trackingNumber,
 			tracking_carrier: orderData.trackingCarrier,
@@ -61,7 +75,7 @@ export async function createOrder(orderData: CreateOrderDTO): Promise<Order | nu
 					price_snap: item.price,
 					quantity: item.quantity,
 					variant_id: item.variantId,
-					sku_snap: item.skuSnap,
+					sku_snap: (item as any).skuSnap || (item as any).sku_snap, // Handle potential property name mismatch
 					variant_snap_json: {
 						color: item.color,
 						size: item.size
@@ -71,7 +85,12 @@ export async function createOrder(orderData: CreateOrderDTO): Promise<Order | nu
 			await itemBatch.send();
 		}
 
-		return mapRecordToOrder(orderRecord);
+		// Manually attach items to the record for mapping, as they are not returned by create
+		const recordWithItems = {
+			...orderRecord,
+			items: orderData.items
+		} as unknown as OrderRecordWithItems;
+		return mapRecordToOrder(recordWithItems);
 	}, null);
 }
 
@@ -149,10 +168,31 @@ export async function updateOrderStatus(
 	}, null);
 }
 
-function mapRecordToOrder(record: any): Order {
+// Helper type for mapping
+type OrderRecordWithItems = OrdersResponse<any> & {
+	items?: (OrderItemsResponse | OrderItem)[]; // Can be DB responses or our DTOs
+	amount_tax?: number; // Missing from generated types
+};
+
+function mapRecordToOrder(record: OrderRecordWithItems): Order {
+	// Determine items: primary source is the JSON snapshot 'items'
 	// Determine items: primary source is the JSON snapshot 'items'
 	// Cast record to OrdersResponse to access typed fields, but record is 'any' here for flexibility with create/update returns
-	const items: OrderItem[] = record.items || [];
+	const items: OrderItem[] = (record.items || []).map((item: any) => {
+		// If it's already an OrderItem (from CreateOrderDTO), return it
+		if (item.productId && item.price !== undefined) return item as OrderItem;
+
+		// If it's a DB record (OrderItemsResponse), map it
+		return {
+			...item,
+			productId: item.product_id,
+			variantId: item.variant_id,
+			title: item.product_title_snap,
+			price: item.price_snap,
+			skuSnap: item.sku_snap,
+			variantSnap: item.variant_snap_json
+		} as unknown as OrderItem;
+	});
 
 	return {
 		...record, // Spread DB fields (id, created, etc)
@@ -167,7 +207,7 @@ function mapRecordToOrder(record: any): Order {
 		amountTax: record.amount_tax || 0, // NEW: Map tax
 		amountTotal: record.amount_total,
 		currency: record.currency,
-		status: record.status as OrderStatus,
+		status: record.status as unknown as OrderStatus,
 		shippingAddress: record.shipping_address || {},
 		trackingNumber: record.tracking_number,
 		trackingCarrier: record.tracking_carrier,

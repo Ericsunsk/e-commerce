@@ -9,11 +9,13 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type Stripe from 'stripe';
 import { apiHandler } from '$lib/server/api-handler';
+import type { ShippingAddress, CartItem } from '$lib/types';
+import type { CreateOrderItemDTO } from '$lib/server/orders';
 
 /**
  * Helper: Find or create a Stripe Customer
  */
-async function getOrCreateStripeCustomer(email: string, name: string, address: any) {
+async function getOrCreateStripeCustomer(email: string, name: string, address: ShippingAddress) {
 	if (!email) return null;
 
 	try {
@@ -75,7 +77,7 @@ async function getOrCreateStripeCustomer(email: string, name: string, address: a
  */
 async function calculateTax(
 	items: Array<{ id: string; title: string; quantity: number; priceCents: number }>,
-	shippingAddress: any,
+	shippingAddress: ShippingAddress,
 	currency: string
 ): Promise<{ taxAmountCents: number; calculationId: string | null }> {
 	// If no shipping address, we can't calculate tax
@@ -218,7 +220,7 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 		},
 		metadata: {
 			items_summary: items
-				.map((i: any) => `${i.quantity}x ${i.title}`)
+				.map((i: CartItem) => `${i.quantity}x ${i.title}`)
 				.join(', ')
 				.substring(0, 500),
 			coupon_code: couponCode || '',
@@ -252,16 +254,19 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 			stripePaymentIntent: paymentIntent.id,
 			customerEmail: customerInfo.email,
 			customerName: customerInfo.name,
-			items: items.map((i: any) => ({
-				productId: i.id,
-				variantId: i.variantId,
-				title: i.title,
-				price: parsePrice(i.price),
-				quantity: i.quantity,
-				color: i.color,
-				size: i.size,
-				image: i.image
-			})),
+			items: items.map(
+				(i: CartItem) =>
+					({
+						productId: i.id,
+						variantId: i.variantId,
+						title: i.title || 'Unknown Product',
+						price: typeof i.price === 'number' ? i.price : parsePrice(i.price),
+						quantity: i.quantity,
+						color: i.color,
+						size: i.size,
+						image: i.image
+					}) as CreateOrderItemDTO
+			),
 			amountSubtotal: subtotal,
 			amountShipping: 0,
 			amountTax: taxAmountCents,

@@ -207,7 +207,7 @@ export interface ShippingAddress {
 	country: string;
 }
 
-export type Order = OrdersResponse<ShippingAddress> & {
+export type Order = Omit<OrdersResponse<ShippingAddress>, 'status'> & {
 	userId?: string;
 	stripeSessionId: string;
 	stripePaymentIntent?: string;
@@ -218,6 +218,7 @@ export type Order = OrdersResponse<ShippingAddress> & {
 	amountShipping: number;
 	amountTax?: number;
 	amountTotal: number;
+	status: OrderStatus;
 	shippingAddress: ShippingAddress;
 	trackingNumber?: string;
 	trackingCarrier?: string;
