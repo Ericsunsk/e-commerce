@@ -27,7 +27,7 @@ export { default as Skeleton } from './components/ui/Skeleton.svelte';
 export { default as ProductCardSkeleton } from './components/ui/ProductCardSkeleton.svelte';
 export { default as ProductGridSkeleton } from './components/ui/ProductGridSkeleton.svelte';
 export { default as Badge } from './components/ui/Badge.svelte';
-export { default as Modal } from './components/ui/Modal.svelte';
+
 export { default as EmptyState } from './components/ui/EmptyState.svelte';
 export { default as PageHeader } from './components/ui/PageHeader.svelte';
 export { default as LoadingState } from './components/ui/LoadingState.svelte';

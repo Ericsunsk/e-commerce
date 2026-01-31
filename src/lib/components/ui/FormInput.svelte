@@ -32,7 +32,7 @@
 	}: Props = $props();
 
 	// Default name to id if not provided, for Form Data
-	const inputName = name || id;
+	let inputName = $derived(name || id);
 </script>
 
 <div class="group relative {className}">

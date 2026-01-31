@@ -42,8 +42,6 @@ export const GET: RequestHandler = async ({ url, request }) => {
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}
 
-	console.log('🔍 Fetching orders for userId:', userId);
-
 	try {
 		const orders = await getOrdersByUser(userId);
 		return json({ orders });

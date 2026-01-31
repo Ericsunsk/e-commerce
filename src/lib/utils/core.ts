@@ -1,11 +1,4 @@
 /**
- * Merges class names (simple version without tailwind-merge/clsx)
- */
-export function cn(...inputs: (string | undefined | null | false)[]) {
-	return inputs.filter(Boolean).join(' ');
-}
-
-/**
  * Checks if a link is active based on the current URL
  */
 export function isLinkActive(linkHref: string, currentPath: string, currentSearch: string) {

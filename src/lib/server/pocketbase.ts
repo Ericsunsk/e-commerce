@@ -33,7 +33,6 @@ export async function initAdmin() {
 
 	try {
 		await pb.admins.authWithPassword(email, password);
-		console.log('🛡️  Admin authenticated successfully');
 		return pb;
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : String(err);

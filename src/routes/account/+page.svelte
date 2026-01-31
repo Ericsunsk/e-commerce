@@ -14,6 +14,7 @@
 	let { data }: { data: PageData } = $props();
 
 	// Login Form (SPA Mode)
+	// svelte-ignore state_referenced_locally
 	const {
 		form: loginForm,
 		errors: loginErrors,
@@ -35,6 +36,7 @@
 	});
 
 	// Register Form (SPA Mode)
+	// svelte-ignore state_referenced_locally
 	const {
 		form: regForm,
 		errors: regErrors,
@@ -61,6 +63,7 @@
 	});
 
 	// Recover Form (SPA Mode)
+	// svelte-ignore state_referenced_locally
 	const {
 		form: recForm,
 		errors: recErrors,
