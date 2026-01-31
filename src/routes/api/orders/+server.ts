@@ -6,47 +6,48 @@ import { env } from '$env/dynamic/public';
 import { Collections } from '$lib/pocketbase-types';
 
 export const GET: RequestHandler = async ({ url, request }) => {
-    const userId = url.searchParams.get('userId');
+	const userId = url.searchParams.get('userId');
 
-    if (!userId) {
-        return json({ error: 'User ID is required' }, { status: 400 });
-    }
+	if (!userId) {
+		return json({ error: 'User ID is required' }, { status: 400 });
+	}
 
-    // SECURITY: Verify the requester owns this userId
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+	// SECURITY: Verify the requester owns this userId
+	const authHeader = request.headers.get('Authorization');
+	if (!authHeader) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 
-    try {
-        // Create a temporary client to verify the token
-        const pbUrl = env.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
-        const pb = new PocketBase(pbUrl);
-        
-        // Load token from header (Bearer ...)
-        const token = authHeader.replace('Bearer ', '');
-        pb.authStore.save(token, null);
-        
-        // Refresh to validate token validity and get fresh model
-        await pb.collection(Collections.Users).authRefresh();
-        
-        // Check if the authenticated user matches the requested userId
-        if (pb.authStore.model?.id !== userId) {
-            console.warn(`⚠️ Forbidden access attempt: User ${pb.authStore.model?.id} tried to access orders of ${userId}`);
-            return json({ error: 'Forbidden' }, { status: 403 });
-        }
+	try {
+		// Create a temporary client to verify the token
+		const pbUrl = env.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
+		const pb = new PocketBase(pbUrl);
 
-    } catch (e) {
-        console.error('Auth verification failed:', e);
-        return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+		// Load token from header (Bearer ...)
+		const token = authHeader.replace('Bearer ', '');
+		pb.authStore.save(token, null);
 
-    console.log('🔍 Fetching orders for userId:', userId);
+		// Refresh to validate token validity and get fresh model
+		await pb.collection(Collections.Users).authRefresh();
 
-    try {
-        const orders = await getOrdersByUser(userId);
-        return json({ orders });
-    } catch (err: any) {
-        return json({ error: 'Failed to fetch orders' }, { status: 500 });
-    }
+		// Check if the authenticated user matches the requested userId
+		if (pb.authStore.model?.id !== userId) {
+			console.warn(
+				`⚠️ Forbidden access attempt: User ${pb.authStore.model?.id} tried to access orders of ${userId}`
+			);
+			return json({ error: 'Forbidden' }, { status: 403 });
+		}
+	} catch (e) {
+		console.error('Auth verification failed:', e);
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
+	console.log('🔍 Fetching orders for userId:', userId);
+
+	try {
+		const orders = await getOrdersByUser(userId);
+		return json({ orders });
+	} catch (err: any) {
+		return json({ error: 'Failed to fetch orders' }, { status: 500 });
+	}
 };

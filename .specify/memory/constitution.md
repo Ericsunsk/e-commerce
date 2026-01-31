@@ -58,7 +58,8 @@ Follow-up TODOs:
 - **Automation Policy**: Core business logic (Orders, Inventory) stays in SvelteKit; n8n handles side-effects (Email Notifications, Reporting).
 
 ### VI. Error Handling & Debugging
-- **Compiler First**: Fix all compiler warnings immediately.
+- **Compiler First**: Fix all compiler warnings and linting warnings immediately.
+- **Automated Validation**: All code must pass `npm run lint` and `npm run check` before being committed or merged.
 - **Context Awareness**: Maintain clear boundaries between SSR and CSR execution contexts.
 
 ### VII. Code Elegance & Efficiency (The "Essential Luxury" Code)

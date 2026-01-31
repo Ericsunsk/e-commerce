@@ -7,11 +7,11 @@
  * 从价格字符串解析数值 (如 ".00" → 99)
  */
 export function parsePrice(priceString: string | number | undefined | null): number {
-    if (typeof priceString === 'number') return priceString;
-    if (typeof priceString !== 'string') return 0;
-    // Remove all non-numeric chars except period and minus
-    const clean = priceString.replace(/[^0-9.-]/g, '');
-    return parseFloat(clean) || 0;
+	if (typeof priceString === 'number') return priceString;
+	if (typeof priceString !== 'string') return 0;
+	// Remove all non-numeric chars except period and minus
+	const clean = priceString.replace(/[^0-9.-]/g, '');
+	return parseFloat(clean) || 0;
 }
 
 /**
@@ -19,7 +19,7 @@ export function parsePrice(priceString: string | number | undefined | null): num
  * ".00" → 9900
  */
 export function priceToCents(priceString: string): number {
-    return Math.round(parsePrice(priceString) * 100);
+	return Math.round(parsePrice(priceString) * 100);
 }
 
 /**
@@ -27,7 +27,7 @@ export function priceToCents(priceString: string): number {
  * 9900 → 99.00
  */
 export function centsToDollars(cents: number): number {
-    return cents / 100;
+	return cents / 100;
 }
 
 /**
@@ -39,28 +39,28 @@ export function centsToDollars(cents: number): number {
  * @param options.isCents - 是否为分单位 (默认 false)
  */
 export function formatCurrency(
-    amount: number,
-    options: {
-        currency?: string;
-        locale?: string;
-        isCents?: boolean;
-    } = {}
+	amount: number,
+	options: {
+		currency?: string;
+		locale?: string;
+		isCents?: boolean;
+	} = {}
 ): string {
-    const { currency = 'USD', locale = 'en-US', isCents = false } = options;
-    const value = isCents ? amount / 100 : amount;
+	const { currency = 'USD', locale = 'en-US', isCents = false } = options;
+	const value = isCents ? amount / 100 : amount;
 
-    try {
-        return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: currency.toUpperCase(),
-        }).format(value);
-    } catch {
-        // Fallback to USD if currency code is invalid
-        return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: 'USD',
-        }).format(value);
-    }
+	try {
+		return new Intl.NumberFormat(locale, {
+			style: 'currency',
+			currency: currency.toUpperCase()
+		}).format(value);
+	} catch {
+		// Fallback to USD if currency code is invalid
+		return new Intl.NumberFormat(locale, {
+			style: 'currency',
+			currency: 'USD'
+		}).format(value);
+	}
 }
 
 // formatPrice removed - use formatCurrency instead

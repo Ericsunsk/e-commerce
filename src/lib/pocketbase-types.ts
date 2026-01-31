@@ -1,460 +1,490 @@
 /**
-* This file was @generated using pocketbase-typegen
-*/
+ * This file was @generated using pocketbase-typegen
+ */
 
-import type PocketBase from 'pocketbase'
-import type { RecordService } from 'pocketbase'
+import type PocketBase from 'pocketbase';
+import type { RecordService } from 'pocketbase';
 
 export enum Collections {
-	Authorigins = "_authOrigins",
-	Externalauths = "_externalAuths",
-	Mfas = "_mfas",
-	Otps = "_otps",
-	Superusers = "_superusers",
-	Categories = "categories",
-	CollectionImages = "collection_images",
-	Coupons = "coupons",
-	GlobalSettings = "global_settings",
-	Navigation = "navigation",
-	OrderItems = "order_items",
-	Orders = "orders",
-	Pages = "pages",
-	ProductVariants = "product_variants",
-	Products = "products",
-	UiAssets = "ui_assets",
-	UiSections = "ui_sections",
-	UserAddresses = "user_addresses",
-	UserLists = "user_lists",
-	Users = "users",
+	Authorigins = '_authOrigins',
+	Externalauths = '_externalAuths',
+	Mfas = '_mfas',
+	Otps = '_otps',
+	Superusers = '_superusers',
+	Categories = 'categories',
+	CollectionImages = 'collection_images',
+	Coupons = 'coupons',
+	GlobalSettings = 'global_settings',
+	Navigation = 'navigation',
+	OrderItems = 'order_items',
+	Orders = 'orders',
+	Pages = 'pages',
+	ProductVariants = 'product_variants',
+	Products = 'products',
+	UiAssets = 'ui_assets',
+	UiSections = 'ui_sections',
+	UserAddresses = 'user_addresses',
+	UserLists = 'user_lists',
+	Users = 'users'
 }
 
 // Alias types for improved usability
-export type IsoDateString = string
-export type IsoAutoDateString = string & { readonly autodate: unique symbol }
-export type RecordIdString = string
-export type FileNameString = string & { readonly filename: unique symbol }
-export type HTMLString = string
+export type IsoDateString = string;
+export type IsoAutoDateString = string & { readonly autodate: unique symbol };
+export type RecordIdString = string;
+export type FileNameString = string & { readonly filename: unique symbol };
+export type HTMLString = string;
 
 type ExpandType<T> = unknown extends T
 	? T extends unknown
 		? { expand?: unknown }
 		: { expand: T }
-	: { expand: T }
+	: { expand: T };
 
 // System fields
 export type BaseSystemFields<T = unknown> = {
-	id: RecordIdString
-	collectionId: string
-	collectionName: Collections
-	created: IsoDateString
-	updated: IsoDateString
-} & ExpandType<T>
+	id: RecordIdString;
+	collectionId: string;
+	collectionName: Collections;
+	created: IsoDateString;
+	updated: IsoDateString;
+} & ExpandType<T>;
 
 export type AuthSystemFields<T = unknown> = {
-	email: string
-	emailVisibility: boolean
-	username: string
-	verified: boolean
-} & BaseSystemFields<T>
+	email: string;
+	emailVisibility: boolean;
+	username: string;
+	verified: boolean;
+} & BaseSystemFields<T>;
 
 // Record types for each collection
 
 export type AuthoriginsRecord = {
-	collectionRef: string
-	created: IsoAutoDateString
-	fingerprint: string
-	id: string
-	recordRef: string
-	updated: IsoAutoDateString
-}
+	collectionRef: string;
+	created: IsoAutoDateString;
+	fingerprint: string;
+	id: string;
+	recordRef: string;
+	updated: IsoAutoDateString;
+};
 
 export type ExternalauthsRecord = {
-	collectionRef: string
-	created: IsoAutoDateString
-	id: string
-	provider: string
-	providerId: string
-	recordRef: string
-	updated: IsoAutoDateString
-}
+	collectionRef: string;
+	created: IsoAutoDateString;
+	id: string;
+	provider: string;
+	providerId: string;
+	recordRef: string;
+	updated: IsoAutoDateString;
+};
 
 export type MfasRecord = {
-	collectionRef: string
-	created: IsoAutoDateString
-	id: string
-	method: string
-	recordRef: string
-	updated: IsoAutoDateString
-}
+	collectionRef: string;
+	created: IsoAutoDateString;
+	id: string;
+	method: string;
+	recordRef: string;
+	updated: IsoAutoDateString;
+};
 
 export type OtpsRecord = {
-	collectionRef: string
-	created: IsoAutoDateString
-	id: string
-	password: string
-	recordRef: string
-	sentTo?: string
-	updated: IsoAutoDateString
-}
+	collectionRef: string;
+	created: IsoAutoDateString;
+	id: string;
+	password: string;
+	recordRef: string;
+	sentTo?: string;
+	updated: IsoAutoDateString;
+};
 
 export type SuperusersRecord = {
-	created: IsoAutoDateString
-	email: string
-	emailVisibility?: boolean
-	id: string
-	password: string
-	tokenKey: string
-	updated: IsoAutoDateString
-	verified?: boolean
-}
+	created: IsoAutoDateString;
+	email: string;
+	emailVisibility?: boolean;
+	id: string;
+	password: string;
+	tokenKey: string;
+	updated: IsoAutoDateString;
+	verified?: boolean;
+};
 
 export type CategoriesRecord = {
-	description?: string
-	id: string
-	image?: FileNameString
-	is_visible?: boolean
-	name: string
-	slug: string
-	sort_order?: number
-}
+	description?: string;
+	id: string;
+	image?: FileNameString;
+	is_visible?: boolean;
+	name: string;
+	slug: string;
+	sort_order?: number;
+};
 
 export enum CollectionImagesPositionOptions {
-	"left" = "left",
-	"right" = "right",
+	'left' = 'left',
+	'right' = 'right'
 }
 export type CollectionImagesRecord = {
-	active?: boolean
-	id: string
-	image?: FileNameString
-	label?: string
-	link?: string
-	position: CollectionImagesPositionOptions
-	title: string
-}
+	active?: boolean;
+	id: string;
+	image?: FileNameString;
+	label?: string;
+	link?: string;
+	position: CollectionImagesPositionOptions;
+	title: string;
+};
 
 export enum CouponsTypeOptions {
-	"percentage" = "percentage",
-	"fixed_amount" = "fixed_amount",
+	'percentage' = 'percentage',
+	'fixed_amount' = 'fixed_amount'
 }
 export type CouponsRecord = {
-	code: string
-	expire_date?: IsoDateString
-	id: string
-	is_active: boolean
-	min_order_amount?: number
-	type: CouponsTypeOptions
-	usage_count?: number
-	usage_limit?: number
-	value: number
-}
+	code: string;
+	expire_date?: IsoDateString;
+	id: string;
+	is_active: boolean;
+	min_order_amount?: number;
+	type: CouponsTypeOptions;
+	usage_count?: number;
+	usage_limit?: number;
+	value: number;
+};
 
 export type GlobalSettingsRecord = {
-	currency_code: string
-	currency_symbol: string
-	icon?: FileNameString
-	id: string
-	maintenance_mode?: boolean
-	shipping_threshold?: number
-	site_name: string
-}
+	currency_code: string;
+	currency_symbol: string;
+	icon?: FileNameString;
+	id: string;
+	maintenance_mode?: boolean;
+	shipping_threshold?: number;
+	site_name: string;
+};
 
 export enum NavigationLocationOptions {
-	"header" = "header",
-	"footer" = "footer",
-	"mobile" = "mobile",
+	'header' = 'header',
+	'footer' = 'footer',
+	'mobile' = 'mobile'
 }
 export type NavigationRecord = {
-	id: string
-	is_visible?: boolean
-	label: string
-	location?: NavigationLocationOptions
-	order?: number
-	parent?: RecordIdString
-	url: string
-}
+	id: string;
+	is_visible?: boolean;
+	label: string;
+	location?: NavigationLocationOptions;
+	order?: number;
+	parent?: RecordIdString;
+	url: string;
+};
 
 export type OrderItemsRecord<Tvariant_snap_json = unknown> = {
-	id: string
-	order_id: RecordIdString
-	price_snap: number
-	product_id?: RecordIdString
-	product_title_snap: string
-	quantity: number
-	sku_snap?: string
-	variant_id?: RecordIdString
-	variant_snap_json?: null | Tvariant_snap_json
-}
+	id: string;
+	order_id: RecordIdString;
+	price_snap: number;
+	product_id?: RecordIdString;
+	product_title_snap: string;
+	quantity: number;
+	sku_snap?: string;
+	variant_id?: RecordIdString;
+	variant_snap_json?: null | Tvariant_snap_json;
+};
 
 export enum OrdersStatusOptions {
-	"pending" = "pending",
-	"paid" = "paid",
-	"processing" = "processing",
-	"shipped" = "shipped",
-	"delivered" = "delivered",
-	"cancelled" = "cancelled",
+	'pending' = 'pending',
+	'paid' = 'paid',
+	'processing' = 'processing',
+	'shipped' = 'shipped',
+	'delivered' = 'delivered',
+	'cancelled' = 'cancelled'
 }
 export type OrdersRecord<Tshipping_address = unknown> = {
-	amount_shipping?: number
-	amount_subtotal?: number
-	amount_total?: number
-	currency?: string
-	customer_email?: string
-	customer_name?: string
-	id: string
-	notes?: string
-	shipping_address?: null | Tshipping_address
-	status?: OrdersStatusOptions
-	stripe_payment_intent?: string
-	stripe_session_id?: string
-	tracking_carrier?: string
-	tracking_number?: string
-	user?: RecordIdString
-}
+	amount_shipping?: number;
+	amount_subtotal?: number;
+	amount_total?: number;
+	currency?: string;
+	customer_email?: string;
+	customer_name?: string;
+	id: string;
+	notes?: string;
+	shipping_address?: null | Tshipping_address;
+	status?: OrdersStatusOptions;
+	stripe_payment_intent?: string;
+	stripe_session_id?: string;
+	tracking_carrier?: string;
+	tracking_number?: string;
+	user?: RecordIdString;
+};
 
 export type PagesRecord = {
-	content?: HTMLString
-	hero_image?: FileNameString
-	id: string
-	meta_description?: string
-	og_image?: FileNameString
-	slug: string
-	title?: string
-}
+	content?: HTMLString;
+	hero_image?: FileNameString;
+	id: string;
+	meta_description?: string;
+	og_image?: FileNameString;
+	slug: string;
+	title?: string;
+};
 
 export type ProductVariantsRecord = {
-	color?: string
-	id: string
-	price_override?: number
-	product: RecordIdString
-	size?: string
-	sku: string
-	stock_quantity: number
-	variant_image?: FileNameString
-}
+	color?: string;
+	id: string;
+	price_override?: number;
+	product: RecordIdString;
+	size?: string;
+	sku: string;
+	stock_quantity: number;
+	variant_image?: FileNameString;
+};
 
 export enum ProductsStockStatusOptions {
-	"in_stock" = "in_stock",
-	"low_stock" = "low_stock",
-	"out_of_stock" = "out_of_stock",
+	'in_stock' = 'in_stock',
+	'low_stock' = 'low_stock',
+	'out_of_stock' = 'out_of_stock'
 }
 export type ProductsRecord<Tattributes = unknown, Tdetails = unknown> = {
-	attributes?: null | Tattributes
-	category?: RecordIdString[]
-	description?: HTMLString
-	details?: null | Tdetails
-	display_price?: number
-	gallery_images?: FileNameString[]
-	has_variants?: boolean
-	id: string
-	is_featured?: boolean
-	main_image?: FileNameString
-	slug: string
-	stock_quantity?: number
-	stock_status?: ProductsStockStatusOptions
-	stripe_price_id?: string
-	stripe_product_id?: string
-	title: string
-}
+	attributes?: null | Tattributes;
+	category?: RecordIdString[];
+	description?: HTMLString;
+	details?: null | Tdetails;
+	display_price?: number;
+	gallery_images?: FileNameString[];
+	has_variants?: boolean;
+	id: string;
+	is_featured?: boolean;
+	main_image?: FileNameString;
+	slug: string;
+	stock_quantity?: number;
+	stock_status?: ProductsStockStatusOptions;
+	stripe_price_id?: string;
+	stripe_product_id?: string;
+	title: string;
+};
 
 export enum UiAssetsGroupOptions {
-	"home" = "home",
-	"about" = "about",
-	"cart" = "cart",
-	"wishlist" = "wishlist",
-	"common" = "common",
+	'home' = 'home',
+	'about' = 'about',
+	'cart' = 'cart',
+	'wishlist' = 'wishlist',
+	'common' = 'common'
 }
 export type UiAssetsRecord = {
-	alt_text?: string
-	description?: string
-	group?: UiAssetsGroupOptions
-	id: string
-	image?: FileNameString
-	key: string
-}
+	alt_text?: string;
+	description?: string;
+	group?: UiAssetsGroupOptions;
+	id: string;
+	image?: FileNameString;
+	key: string;
+};
 
 export enum UiSectionsTypeOptions {
-	"hero" = "hero",
-	"feature_split" = "feature_split",
-	"product_grid" = "product_grid",
-	"rich_text" = "rich_text",
-	"cta_banner" = "cta_banner",
-	"category_grid" = "category_grid",
+	'hero' = 'hero',
+	'feature_split' = 'feature_split',
+	'product_grid' = 'product_grid',
+	'rich_text' = 'rich_text',
+	'cta_banner' = 'cta_banner',
+	'category_grid' = 'category_grid'
 }
 export type UiSectionsRecord<Tsettings = unknown> = {
-	content?: HTMLString
-	heading?: string
-	id: string
-	image?: FileNameString[]
-	is_active?: boolean
-	page?: RecordIdString
-	schedule_end?: IsoDateString
-	schedule_start?: IsoDateString
-	settings?: null | Tsettings
-	sort_order?: number
-	subheading?: string
-	type?: UiSectionsTypeOptions
-	video?: FileNameString
-}
+	content?: HTMLString;
+	heading?: string;
+	id: string;
+	image?: FileNameString[];
+	is_active?: boolean;
+	page?: RecordIdString;
+	schedule_end?: IsoDateString;
+	schedule_start?: IsoDateString;
+	settings?: null | Tsettings;
+	sort_order?: number;
+	subheading?: string;
+	type?: UiSectionsTypeOptions;
+	video?: FileNameString;
+};
 
 export type UserAddressesRecord = {
-	city?: string
-	country?: string
-	id: string
-	label?: string
-	line1?: string
-	postal_code?: string
-	recipient_name?: string
-	user?: RecordIdString
-}
+	city?: string;
+	country?: string;
+	id: string;
+	label?: string;
+	line1?: string;
+	postal_code?: string;
+	recipient_name?: string;
+	user?: RecordIdString;
+};
 
 export enum UserListsTypeOptions {
-	"cart" = "cart",
-	"wishlist" = "wishlist",
-	"save_for_later" = "save_for_later",
+	'cart' = 'cart',
+	'wishlist' = 'wishlist',
+	'save_for_later' = 'save_for_later'
 }
 export type UserListsRecord<Titems = unknown> = {
-	id: string
-	items: null | Titems
-	type: UserListsTypeOptions
-	user: RecordIdString
-}
+	id: string;
+	items: null | Titems;
+	type: UserListsTypeOptions;
+	user: RecordIdString;
+};
 
 export type UsersRecord = {
-	default_shipping_address?: RecordIdString
-	email: string
-	emailVisibility?: boolean
-	id: string
-	password: string
-	tokenKey: string
-	verified?: boolean
-}
+	default_shipping_address?: RecordIdString;
+	email: string;
+	emailVisibility?: boolean;
+	id: string;
+	password: string;
+	tokenKey: string;
+	verified?: boolean;
+};
 
 // Response types include system fields and match responses from the PocketBase API
-export type AuthoriginsResponse<Texpand = unknown> = Required<AuthoriginsRecord> & BaseSystemFields<Texpand>
-export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRecord> & BaseSystemFields<Texpand>
-export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>
-export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>
-export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> & AuthSystemFields<Texpand>
-export type CategoriesResponse<Texpand = unknown> = Required<CategoriesRecord> & BaseSystemFields<Texpand>
-export type CollectionImagesResponse<Texpand = unknown> = Required<CollectionImagesRecord> & BaseSystemFields<Texpand>
-export type CouponsResponse<Texpand = unknown> = Required<CouponsRecord> & BaseSystemFields<Texpand>
-export type GlobalSettingsResponse<Texpand = unknown> = Required<GlobalSettingsRecord> & BaseSystemFields<Texpand>
-export type NavigationResponse<Texpand = unknown> = Required<NavigationRecord> & BaseSystemFields<Texpand>
-export type OrderItemsResponse<Tvariant_snap_json = unknown, Texpand = unknown> = Required<OrderItemsRecord<Tvariant_snap_json>> & BaseSystemFields<Texpand>
-export type OrdersResponse<Tshipping_address = unknown, Texpand = unknown> = Required<OrdersRecord<Tshipping_address>> & BaseSystemFields<Texpand>
-export type PagesResponse<Texpand = unknown> = Required<PagesRecord> & BaseSystemFields<Texpand>
-export type ProductVariantsResponse<Texpand = unknown> = Required<ProductVariantsRecord> & BaseSystemFields<Texpand>
-export type ProductsResponse<Tattributes = unknown, Tdetails = unknown, Texpand = unknown> = Required<ProductsRecord<Tattributes, Tdetails>> & BaseSystemFields<Texpand>
-export type UiAssetsResponse<Texpand = unknown> = Required<UiAssetsRecord> & BaseSystemFields<Texpand>
-export type UiSectionsResponse<Tsettings = unknown, Texpand = unknown> = Required<UiSectionsRecord<Tsettings>> & BaseSystemFields<Texpand>
-export type UserAddressesResponse<Texpand = unknown> = Required<UserAddressesRecord> & BaseSystemFields<Texpand>
-export type UserListsResponse<Titems = unknown, Texpand = unknown> = Required<UserListsRecord<Titems>> & BaseSystemFields<Texpand>
-export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
+export type AuthoriginsResponse<Texpand = unknown> = Required<AuthoriginsRecord> &
+	BaseSystemFields<Texpand>;
+export type ExternalauthsResponse<Texpand = unknown> = Required<ExternalauthsRecord> &
+	BaseSystemFields<Texpand>;
+export type MfasResponse<Texpand = unknown> = Required<MfasRecord> & BaseSystemFields<Texpand>;
+export type OtpsResponse<Texpand = unknown> = Required<OtpsRecord> & BaseSystemFields<Texpand>;
+export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> &
+	AuthSystemFields<Texpand>;
+export type CategoriesResponse<Texpand = unknown> = Required<CategoriesRecord> &
+	BaseSystemFields<Texpand>;
+export type CollectionImagesResponse<Texpand = unknown> = Required<CollectionImagesRecord> &
+	BaseSystemFields<Texpand>;
+export type CouponsResponse<Texpand = unknown> = Required<CouponsRecord> &
+	BaseSystemFields<Texpand>;
+export type GlobalSettingsResponse<Texpand = unknown> = Required<GlobalSettingsRecord> &
+	BaseSystemFields<Texpand>;
+export type NavigationResponse<Texpand = unknown> = Required<NavigationRecord> &
+	BaseSystemFields<Texpand>;
+export type OrderItemsResponse<Tvariant_snap_json = unknown, Texpand = unknown> = Required<
+	OrderItemsRecord<Tvariant_snap_json>
+> &
+	BaseSystemFields<Texpand>;
+export type OrdersResponse<Tshipping_address = unknown, Texpand = unknown> = Required<
+	OrdersRecord<Tshipping_address>
+> &
+	BaseSystemFields<Texpand>;
+export type PagesResponse<Texpand = unknown> = Required<PagesRecord> & BaseSystemFields<Texpand>;
+export type ProductVariantsResponse<Texpand = unknown> = Required<ProductVariantsRecord> &
+	BaseSystemFields<Texpand>;
+export type ProductsResponse<
+	Tattributes = unknown,
+	Tdetails = unknown,
+	Texpand = unknown
+> = Required<ProductsRecord<Tattributes, Tdetails>> & BaseSystemFields<Texpand>;
+export type UiAssetsResponse<Texpand = unknown> = Required<UiAssetsRecord> &
+	BaseSystemFields<Texpand>;
+export type UiSectionsResponse<Tsettings = unknown, Texpand = unknown> = Required<
+	UiSectionsRecord<Tsettings>
+> &
+	BaseSystemFields<Texpand>;
+export type UserAddressesResponse<Texpand = unknown> = Required<UserAddressesRecord> &
+	BaseSystemFields<Texpand>;
+export type UserListsResponse<Titems = unknown, Texpand = unknown> = Required<
+	UserListsRecord<Titems>
+> &
+	BaseSystemFields<Texpand>;
+export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>;
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
-	_authOrigins: AuthoriginsRecord
-	_externalAuths: ExternalauthsRecord
-	_mfas: MfasRecord
-	_otps: OtpsRecord
-	_superusers: SuperusersRecord
-	categories: CategoriesRecord
-	collection_images: CollectionImagesRecord
-	coupons: CouponsRecord
-	global_settings: GlobalSettingsRecord
-	navigation: NavigationRecord
-	order_items: OrderItemsRecord
-	orders: OrdersRecord
-	pages: PagesRecord
-	product_variants: ProductVariantsRecord
-	products: ProductsRecord
-	ui_assets: UiAssetsRecord
-	ui_sections: UiSectionsRecord
-	user_addresses: UserAddressesRecord
-	user_lists: UserListsRecord
-	users: UsersRecord
-}
+	_authOrigins: AuthoriginsRecord;
+	_externalAuths: ExternalauthsRecord;
+	_mfas: MfasRecord;
+	_otps: OtpsRecord;
+	_superusers: SuperusersRecord;
+	categories: CategoriesRecord;
+	collection_images: CollectionImagesRecord;
+	coupons: CouponsRecord;
+	global_settings: GlobalSettingsRecord;
+	navigation: NavigationRecord;
+	order_items: OrderItemsRecord;
+	orders: OrdersRecord;
+	pages: PagesRecord;
+	product_variants: ProductVariantsRecord;
+	products: ProductsRecord;
+	ui_assets: UiAssetsRecord;
+	ui_sections: UiSectionsRecord;
+	user_addresses: UserAddressesRecord;
+	user_lists: UserListsRecord;
+	users: UsersRecord;
+};
 
 export type CollectionResponses = {
-	_authOrigins: AuthoriginsResponse
-	_externalAuths: ExternalauthsResponse
-	_mfas: MfasResponse
-	_otps: OtpsResponse
-	_superusers: SuperusersResponse
-	categories: CategoriesResponse
-	collection_images: CollectionImagesResponse
-	coupons: CouponsResponse
-	global_settings: GlobalSettingsResponse
-	navigation: NavigationResponse
-	order_items: OrderItemsResponse
-	orders: OrdersResponse
-	pages: PagesResponse
-	product_variants: ProductVariantsResponse
-	products: ProductsResponse
-	ui_assets: UiAssetsResponse
-	ui_sections: UiSectionsResponse
-	user_addresses: UserAddressesResponse
-	user_lists: UserListsResponse
-	users: UsersResponse
-}
+	_authOrigins: AuthoriginsResponse;
+	_externalAuths: ExternalauthsResponse;
+	_mfas: MfasResponse;
+	_otps: OtpsResponse;
+	_superusers: SuperusersResponse;
+	categories: CategoriesResponse;
+	collection_images: CollectionImagesResponse;
+	coupons: CouponsResponse;
+	global_settings: GlobalSettingsResponse;
+	navigation: NavigationResponse;
+	order_items: OrderItemsResponse;
+	orders: OrdersResponse;
+	pages: PagesResponse;
+	product_variants: ProductVariantsResponse;
+	products: ProductsResponse;
+	ui_assets: UiAssetsResponse;
+	ui_sections: UiSectionsResponse;
+	user_addresses: UserAddressesResponse;
+	user_lists: UserListsResponse;
+	users: UsersResponse;
+};
 
 // Utility types for create/update operations
 
-type ProcessCreateAndUpdateFields<T> = Omit<{
-	// Omit AutoDate fields
-	[K in keyof T as Extract<T[K], IsoAutoDateString> extends never ? K : never]: 
-		// Convert FileNameString to File
-		T[K] extends infer U ? 
-			U extends (FileNameString | FileNameString[]) ? 
-				U extends any[] ? File[] : File 
-			: U
-		: never
-}, 'id'>
+type ProcessCreateAndUpdateFields<T> = Omit<
+	{
+		// Omit AutoDate fields
+		[K in keyof T as Extract<T[K], IsoAutoDateString> extends never
+			? K
+			: never]: T[K] extends infer U // Convert FileNameString to File
+			? U extends FileNameString | FileNameString[]
+				? U extends any[]
+					? File[]
+					: File
+				: U
+			: never;
+	},
+	'id'
+>;
 
 // Create type for Auth collections
 export type CreateAuth<T> = {
-	id?: RecordIdString
-	email: string
-	emailVisibility?: boolean
-	password: string
-	passwordConfirm: string
-	verified?: boolean
-} & ProcessCreateAndUpdateFields<T>
+	id?: RecordIdString;
+	email: string;
+	emailVisibility?: boolean;
+	password: string;
+	passwordConfirm: string;
+	verified?: boolean;
+} & ProcessCreateAndUpdateFields<T>;
 
 // Create type for Base collections
 export type CreateBase<T> = {
-	id?: RecordIdString
-} & ProcessCreateAndUpdateFields<T>
+	id?: RecordIdString;
+} & ProcessCreateAndUpdateFields<T>;
 
 // Update type for Auth collections
 export type UpdateAuth<T> = Partial<
 	Omit<ProcessCreateAndUpdateFields<T>, keyof AuthSystemFields>
 > & {
-	email?: string
-	emailVisibility?: boolean
-	oldPassword?: string
-	password?: string
-	passwordConfirm?: string
-	verified?: boolean
-}
+	email?: string;
+	emailVisibility?: boolean;
+	oldPassword?: string;
+	password?: string;
+	passwordConfirm?: string;
+	verified?: boolean;
+};
 
 // Update type for Base collections
-export type UpdateBase<T> = Partial<
-	Omit<ProcessCreateAndUpdateFields<T>, keyof BaseSystemFields>
->
+export type UpdateBase<T> = Partial<Omit<ProcessCreateAndUpdateFields<T>, keyof BaseSystemFields>>;
 
 // Get the correct create type for any collection
 export type Create<T extends keyof CollectionResponses> =
 	CollectionResponses[T] extends AuthSystemFields
 		? CreateAuth<CollectionRecords[T]>
-		: CreateBase<CollectionRecords[T]>
+		: CreateBase<CollectionRecords[T]>;
 
 // Get the correct update type for any collection
 export type Update<T extends keyof CollectionResponses> =
 	CollectionResponses[T] extends AuthSystemFields
 		? UpdateAuth<CollectionRecords[T]>
-		: UpdateBase<CollectionRecords[T]>
+		: UpdateBase<CollectionRecords[T]>;
 
 // Type for usage with type asserted PocketBase instance
 // https://github.com/pocketbase/js-sdk#specify-typescript-definitions
@@ -462,5 +492,5 @@ export type Update<T extends keyof CollectionResponses> =
 export type TypedPocketBase = {
 	collection<T extends keyof CollectionResponses>(
 		idOrName: T
-	): RecordService<CollectionResponses[T]>
-} & PocketBase
+	): RecordService<CollectionResponses[T]>;
+} & PocketBase;

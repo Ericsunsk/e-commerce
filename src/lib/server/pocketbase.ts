@@ -19,28 +19,27 @@ export { getFileUrl, resolvePocketBaseImage, resolvePocketBaseGallery } from '$l
  * Returns the global PB instance authenticated as admin
  */
 export async function initAdmin() {
-    // Check if already authenticated as superuser
-    if (pb.authStore.isSuperuser && pb.authStore.isValid) {
-        return pb;
-    }
+	// Check if already authenticated as superuser
+	if (pb.authStore.isSuperuser && pb.authStore.isValid) {
+		return pb;
+	}
 
-    const email = env.POCKETBASE_ADMIN_EMAIL || env.PB_ADMIN_EMAIL;
-    const password = env.POCKETBASE_ADMIN_PASSWORD || env.PB_ADMIN_PASSWORD;
+	const email = env.POCKETBASE_ADMIN_EMAIL || env.PB_ADMIN_EMAIL;
+	const password = env.POCKETBASE_ADMIN_PASSWORD || env.PB_ADMIN_PASSWORD;
 
-    if (!email || !password) {
-        throw new Error('Missing PB_ADMIN_EMAIL or PB_ADMIN_PASSWORD environment variables');
-    }
+	if (!email || !password) {
+		throw new Error('Missing PB_ADMIN_EMAIL or PB_ADMIN_PASSWORD environment variables');
+	}
 
-    try {
-        await pb.admins.authWithPassword(email, password);
-        console.log('🛡️  Admin authenticated successfully');
-        return pb;
-    } catch (err: any) {
-        console.error('❌ Admin authentication failed:', err.message);
-        throw err;
-    }
+	try {
+		await pb.admins.authWithPassword(email, password);
+		console.log('🛡️  Admin authenticated successfully');
+		return pb;
+	} catch (err: any) {
+		console.error('❌ Admin authentication failed:', err.message);
+		throw err;
+	}
 }
 
 // Prevent auto-cancellation of pending requests to ensure server-side calls finish
 pb.autoCancellation(false);
-

@@ -1,94 +1,99 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-    /* Colors - Semantic System (OKLCH for P3 Gamut) */
-    --color-primary: oklch(0.16 0 0); /* #171717 */
-    --color-secondary: oklch(0.45 0 0); /* #525252 */
-    --color-accent: oklch(0.52 0.21 260); /* Apple Blue #007AFF */
-    --color-destructive: oklch(0.63 0.22 29); /* Apple Red #FF3B30 */
-    
-    --color-background-light: oklch(1 0 0); /* #ffffff */
-    --color-background-dark: oklch(0.12 0 0); /* #0f0f0f */
-    --color-surface-light: oklch(1 0 0 / 0.8);
-    --color-surface-dark: oklch(0.12 0 0 / 0.8);
+	/* Colors - Semantic System (OKLCH for P3 Gamut) */
+	--color-primary: oklch(0.16 0 0); /* #171717 */
+	--color-secondary: oklch(0.45 0 0); /* #525252 */
+	--color-accent: oklch(0.52 0.21 260); /* Apple Blue #007AFF */
+	--color-destructive: oklch(0.63 0.22 29); /* Apple Red #FF3B30 */
 
-    --color-text-main: oklch(0.20 0 0); /* #262626 */
-    --color-text-muted: oklch(0.55 0 0); /* #737373 */
+	--color-background-light: oklch(1 0 0); /* #ffffff */
+	--color-background-dark: oklch(0.12 0 0); /* #0f0f0f */
+	--color-surface-light: oklch(1 0 0 / 0.8);
+	--color-surface-dark: oklch(0.12 0 0 / 0.8);
 
-    /* Fonts */
-    --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-    --font-serif: "Cinzel", ui-serif, Georgia, serif;
-    --font-display: "Optima", "Segoe UI", "Candara", "Noto Sans", source-sans-pro, sans-serif;
+	--color-text-main: oklch(0.2 0 0); /* #262626 */
+	--color-text-muted: oklch(0.55 0 0); /* #737373 */
 
-    /* Layout - Header */
-    --header-height: 48px;
-    --content-offset: 128px;
+	/* Fonts */
+	--font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+	--font-serif: 'Cinzel', ui-serif, Georgia, serif;
+	--font-display: 'Optima', 'Segoe UI', 'Candara', 'Noto Sans', source-sans-pro, sans-serif;
 
-    /* Animation */
-    --ease-apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+	/* Layout - Header */
+	--header-height: 48px;
+	--content-offset: 128px;
 
-    /* Z-Index Design System */
-    --z-base: 0;
-    --z-content: 10;
-    --z-overlay-content: 20;
-    --z-sticky: 40;
-    --z-header: 50;
-    --z-modal-backdrop: 60;
-    --z-modal: 70;
-    --z-toast: 80;
-    --z-max: 100;
+	/* Animation */
+	--ease-apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+	/* Z-Index Design System */
+	--z-base: 0;
+	--z-content: 10;
+	--z-overlay-content: 20;
+	--z-sticky: 40;
+	--z-header: 50;
+	--z-modal-backdrop: 60;
+	--z-modal: 70;
+	--z-toast: 80;
+	--z-max: 100;
 }
 
 @layer utilities {
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-    }
-    
-    /* Glassmorphism Utilities */
-    .glass {
-        @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-sm;
-    }
-    .dark .glass {
-        @apply bg-black/60 border-white/10;
-    }
-    
-    .glass-panel {
-        @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-sm rounded-2xl;
-    }
-    .dark .glass-panel {
-        @apply bg-black/60 border-white/10;
-    }
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none;
+	}
+
+	/* Glassmorphism Utilities */
+	.glass {
+		@apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-sm;
+	}
+	.dark .glass {
+		@apply bg-black/60 border-white/10;
+	}
+
+	.glass-panel {
+		@apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-sm rounded-2xl;
+	}
+	.dark .glass-panel {
+		@apply bg-black/60 border-white/10;
+	}
 }
 
 /* Global Styles */
 html {
-    overflow-y: scroll;
+	overflow-y: scroll;
 }
 
 body {
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
 
 /* Reset default browser focus outlines */
-input, textarea, select, button {
-    outline: none;
+input,
+textarea,
+select,
+button {
+	outline: none;
 }
 
 /* Reduced Motion Accessibility */
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
 }
 
 /* ============================================================================
@@ -96,42 +101,46 @@ input, textarea, select, button {
    ============================================================================ */
 
 :focus-visible:not(input):not(textarea):not(select) {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
-    :focus-visible:not(input):not(textarea):not(select) {
-        outline-color: #ffffff;
-    }
+	:focus-visible:not(input):not(textarea):not(select) {
+		outline-color: #ffffff;
+	}
 }
 
 .dark :focus-visible:not(input):not(textarea):not(select) {
-    outline-color: #ffffff;
+	outline-color: #ffffff;
 }
 
 :focus:not(:focus-visible) {
-    outline: none;
+	outline: none;
 }
 
-button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
 }
 
-.dark button:focus-visible, .dark a:focus-visible, .dark [role="button"]:focus-visible {
-    outline-color: #ffffff;
+.dark button:focus-visible,
+.dark a:focus-visible,
+.dark [role='button']:focus-visible {
+	outline-color: #ffffff;
 }
 
 input:not(.outline-none):focus-visible,
 textarea:not(.outline-none):focus-visible,
 select:not(.outline-none):focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 0;
+	outline: 2px solid var(--color-primary);
+	outline-offset: 0;
 }
 
 .dark input:not(.outline-none):focus-visible,
 .dark textarea:not(.outline-none):focus-visible,
 .dark select:not(.outline-none):focus-visible {
-    outline-color: #ffffff;
+	outline-color: #ffffff;
 }

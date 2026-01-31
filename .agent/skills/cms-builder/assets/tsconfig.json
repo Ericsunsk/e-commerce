@@ -1,1 +1,12 @@
-{"compilerOptions":{"target":"ESNext","module":"ESNext","moduleResolution":"Node","strict":true,"esModuleInterop":true,"skipLibCheck":true,"lib":["ESNext","DOM"]},"include":["client_template.ts"]}
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"lib": ["ESNext", "DOM"]
+	},
+	"include": ["client_template.ts"]
+}

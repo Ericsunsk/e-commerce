@@ -25,6 +25,7 @@ ELEMENTHIC 是一个基于 **SvelteKit 5 + Svelte 5** 构建的现代化高性�
 - **后端**: PocketBase (SQLite / Go) + Rate Limiting
 - **支付**: Stripe Connect / Elements / Tax (Automatic VAT/Sales Tax)
 - **测试**: Playwright (E2E) + Vitest (Unit)
+- **代码质量**: ESLint 9 + Prettier 3 + Husky + lint-staged
 - **开发工具**: OpenCode / Antigravity + GitHub Spec Kit
 
 ---
@@ -44,6 +45,12 @@ ELEMENTHIC 是一个基于 **SvelteKit 5 + Svelte 5** 构建的现代化高性�
 - `/speckit.plan` - 制定技术计划
 - `/speckit.tasks` - 拆解具体任务
 - `/speckit.implement` - 执行代码实现
+
+### 质量保证指令 (Quality Assurance)
+- `npm run lint` - 运行 ESLint 静态代码分析
+- `npm run lint:fix` - 自动修复 ESLint 警告/错误
+- `npm run format` - 运行 Prettier 格式化代码
+- `npm run check` - 运行 svelte-check 类型与模板检查
 
 ---
 
@@ -112,6 +119,14 @@ npm run test:e2e
 - [x] **Universal Spec Template**: 升级规范模板，支持领域建模。
 - [x] **UX Evolution**: 引入 Apple Spring 动画曲线与 Toast 组件重构。
 - [x] **Checkout & Payment**: 完整的 Stripe Elements 支付流程，服务端价格计算与 Webhook 处理。
+
+### ✅ Phase 14: 代码质量与工程化体系 (Completed)
+- [x] **Linting & Formatting**: 引入 ESLint 9 与 Prettier 3 统一代码规范。
+- [x] **Git Hooks**: 配置 Husky + lint-staged 在提交前强制执行格式化与静态检查。
+- [x] **Code Review Guide**: 建立书面审查指南，自动化并标准化代码质量评估。
+- [x] **Technical Debt Fix**: 修复 100+ 编译警告与潜在逻辑隐患。
+
+### 🔄 Phase 15: 体验与自动化进化 (In Progress)
 - [ ] **002-Cart Recovery**: 建立基于 Stripe Webhook + n8n 的废弃购物车召回系统。
 
 ---
