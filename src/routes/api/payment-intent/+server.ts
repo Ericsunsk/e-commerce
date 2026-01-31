@@ -117,8 +117,8 @@ async function calculateTax(
 			taxAmountCents,
 			calculationId: taxCalculation.id
 		};
-	} catch (e: any) {
-		console.error('Tax calculation failed:', e.message);
+	} catch (e: unknown) {
+		console.error('Tax calculation failed:', e instanceof Error ? e.message : String(e));
 		// Return 0 tax if calculation fails - payment can still proceed
 		return { taxAmountCents: 0, calculationId: null };
 	}
@@ -234,7 +234,7 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 
 	// Link tax calculation if available (using hooks.inputs.tax)
 	if (taxCalculationId) {
-		(params as any).hooks = {
+		(params as Stripe.PaymentIntentCreateParams & { hooks?: unknown }).hooks = {
 			inputs: {
 				tax: {
 					calculation: taxCalculationId

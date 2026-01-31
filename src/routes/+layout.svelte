@@ -25,15 +25,16 @@
 
 	const queryClient = new QueryClient({
 		mutationCache: new MutationCache({
-			onError: (error: any, _variables, _context, mutation) => {
+			onError: (error: unknown, _variables, _context, mutation) => {
 				// We always show toast for mutations unless explicitly suppressed via meta
 				if (mutation.meta?.suppressErrorToast) return;
 
-				toastStore.show(error.message || 'An error occurred', 'error');
+				const message = error instanceof Error ? error.message : String(error);
+				toastStore.show(message || 'An error occurred', 'error');
 			}
 		}),
 		queryCache: new QueryCache({
-			onError: (error: any) => {
+			onError: (error: unknown) => {
 				console.error('Global Query Error:', error);
 			}
 		}),

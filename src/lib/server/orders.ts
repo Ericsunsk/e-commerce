@@ -1,4 +1,4 @@
-import { pb } from './pocketbase';
+// pb import removed as it is shadowed by withAdmin argument
 import type { Order, OrderItem, ShippingAddress, OrderStatus } from '$lib/types';
 import { Collections } from '$lib/pocketbase-types';
 import type { OrdersResponse, OrderItemsResponse } from '$lib/pocketbase-types';
@@ -75,7 +75,7 @@ export async function createOrder(orderData: CreateOrderDTO): Promise<Order | nu
 					price_snap: item.price,
 					quantity: item.quantity,
 					variant_id: item.variantId,
-					sku_snap: (item as any).skuSnap || (item as any).sku_snap, // Handle potential property name mismatch
+					sku_snap: item.skuSnap,
 					variant_snap_json: {
 						color: item.color,
 						size: item.size
@@ -158,7 +158,7 @@ export async function updateOrderStatus(
 			throw new Error(`Invalid status transition: ${currentStatus} -> ${status}`);
 		}
 
-		const updateData: Record<string, any> = { status };
+		const updateData: Record<string, unknown> = { status };
 		if (trackingInfo) {
 			updateData.tracking_number = trackingInfo.number;
 			updateData.tracking_carrier = trackingInfo.carrier;

@@ -36,8 +36,7 @@
 
 {#if show}
 	<!-- Backdrop -->
-	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
+	<!-- Backdrop -->
 	<div
 		class="fixed inset-0 bg-black/50 backdrop-blur-sm {Z_INDEX.modalBackdrop}"
 		transition:fade={{ duration: 200 }}

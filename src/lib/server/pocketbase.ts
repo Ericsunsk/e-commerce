@@ -35,8 +35,9 @@ export async function initAdmin() {
 		await pb.admins.authWithPassword(email, password);
 		console.log('🛡️  Admin authenticated successfully');
 		return pb;
-	} catch (err: any) {
-		console.error('❌ Admin authentication failed:', err.message);
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error('❌ Admin authentication failed:', message);
 		throw err;
 	}
 }

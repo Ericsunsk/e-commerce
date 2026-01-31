@@ -6,7 +6,12 @@ import { DEFAULTS, isValidSlug, STOCK_STATUS } from '$lib/constants';
 import type Stripe from 'stripe';
 import { mapRecordToProduct, mapRecordToCategory, mapCategoriesFromExpand } from './mappers';
 import { withAdmin } from '$lib/server/admin';
-import { ProductsStockStatusOptions, type ProductsResponse } from '$lib/pocketbase-types';
+import {
+	ProductsStockStatusOptions,
+	type ProductsResponse,
+	type CategoriesResponse,
+	type ProductVariantsResponse
+} from '$lib/pocketbase-types';
 import { Collections } from '$lib/pocketbase-types';
 
 // =============================================================================
@@ -53,8 +58,8 @@ export async function deductProductStock(
 					.getOne(variantId, { fields: 'updated,stock_quantity' });
 
 				// CAST: generated types might miss system fields like updated depending on config
-				const vUpdated = (variant as any).updated;
-				const cvUpdated = (checkVariant as any).updated;
+				const vUpdated = variant.updated;
+				const cvUpdated = checkVariant.updated;
 
 				if (cvUpdated !== vUpdated || checkVariant.stock_quantity < quantity) {
 					console.warn(
@@ -102,8 +107,8 @@ export async function deductProductStock(
 					.collection(Collections.Products)
 					.getOne(productId, { fields: 'updated,stock_quantity' });
 
-				const pUpdated = (product as any).updated;
-				const cpUpdated = (checkProduct as any).updated;
+				const pUpdated = product.updated;
+				const cpUpdated = checkProduct.updated;
 
 				if (cpUpdated !== pUpdated || checkProduct.stock_quantity < quantity) {
 					console.warn(
@@ -126,7 +131,7 @@ export async function deductProductStock(
 		} catch (e: any) {
 			console.error(
 				`❌ Failed to deduct stock for product ${productId} (Variant: ${variantId}) - Attempt ${attempt + 1}:`,
-				e.message
+				e instanceof Error ? e.message : String(e)
 			);
 			attempt++;
 			if (attempt >= MAX_RETRIES) return false;
@@ -273,9 +278,10 @@ async function fetchStripePrice(stripeId?: string): Promise<{ formatted: string;
 		});
 
 		return result;
-	} catch (e: any) {
-		if (e?.type !== 'StripeAuthenticationError') {
-			console.error(`Failed to fetch Stripe price for ${stripeId}:`, e.message);
+	} catch (e: unknown) {
+		const err = e as { type?: string; message: string };
+		if (err?.type !== 'StripeAuthenticationError') {
+			console.error(`Failed to fetch Stripe price for ${stripeId}:`, err.message);
 		}
 		return { formatted: `${DEFAULTS.currencySymbol}195.00`, value: 195 };
 	}
@@ -376,8 +382,8 @@ async function fetchStripePricesBulk(
 				}
 			});
 		}
-	} catch (e: any) {
-		console.error('Bulk Stripe Fetch Error:', e.message);
+	} catch (e: unknown) {
+		console.error('Bulk Stripe Fetch Error:', e instanceof Error ? e.message : String(e));
 	}
 
 	// Fill missing keys with individual fetch (fallback for any missed by search)
@@ -477,7 +483,9 @@ export async function getProducts(options?: ProductFilterOptions): Promise<Produ
 		});
 
 		const basicProducts = records.map((r) => {
-			const expandedCategories = mapCategoriesFromExpand((r.expand as any)?.category);
+			const expandedCategories = mapCategoriesFromExpand(
+				(r.expand as { category?: CategoriesResponse | CategoriesResponse[] })?.category
+			);
 			return mapRecordToProduct(r, expandedCategories);
 		});
 
@@ -497,7 +505,9 @@ export async function getProductById(slug: string): Promise<Product | undefined>
 			expand: 'category,product_variants(product)'
 		});
 
-		const categories = mapCategoriesFromExpand((record.expand as any)?.category);
+		const categories = mapCategoriesFromExpand(
+			(record.expand as { category?: CategoriesResponse | CategoriesResponse[] })?.category
+		);
 		const basicProduct = mapRecordToProduct(record, categories);
 		return enrichProductWithStripe(basicProduct);
 	}, undefined);
@@ -511,7 +521,9 @@ export async function getProductByPbId(id: string): Promise<Product | undefined>
 				expand: 'category,product_variants(product)'
 			});
 
-			const categories = mapCategoriesFromExpand((record.expand as any)?.category);
+			const categories = mapCategoriesFromExpand(
+				(record.expand as { category?: CategoriesResponse | CategoriesResponse[] })?.category
+			);
 			const basicProduct = mapRecordToProduct(record, categories);
 			return enrichProductWithStripe(basicProduct);
 		} catch (e) {
@@ -522,7 +534,9 @@ export async function getProductByPbId(id: string): Promise<Product | undefined>
 					expand: 'category,product_variants(product)'
 				});
 
-				const categories = mapCategoriesFromExpand((record.expand as any)?.category);
+				const categories = mapCategoriesFromExpand(
+					(record.expand as { category?: CategoriesResponse | CategoriesResponse[] })?.category
+				);
 				const basicProduct = mapRecordToProduct(record, categories);
 				return enrichProductWithStripe(basicProduct);
 			} catch (slugError) {
@@ -548,7 +562,9 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 		});
 
 		const basicProducts = records.map((r) => {
-			const expandedCategories = mapCategoriesFromExpand((r.expand as any)?.category);
+			const expandedCategories = mapCategoriesFromExpand(
+				(r.expand as { category?: CategoriesResponse | CategoriesResponse[] })?.category
+			);
 			return mapRecordToProduct(r, expandedCategories);
 		});
 		return enrichProductsBulk(basicProducts);

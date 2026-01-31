@@ -33,9 +33,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	try {
 		event = await stripe.webhooks.constructEventAsync(payload, sig, endpointSecret);
-	} catch (err: any) {
-		console.error(`Webhook signature verification failed: ${err.message}`);
-		return json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error(`Webhook signature verification failed: ${message}`);
+		return json({ error: `Webhook Error: ${message}` }, { status: 400 });
 	}
 
 	// Handle the event
@@ -156,8 +157,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 		});
 
 		// Extract shipping address
-		// Note: shipping_details exists on expanded session but not in base type
-		const sessionWithShipping = session as any;
+		// Note: shipping_details exists on expanded session but not in base type or older types
+		const sessionWithShipping = session as Stripe.Checkout.Session & {
+			shipping_details?: Stripe.Checkout.Session.ShippingDetails;
+			shipping?: Stripe.Checkout.Session.ShippingDetails;
+		};
 		const shippingDetails = sessionWithShipping.shipping_details || sessionWithShipping.shipping;
 		const shippingAddress: ShippingAddress = {
 			name: shippingDetails?.name || session.customer_details?.name || '',
@@ -221,7 +225,7 @@ async function _handleProductCreated(stripeProduct: Stripe.Product) {
 	}
 
 	try {
-		const pbRecord = await createProductFromStripe(stripeProduct);
+		await createProductFromStripe(stripeProduct);
 	} catch (e) {
 		console.error('Error auto-creating product from Stripe:', e);
 	}
@@ -319,8 +323,8 @@ async function triggerN8nOrderNotification(order: Order): Promise<void> {
 			.catch((err) => {
 				console.error('❌ Failed to trigger n8n webhook:', err.message);
 			});
-	} catch (e: any) {
+	} catch (e: unknown) {
 		// Don't throw - this is a non-critical side effect
-		console.error('❌ Error triggering n8n webhook:', e.message);
+		console.error('❌ Error triggering n8n webhook:', e instanceof Error ? e.message : String(e));
 	}
 }

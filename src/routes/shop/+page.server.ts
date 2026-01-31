@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { getProducts, getCategories } from '$lib/server/products';
 import { getPage, getPageSections } from '$lib/server/content';
+import type { NavItem } from '$lib/types';
 
 export const load: PageServerLoad = async ({ url, parent }) => {
 	// 从 URL 查询参数获取筛选条件
@@ -27,21 +28,21 @@ export const load: PageServerLoad = async ({ url, parent }) => {
 	// Use headerNav from parent instead of fetching getNavigation() again
 	const navigation = headerNav || [];
 
-	const navCategorySlugsFromCategory = navigation
-		.filter((nav: any) => nav.url.includes('category='))
-		.map((nav: any) => {
+	const navCategorySlugsFromCategory = (navigation as NavItem[])
+		.filter((nav) => nav.url.includes('category='))
+		.map((nav) => {
 			const match = nav.url.match(/category=([^&]+)/);
 			return match ? match[1] : null;
 		})
-		.filter((slug: any): slug is string => slug !== null);
+		.filter((slug): slug is string => slug !== null);
 
-	const navCategorySlugsFromGender = navigation
-		.filter((nav: any) => nav.url.includes('gender='))
-		.map((nav: any) => {
+	const navCategorySlugsFromGender = (navigation as NavItem[])
+		.filter((nav) => nav.url.includes('gender='))
+		.map((nav) => {
 			const match = nav.url.match(/gender=([^&]+)/);
 			return match ? match[1] : null;
 		})
-		.filter((slug: any): slug is string => slug !== null);
+		.filter((slug): slug is string => slug !== null);
 
 	// 合并两者：导航中出现的所有 category 和 gender 值都应该从子选项中排除
 	const navCategorySlugs = [

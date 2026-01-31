@@ -23,6 +23,7 @@
 
 	// Superforms init - data.form is intentionally captured once at init
 	// svelte-ignore state_referenced_locally
+	// Type casting required due to ZodEffects not matching Adapter expectations perfectly in strict mode
 	const { form, errors, enhance } = superForm<ShippingAddressSchema>(data.form, {
 		validators: zodClient(shippingAddressSchema as any),
 		onResult: ({ result }) => {
@@ -165,7 +166,7 @@
 				return;
 			}
 
-			const payload: any = {
+			const payload = {
 				items: $state.snapshot(cart.items),
 				shippingInfo: {
 					name: `${$form.firstName} ${$form.lastName}`,
@@ -179,7 +180,8 @@
 					name: `${$form.firstName} ${$form.lastName}`,
 					userId: auth.user && !auth.user.isAdmin ? auth.user.id : undefined, // Only link if regular user, not Admin
 					currency: cart.currencyCode
-				}
+				},
+				couponCode: undefined as string | undefined
 			};
 			if (appliedCoupon) {
 				payload.couponCode = appliedCoupon.code;
@@ -223,9 +225,10 @@
 			paymentElement.mount('#payment-element');
 
 			loading = false;
-		} catch (e: any) {
-			console.error('❌ Payment initialization failed:', e);
-			alert('Failed to initialize payment: ' + e.message);
+		} catch (e: unknown) {
+			const message = e instanceof Error ? e.message : String(e);
+			console.error('❌ Payment initialization failed:', message);
+			alert('Failed to initialize payment: ' + message);
 			step = 2; // Go back
 			loading = false;
 		}

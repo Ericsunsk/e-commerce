@@ -193,6 +193,10 @@ export function useCart() {
 			});
 		},
 
+		addRawItem(item: CartItem) {
+			addMutation.mutate(item);
+		},
+
 		removeItem(cartItemId: string) {
 			const item = items.find((i) => i.cartItemId === cartItemId);
 			if (item) removeMutation.mutate({ id: item.id, variantId: item.variantId });

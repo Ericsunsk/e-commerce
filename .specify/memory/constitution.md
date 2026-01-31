@@ -46,6 +46,11 @@ Follow-up TODOs:
 - **Source of Truth**: Always extend from `src/lib/pocketbase-types.ts` (generated from DB).
 - **Domain Types**: Define View Models in `src/lib/types.ts` by extending DB types.
 - **Validation**: Strict use of **Zod v4** (imported as `zod`) for all schemas. `sveltekit-superforms` must use the `zod4` adapter. No `zod/v3` legacy imports allowed.
+    - *Exception*: For `zodClient` adapters requiring `superRefine`, `as any` casting is permitted if strict types conflict with library internals.
+- **Protocol (Strict Mode)**:
+    - **PocketBase**: All responses must use types from `src/lib/pocketbase-types.ts`. Never use `RecordModel` or `any`. Handle expansions with specific interfaces.
+    - **API Handlers**: Always use `catch (e: unknown)` and extract errors safely. Never return untyped JSON.
+    - **DTOs**: Define explicit Data Transfer Objects in `src/lib/types.ts`.
 
 ### V. Backend & Architecture (Adaptive Edge)
 - **Three-Tier Architecture**:
@@ -56,6 +61,10 @@ Follow-up TODOs:
 - **Optimistic Concurrency Control (OCC)**: Mandatory server-side stock verification before updates to prevent overselling.
 - **Security**: Strict `$env` separation for server-side secrets. Use `withAdmin` for privileged operations.
 - **Automation Policy**: Core business logic (Orders, Inventory) stays in SvelteKit; n8n handles side-effects (Email Notifications, Reporting).
+- **Core Modules Strategy**:
+    - **Cart**: Managed via `cart.svelte.ts` (TanStack Query). Supports `addRawItem` for wishlist integration.
+    - **Orders**: Strict state machine (`pending` -> `paid` -> `processing`) in `lib/server/orders.ts`.
+    - **Payment**: Stripe Elements integration with strictly typed PaymentIntent handling.
 
 ### VI. Error Handling & Debugging
 - **Compiler First**: Fix all compiler warnings and linting warnings immediately.

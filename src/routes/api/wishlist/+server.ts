@@ -25,8 +25,9 @@ async function getWishlistRecord(
 			.collection(Collections.UserLists)
 			.getFirstListItem<UserListsResponse<WishlistItem[]>>(`user="${userId}" && type="wishlist"`);
 		return record;
-	} catch (e: any) {
-		if (e.status === 404) return null;
+	} catch (e: unknown) {
+		const err = e as { status?: number };
+		if (err.status === 404) return null;
 		throw e;
 	}
 }

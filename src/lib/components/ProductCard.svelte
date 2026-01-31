@@ -10,7 +10,15 @@
 	const cart = useCart();
 	const wishlist = useWishlist();
 
-	let { product, isFeature = false, href = '' } = $props();
+	import type { Product } from '$lib/types';
+
+	interface Props {
+		product: Product;
+		isFeature?: boolean;
+		href?: string;
+	}
+
+	let { product, isFeature = false, href = '' }: Props = $props();
 	let inWishlist = $derived(wishlist.has(product.id));
 
 	function quickAdd(e: MouseEvent) {

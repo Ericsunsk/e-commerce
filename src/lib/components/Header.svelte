@@ -131,7 +131,6 @@
 >
 	<!-- Overlay Backdrop for Content Focus -->
 	{#if isSearchOpen}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="absolute inset-0 top-full h-screen bg-black/20 backdrop-blur-sm transition-all duration-500"
 			onclick={toggleSearch}

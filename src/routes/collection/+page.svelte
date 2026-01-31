@@ -3,12 +3,25 @@
 
 	let { data } = $props();
 
+	type PBRecord = {
+		position: string;
+		image: string;
+		collectionId: string;
+		id: string;
+		link?: string;
+		title?: string;
+	};
+
 	// 优先使用 collection_images 集合中的图片
-	let leftRecord = $derived(data.collectionImages?.find((img: any) => img.position === 'left'));
-	let rightRecord = $derived(data.collectionImages?.find((img: any) => img.position === 'right'));
+	let leftRecord = $derived(
+		data.collectionImages?.find((img: PBRecord) => img.position === 'left')
+	);
+	let rightRecord = $derived(
+		data.collectionImages?.find((img: PBRecord) => img.position === 'right')
+	);
 
 	// 辅助函数：构建 PB 图片 URL
-	const getPbUrl = (record: any) => {
+	const getPbUrl = (record: PBRecord | undefined) => {
 		if (!record || !record.image) return null;
 		return `${data.env.PUBLIC_POCKETBASE_URL}/api/files/${record.collectionId}/${record.id}/${record.image}`;
 	};

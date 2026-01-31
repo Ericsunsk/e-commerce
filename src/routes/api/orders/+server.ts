@@ -37,7 +37,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 			);
 			return json({ error: 'Forbidden' }, { status: 403 });
 		}
-	} catch (e) {
+	} catch (e: unknown) {
 		console.error('Auth verification failed:', e);
 		return json({ error: 'Unauthorized' }, { status: 401 });
 	}

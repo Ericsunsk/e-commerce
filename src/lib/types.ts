@@ -146,7 +146,7 @@ export interface UISectionSettings {
 		image_url?: string;
 		video_url?: string;
 	};
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 export type UISection = Omit<UiSectionsResponse<UISectionSettings>, 'image' | 'video' | 'type'> & {

@@ -14,14 +14,15 @@ export async function safeQuery<T>(
 ): Promise<T> {
 	try {
 		return await fn();
-	} catch (e: any) {
+	} catch (e: unknown) {
 		// Always re-throw SvelteKit control flow exceptions
 		if (isRedirect(e) || isHttpError(e)) {
 			throw e;
 		}
 
 		// Log actual runtime errors
-		console.warn(`[SafeQuery] ${contextMessage}:`, e?.message || e);
+		const errorMessage = e instanceof Error ? e.message : String(e);
+		console.warn(`[SafeQuery] ${contextMessage}:`, errorMessage);
 
 		// Return fallback
 		return fallback;

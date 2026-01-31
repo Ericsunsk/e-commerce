@@ -26,8 +26,9 @@ async function getCartRecord(userId: string): Promise<UserListsResponse<CartItem
 			.collection(Collections.UserLists)
 			.getFirstListItem<UserListsResponse<CartItem[]>>(`user="${userId}" && type="cart"`);
 		return record;
-	} catch (e: any) {
-		if (e.status === 404) return null;
+	} catch (e: unknown) {
+		const err = e as { status?: number };
+		if (err.status === 404) return null;
 		throw e;
 	}
 }

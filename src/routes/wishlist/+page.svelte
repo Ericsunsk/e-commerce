@@ -10,12 +10,35 @@
 	const wishlist = useWishlist();
 	const cart = useCart();
 
+	import type { Product, CartItem } from '$lib/types';
+
 	// Receive global settings data
 	let { data } = $props();
 
-	function moveToBag(product: any) {
-		cart.addItem(product, 'Standard', 'Generic');
-		wishlist.remove(product.id);
+	interface WishlistItem {
+		id: string;
+		variantId?: string;
+		title?: string;
+		price?: number;
+		image?: string;
+		slug?: string;
+		stripePriceId?: string;
+	}
+
+	function moveToBag(item: WishlistItem) {
+		// Construct CartItem from WishlistItem
+		const cartItem: CartItem = {
+			id: item.id,
+			variantId: item.variantId,
+			quantity: 1,
+			title: item.title,
+			price: item.price,
+			image: item.image,
+			slug: item.slug,
+			stripePriceId: item.stripePriceId
+		};
+		cart.addRawItem(cartItem);
+		wishlist.remove(item.id);
 	}
 </script>
 
