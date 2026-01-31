@@ -4,7 +4,6 @@ import { getProductByPbId } from '$lib/server/products';
 import { validateAndApplyCoupon } from '$lib/server/coupons';
 import { parsePrice } from '$lib/utils/price';
 import { STRIPE } from '$lib/constants';
-import { json } from '@sveltejs/kit';
 // checkoutLimiter check removed as it's handled in hooks.server.ts
 import type { RequestHandler } from './$types';
 import type Stripe from 'stripe';

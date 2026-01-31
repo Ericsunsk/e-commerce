@@ -4,7 +4,7 @@
  */
 
 import { validateAndApplyCoupon } from '$lib/server/coupons';
-import { json } from '@sveltejs/kit';
+
 import type { RequestHandler } from './$types';
 import { apiHandler } from '$lib/server/api-handler';
 

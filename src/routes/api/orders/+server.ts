@@ -47,7 +47,7 @@ export const GET: RequestHandler = async ({ url, request }) => {
 	try {
 		const orders = await getOrdersByUser(userId);
 		return json({ orders });
-	} catch (err: any) {
+	} catch (_err) {
 		return json({ error: 'Failed to fetch orders' }, { status: 500 });
 	}
 };

@@ -113,7 +113,7 @@
 		class="absolute bottom-16 md:bottom-24 z-20 w-full flex flex-col md:flex-row items-center justify-center gap-10 px-6"
 	>
 		{#if section.settings?.actions}
-			{#each section.settings.actions as action}
+			{#each section.settings.actions as action, i (i)}
 				{#if action.text}
 					<a
 						href={action.link || '#'}
@@ -130,7 +130,7 @@
 	<!-- Pagination Dots -->
 	{#if slides.length > 1}
 		<div class="absolute bottom-8 z-30 flex gap-2">
-			{#each slides as _, i}
+			{#each slides as _, i (i)}
 				<button
 					class="w-1.5 h-1.5 rounded-full transition-all duration-500 {i === currentIndex
 						? 'bg-white w-4'

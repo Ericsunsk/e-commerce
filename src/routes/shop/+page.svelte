@@ -46,7 +46,7 @@
 		}
 		goto(url.toString(), { replaceState: false, noScroll: true });
 	}
-	let openDropdown: 'sort' | null = $state(null); // Filter is now separate sidebar
+	let _openDropdown: 'sort' | null = $state(null); // Filter is now separate sidebar
 	type FilterState = {
 		PILLAR: string[];
 		'PRODUCT TYPE': string[];
@@ -97,7 +97,7 @@
 		]
 	};
 
-	function toggleFilter() {
+	function _toggleFilter() {
 		isFilterOpen = !isFilterOpen;
 	}
 

@@ -3,8 +3,6 @@
 	import RemoteImage from '$lib/components/ui/RemoteImage.svelte';
 	import { toastStore } from '$lib/stores/toast.svelte';
 	import { MESSAGES } from '$lib/messages';
-	import { fade, fly } from 'svelte/transition';
-	import { COLORS } from '$lib/constants';
 	import { useCart } from '$lib/stores/cart.svelte';
 	import { useWishlist } from '$lib/stores/wishlist.svelte';
 
@@ -119,7 +117,7 @@
 			<div class="lg:w-[60%] xl:w-[65%] flex flex-col gap-1">
 				<!-- Mobile: Horizontal Scroll Snap -->
 				<div class="flex lg:hidden overflow-x-auto snap-x snap-mandatory gap-1 scrollbar-hide">
-					{#each product.images as image, i}
+					{#each product.images as image, i (image)}
 						<div class="shrink-0 w-full snap-center">
 							<div class="aspect-[3/4] w-full relative">
 								<RemoteImage
@@ -135,7 +133,7 @@
 
 				<!-- Desktop: Vertical Stack -->
 				<div class="hidden lg:flex flex-col gap-1 w-full pl-6 md:pl-12">
-					{#each product.images as image, i}
+					{#each product.images as image, i (image)}
 						<div class="w-full relative">
 							<RemoteImage
 								src={image}
@@ -157,7 +155,7 @@
 							<div
 								class="text-[10px] font-sans font-medium uppercase tracking-[0.2em] text-primary/50 dark:text-white/50 flex flex-wrap gap-2"
 							>
-								{#each product.categories as cat, i}
+								{#each product.categories as cat, i (cat.id || i)}
 									<span>{cat.name}{i < product.categories.length - 1 ? ' ·' : ''}</span>
 								{/each}
 							</div>
@@ -180,7 +178,7 @@
 						{#if product.colors && product.colors.length > 0}
 							<div class="space-y-3">
 								<div class="flex flex-wrap gap-2">
-									{#each product.colors as color}
+									{#each product.colors as color (color)}
 										<button
 											class="w-8 h-8 rounded-full border border-gray-200 dark:border-white/20 flex items-center justify-center transition-all hover:scale-110 cursor-pointer {selectedColor ===
 											color
@@ -202,7 +200,7 @@
 						<!-- Sizes -->
 						<div class="space-y-3">
 							<div class="grid grid-cols-4 gap-2">
-								{#each product.sizes as size}
+								{#each product.sizes as size (size)}
 									<button
 										class="h-10 border text-[11px] font-sans font-medium transition-all hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-primary {selectedSize ===
 										size
@@ -293,7 +291,7 @@
 							</summary>
 							<div class="pt-4 text-sm text-primary/70 dark:text-white/70 leading-relaxed">
 								<ul class="list-disc pl-4 space-y-1">
-									{#each product.details as detail}
+									{#each product.details as detail (detail)}
 										<li>{detail}</li>
 									{/each}
 									{#if product.material}<li>
@@ -345,7 +343,7 @@
 					You May Also Like
 				</h3>
 				<div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12">
-					{#each relatedProducts as relatedProduct}
+					{#each relatedProducts as relatedProduct (relatedProduct.id)}
 						<ProductCard product={relatedProduct} href="/shop/{relatedProduct.id}" />
 					{/each}
 				</div>

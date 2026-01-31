@@ -1,13 +1,10 @@
 import { z } from 'zod';
 import type {
-	ProductVariantsResponse,
-	ProductsResponse,
 	GlobalSettingsResponse,
 	NavigationResponse,
 	PagesResponse,
 	UiSectionsResponse,
 	UiAssetsResponse,
-	CategoriesResponse,
 	OrdersResponse,
 	OrderItemsResponse,
 	CouponsResponse,

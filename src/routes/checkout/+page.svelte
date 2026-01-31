@@ -21,24 +21,22 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// Superforms init
-	const { form, errors, constraints, enhance, message } = superForm<ShippingAddressSchema>(
-		data.form,
-		{
-			validators: zodClient(shippingAddressSchema as any),
-			onResult: ({ result }) => {
-				if (result.type === 'success') {
-					step = 2;
-					loading = false;
-				} else if (result.type === 'failure') {
-					loading = false;
-					toastStore.show('Please check your entries', 'error');
-				}
-			},
-			applyAction: false, // We handle state manually
-			resetForm: false
-		}
-	);
+	// Superforms init - data.form is intentionally captured once at init
+	// svelte-ignore state_referenced_locally
+	const { form, errors, enhance } = superForm<ShippingAddressSchema>(data.form, {
+		validators: zodClient(shippingAddressSchema as any),
+		onResult: ({ result }) => {
+			if (result.type === 'success') {
+				step = 2;
+				loading = false;
+			} else if (result.type === 'failure') {
+				loading = false;
+				toastStore.show('Please check your entries', 'error');
+			}
+		},
+		applyAction: false, // We handle state manually
+		resetForm: false
+	});
 
 	let step = $state(1); // 1: Info, 2: Shipping, 3: Payment
 	let loading = $state(false);
@@ -92,24 +90,19 @@
 
 	// handleStep1 removed, logic moved to superForm onResult
 
-	function handleStep2({ cancel }: any) {
-		cancel();
-		initializePayment();
-	}
+	// handleStep2 removed - logic is handled inline in form onsubmit
 
 	import { onMount, tick } from 'svelte';
 
 	let stripe = $state<Stripe | null>(null);
 	let elements = $state<StripeElements | null>(null);
 	let clientSecret = $state('');
-	let stripeLoaded = $state(false);
 
 	// Initialize Stripe and Pre-fill form
 	onMount(async () => {
 		if (data.stripeKey) {
 			import('@stripe/stripe-js').then(async ({ loadStripe }) => {
 				stripe = await loadStripe(data.stripeKey as string);
-				stripeLoaded = true;
 			});
 		}
 

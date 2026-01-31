@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Collections } from '$lib/pocketbase-types';
-	import { fade, fly } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { onMount } from 'svelte';
@@ -9,7 +9,7 @@
 	import { MESSAGES } from '$lib/messages';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import LoadingState from '$lib/components/ui/LoadingState.svelte';
-	import { LAYOUT, BUTTON_STYLES, COLORS, TYPOGRAPHY } from '$lib/constants';
+	import { LAYOUT, BUTTON_STYLES, COLORS } from '$lib/constants';
 
 	// Define local interface for Address with isDefault derived property
 	interface AddressWithDefault {
