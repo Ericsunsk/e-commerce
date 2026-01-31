@@ -46,6 +46,7 @@
 
 	let isWishlistPage = $derived($page.url.pathname === '/wishlist');
 	let isAccountPage = $derived($page.url.pathname === '/account');
+	let isCollectionPage = $derived($page.url.pathname === '/collection');
 	let isHomePage = $derived($page.url.pathname === '/');
 
 	// Check if the current page starts with a Hero section
@@ -60,7 +61,7 @@
 		return firstSection?.type === 'hero';
 	});
 
-	let isDarkHeroPage = $derived(isHomePage || hasHeroAtTop);
+	let isDarkHeroPage = $derived(isHomePage || isCollectionPage || hasHeroAtTop);
 
 	let effectiveVariant = $derived(variant ?? (isAccountPage ? 'solid' : 'transparent'));
 

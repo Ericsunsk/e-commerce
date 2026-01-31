@@ -1,6 +1,6 @@
 # ELEMENTHIC 代码审查指南
 
-基于项目的 **Spec-Driven Development** 规范与 **Constitution v1.2.0** 原则。
+基于项目的 **Spec-Driven Development** 规范与 **Constitution v1.3.0** 原则。
 
 ---
 
@@ -22,7 +22,7 @@
 | **II. Apple UX** | 视觉美学、动画、色彩系统 | 🟡 关键 |
 | **III. 性能** | 预加载、图片优化、布局稳定性 | 🟡 关键 |
 | **IV. 类型安全** | Zod v4、类型扩展链 | 🔴 阻断 |
-| **V. 架构** | 三层数据、OCC、$env 安全 | 🔴 阻断 |
+| **V. 架构** | 三层数据、OCC、$env 安全、Side-Effect 幂等 | 🔴 阻断 |
 | **VI. 错误处理** | 编译警告、SSR/CSR 边界 | 🟡 关键 |
 | **VII. 代码优雅** | Essential Luxury 原则 | 🟢 建议 |
 | **VIII. 规范驱动** | Spec → Plan → Task 追溯 | 🔴 阻断 |
@@ -78,6 +78,7 @@
 + ✅ 敏感操作使用 withAdmin 包装
 + ✅ 服务端密钥使用 $env/dynamic/private
 + ✅ 库存更新实现 OCC 验证
++ ✅ Webhook 处理器实现幂等性与日志记录
 - ❌ 禁止在客户端暴露私有环境变量
 ```
 

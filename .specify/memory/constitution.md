@@ -1,20 +1,16 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.2.0 -> 1.2.0 (No Changes - Re-verified)
-Ratified: 2026-01-27
-Last Amended: 2026-01-27
-
-Verification Status:
-- Verified consistency with codebase (Svelte 5, PocketBase, Zod v4).
-- Verified template alignment.
-
-Templates Checked:
-- .specify/templates/plan-template.md (✅ aligned)
-- .specify/templates/spec-template.md (✅ aligned)
-- .specify/templates/tasks-template.md (✅ aligned)
-
+Version: 1.2.0 -> 1.3.0
+List of modified principles:
+- V. Backend & Architecture (Adaptive Edge): Added Side-Effect Idempotency rule.
+Added sections: None
+Removed sections: None
+Templates requiring updates:
+- .specify/templates/plan-template.md (✅ updated)
+- .specify/templates/spec-template.md (✅ updated)
+- .specify/templates/tasks-template.md (✅ updated)
 Follow-up TODOs:
-- None.
+- Ensure all existing webhook handlers in `src/routes/api/webhooks` are audited for idempotency.
 -->
 
 # ELEMENTHIC Project Constitution
@@ -61,6 +57,7 @@ Follow-up TODOs:
 - **Optimistic Concurrency Control (OCC)**: Mandatory server-side stock verification before updates to prevent overselling.
 - **Security**: Strict `$env` separation for server-side secrets. Use `withAdmin` for privileged operations.
 - **Automation Policy**: Core business logic (Orders, Inventory) stays in SvelteKit; n8n handles side-effects (Email Notifications, Reporting).
+- **Side-Effect Idempotency**: All webhook handlers (Stripe, etc.) MUST be idempotent and log execution status to PocketBase before triggering n8n flows.
 - **Core Modules Strategy**:
     - **Cart**: Managed via `cart.svelte.ts` (TanStack Query). Supports `addRawItem` for wishlist integration.
     - **Orders**: Strict state machine (`pending` -> `paid` -> `processing`) in `lib/server/orders.ts`.
@@ -86,4 +83,4 @@ Follow-up TODOs:
 - Every new feature must be validated against these rules during the `Plan` and `Analyze` phases.
 - **Compliance**: Pull Requests violating these principles must be rejected, regardless of functional correctness.
 
-**Version**: 1.2.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-27
+**Version**: 1.3.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-01-31

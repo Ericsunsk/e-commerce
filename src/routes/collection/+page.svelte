@@ -57,7 +57,7 @@
 			: 'fixed top-1/2'}"
 	>
 		<h1
-			class="font-display text-[12vw] md:text-[14vw] font-bold tracking-[0.05em] leading-none text-black dark:text-white select-none whitespace-nowrap"
+			class="font-display text-[12vw] md:text-[14vw] font-bold tracking-[0.05em] leading-none text-red-600 select-none whitespace-nowrap"
 		>
 			ELEMENTHIC
 		</h1>
