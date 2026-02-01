@@ -52,6 +52,7 @@ stripe
 .specify/**/*.bak
 .agent/cache/
 .agent/temp/
+.agent/workflows/
 
 # IDEs
 .vscode/*
