@@ -245,9 +245,24 @@ async function fetchStripePrice(stripeId?: string): Promise<{ formatted: string;
 		let currency = 'usd';
 
 		if (stripeId.startsWith('price_')) {
-			const price = await stripe.prices.retrieve(stripeId);
-			priceValue = price.unit_amount || 0;
-			currency = price.currency;
+			try {
+				const price = await stripe.prices.retrieve(stripeId);
+				priceValue = price.unit_amount || 0;
+				currency = price.currency;
+			} catch (e: any) {
+				// Fallback for mismatched environments (Live ID in Test Env)
+				// If we are in test mode and the error is "No such price", suppress the warning to reduce noise
+				const isTestMode = env.STRIPE_SECRET_KEY?.startsWith('sk_test');
+				if (!isTestMode || !e.message.includes('No such price')) {
+					console.warn(
+						`⚠️ Stripe price lookup failed for ${stripeId}: ${e.message}. Using fallback.`
+					);
+				}
+				// Return a safe default to prevent crashing, or 0 if truly invalid
+				// Ideally, we'd fetch the price from PocketBase 'display_price' as fallback,
+				// but here we are in a pure Stripe enrichment context.
+				return { formatted: 'N/A', value: 0 };
+			}
 		} else if (stripeId.startsWith('prod_')) {
 			const product = await stripe.products.retrieve(stripeId);
 			if (typeof product.default_price === 'string') {
@@ -290,7 +305,13 @@ async function fetchStripePrice(stripeId?: string): Promise<{ formatted: string;
 async function enrichProductWithStripe(product: Product): Promise<Product> {
 	if (product.stripePriceId) {
 		const { formatted, value } = await fetchStripePrice(product.stripePriceId);
-		return { ...product, price: formatted, priceValue: value };
+		// Only override if we got a valid value
+		if (value > 0) {
+			return { ...product, price: formatted, priceValue: value };
+		}
+		// If Stripe fetch failed (value 0/fallback), keep the PB display_price if available
+		// Note: product.priceValue from mapRecordToProduct uses 'display_price' from PB
+		// So we just return the product as is.
 	}
 	return product;
 }
@@ -402,13 +423,26 @@ async function enrichProductsBulk(products: Product[]): Promise<Product[]> {
 
 	const priceMap = await fetchStripePricesBulk(stripeIds);
 
-	return products.map((p) => {
-		if (p.stripePriceId && priceMap.has(p.stripePriceId)) {
-			const { formatted, value } = priceMap.get(p.stripePriceId)!;
-			return { ...p, price: formatted, priceValue: value };
-		}
-		return p;
-	});
+	// In Test Mode (development), filter out products where Stripe fetch failed
+	// This hides Live Mode products from the local/dev shop
+	const isTestMode = env.STRIPE_SECRET_KEY?.startsWith('sk_test');
+
+	return products
+		.map((p) => {
+			if (p.stripePriceId && priceMap.has(p.stripePriceId)) {
+				const { formatted, value } = priceMap.get(p.stripePriceId)!;
+				// Only override if valid
+				if (value > 0) {
+					return { ...p, price: formatted, priceValue: value };
+				}
+				// If value is 0 (failed fetch) AND we are in Test Mode, mark for removal
+				if (isTestMode && value === 0) {
+					return null;
+				}
+			}
+			return p;
+		})
+		.filter((p): p is Product => p !== null);
 }
 
 // =============================================================================

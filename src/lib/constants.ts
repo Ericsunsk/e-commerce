@@ -137,7 +137,7 @@ export const STRIPE = {
 	/** Stripe 最小收费金额 (分) */
 	MIN_CHARGE_CENTS: 50,
 	/** 支持的国家代码 */
-	ALLOWED_COUNTRIES: ['US', 'CA', 'GB'] as const,
+	ALLOWED_COUNTRIES: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'JP'] as const,
 	/** 支持的货币 */
 	SUPPORTED_CURRENCIES: ['USD', 'EUR', 'GBP', 'CAD'] as const
 } as const;

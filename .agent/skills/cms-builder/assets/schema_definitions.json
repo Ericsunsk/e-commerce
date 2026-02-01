@@ -1234,7 +1234,7 @@
 				"collectionId": "pbc_3292755704",
 				"hidden": false,
 				"id": "relation105650625",
-				"maxSelect": 0,
+				"maxSelect": 999,
 				"minSelect": 0,
 				"name": "category",
 				"presentable": false,
@@ -1805,12 +1805,34 @@
 				"required": true,
 				"system": true,
 				"type": "text"
+			},
+			{
+				"hidden": false,
+				"id": "json3776899405",
+				"maxSize": 0,
+				"name": "items",
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "json"
+			},
+			{
+				"hidden": false,
+				"id": "number454719717",
+				"max": null,
+				"min": null,
+				"name": "amount_tax",
+				"onlyInt": false,
+				"presentable": false,
+				"required": false,
+				"system": false,
+				"type": "number"
 			}
 		],
 		"indexes": [
 			"CREATE INDEX `idx_orders_user` ON `orders` (`user`)",
-			"CREATE UNIQUE INDEX `idx_orders_stripe_session_id` ON `orders` (`stripe_session_id`)",
-			"CREATE UNIQUE INDEX `idx_orders_stripe_payment_intent` ON `orders` (`stripe_payment_intent`)"
+			"CREATE INDEX `idx_orders_stripe_session_id` ON `orders` (`stripe_session_id`)",
+			"CREATE INDEX `idx_orders_stripe_payment_intent` ON `orders` (`stripe_payment_intent`)"
 		],
 		"listRule": "@request.auth.id != \"\" && user = @request.auth.id",
 		"viewRule": "@request.auth.id != \"\" && user = @request.auth.id",
@@ -2055,6 +2077,20 @@
 				"required": false,
 				"system": false,
 				"type": "json"
+			},
+			{
+				"autogeneratePattern": "",
+				"hidden": false,
+				"id": "text3294557952",
+				"max": 0,
+				"min": 0,
+				"name": "image_snap",
+				"pattern": "",
+				"presentable": false,
+				"primaryKey": false,
+				"required": false,
+				"system": false,
+				"type": "text"
 			}
 		],
 		"indexes": ["CREATE INDEX `idx_order_items_order_id` ON `order_items` (`order_id`)"],

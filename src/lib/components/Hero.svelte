@@ -88,7 +88,7 @@
 
 	<!-- Center Title -->
 	<div
-		class="relative z-10 flex flex-col items-center justify-center h-full w-full px-4 text-center relative -top-6 md:-top-8"
+		class="relative z-10 flex flex-col items-center justify-center h-full w-full px-4 text-center relative -top-12 md:-top-16"
 	>
 		{#if section.subheading}
 			<span

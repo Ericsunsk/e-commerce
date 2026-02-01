@@ -1,15 +1,11 @@
 import { stripe } from '$lib/server/stripe';
-import { createOrder } from '$lib/server/orders';
 import { getProductByPbId } from '$lib/server/products';
 import { validateAndApplyCoupon } from '$lib/server/coupons';
-import { parsePrice } from '$lib/utils/price';
 import { STRIPE } from '$lib/constants';
-// checkoutLimiter check removed as it's handled in hooks.server.ts
 import type { RequestHandler } from './$types';
 import type Stripe from 'stripe';
 import { apiHandler } from '$lib/server/api-handler';
 import type { ShippingAddress, CartItem } from '$lib/types';
-import type { CreateOrderItemDTO } from '$lib/server/orders';
 
 /**
  * Helper: Find or create a Stripe Customer
@@ -72,29 +68,25 @@ async function getOrCreateStripeCustomer(email: string, name: string, address: S
 
 /**
  * Helper: Calculate tax using Stripe Tax API
- * Returns the tax calculation object with tax amount and calculation ID
  */
 async function calculateTax(
 	items: Array<{ id: string; title: string; quantity: number; priceCents: number }>,
 	shippingAddress: ShippingAddress,
 	currency: string
 ): Promise<{ taxAmountCents: number; calculationId: string | null }> {
-	// If no shipping address, we can't calculate tax
 	if (!shippingAddress || !shippingAddress.country) {
 		return { taxAmountCents: 0, calculationId: null };
 	}
 
 	try {
-		// Build line items for tax calculation
 		const lineItems = items.map((item) => ({
 			amount: item.priceCents * item.quantity,
 			quantity: item.quantity,
-			reference: item.id, // Product ID as reference
-			tax_behavior: 'exclusive' as const, // Tax is added on top of the price
-			tax_code: 'txcd_99999999' // General - Tangible Goods (default tax code)
+			reference: item.id,
+			tax_behavior: 'exclusive' as const,
+			tax_code: 'txcd_99999999'
 		}));
 
-		// Create tax calculation
 		const taxCalculation = await stripe.tax.calculations.create({
 			currency: currency.toLowerCase(),
 			line_items: lineItems,
@@ -111,15 +103,12 @@ async function calculateTax(
 			}
 		});
 
-		const taxAmountCents = taxCalculation.tax_amount_exclusive || 0;
-
 		return {
-			taxAmountCents,
+			taxAmountCents: taxCalculation.tax_amount_exclusive || 0,
 			calculationId: taxCalculation.id
 		};
 	} catch (e: unknown) {
 		console.error('Tax calculation failed:', e instanceof Error ? e.message : String(e));
-		// Return 0 tax if calculation fails - payment can still proceed
 		return { taxAmountCents: 0, calculationId: null };
 	}
 }
@@ -140,8 +129,6 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 	for (const item of items) {
 		const product = await getProductByPbId(item.id);
 		if (!product) {
-			console.error(`Product not found during checkout: ${item.id}`);
-			// Return explicit error with item details
 			throw {
 				status: 400,
 				message: `Item not available: ${item.title || item.id}. Please remove it from your cart.`
@@ -155,7 +142,6 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 			};
 		}
 
-		// product.priceValue is in dollars (float), convert to cents
 		const priceCents = Math.round(product.priceValue * 100);
 		amount += priceCents * item.quantity;
 
@@ -167,7 +153,7 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 		});
 	}
 
-	const subtotal = amount; // Keep track of subtotal before discount
+	const subtotal = amount;
 
 	// Apply Coupon Logic
 	if (couponCode) {
@@ -181,7 +167,6 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 		throw { status: 400, message: 'Amount too small' };
 	}
 
-	// Validate currency
 	const currency = customerInfo?.currency || 'usd';
 	if (!STRIPE.SUPPORTED_CURRENCIES.includes(currency.toUpperCase())) {
 		throw { status: 400, message: 'Unsupported currency' };
@@ -197,20 +182,45 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 		);
 	}
 
-	// --- Step 2: Calculate Tax using Stripe Tax API ---
+	// --- Step 2: Calculate Tax ---
 	let taxAmountCents = 0;
 	let taxCalculationId: string | null = null;
 
 	if (shippingInfo) {
+		console.log('[PaymentIntent] Calculating tax for address:', shippingInfo);
 		const taxResult = await calculateTax(itemsWithPrice, shippingInfo, currency);
 		taxAmountCents = taxResult.taxAmountCents;
 		taxCalculationId = taxResult.calculationId;
 	}
 
-	// Total amount = subtotal (after discount) + tax
 	const totalAmount = amount + taxAmountCents;
 
-	// --- Step 3: Create PaymentIntent ---
+	// --- Step 3: Build order data for n8n webhook ---
+	// Store complete order info in metadata so n8n can create the order
+	const orderData = {
+		user_id: customerInfo?.userId || '',
+		customer_email: customerInfo?.email || '',
+		customer_name: customerInfo?.name || 'Guest',
+		items: items.map((i: CartItem) => ({
+			id: i.id,
+			title: i.title || 'Unknown Product',
+			price: i.price,
+			quantity: i.quantity,
+			color: i.color || 'Standard',
+			size: i.size || 'Generic',
+			image: i.image || ''
+		})),
+		amount_subtotal: subtotal,
+		amount_shipping: 0,
+		amount_tax: taxAmountCents,
+		amount_total: totalAmount,
+		currency: currency.toLowerCase(),
+		shipping_address: shippingInfo || {},
+		coupon_code: couponCode || ''
+	};
+
+	// --- Step 4: Create PaymentIntent ---
+	// NOTE: Order creation is handled by n8n webhook on payment_intent.succeeded
 	const params: Stripe.PaymentIntentCreateParams = {
 		amount: totalAmount,
 		currency: currency.toLowerCase(),
@@ -218,21 +228,24 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 			enabled: true
 		},
 		metadata: {
+			// Summary for Stripe Dashboard
 			items_summary: items
 				.map((i: CartItem) => `${i.quantity}x ${i.title}`)
 				.join(', ')
 				.substring(0, 500),
+			// Full order data for n8n (JSON encoded)
+			order_data: JSON.stringify(orderData),
+			// Individual fields for easy n8n access
+			user_id: customerInfo?.userId || '',
 			coupon_code: couponCode || '',
 			tax_calculation_id: taxCalculationId || ''
 		}
 	};
 
-	// Add customer if resolved
 	if (customerId) {
 		params.customer = customerId;
 	}
 
-	// Link tax calculation if available (using hooks.inputs.tax)
 	if (taxCalculationId) {
 		(params as Stripe.PaymentIntentCreateParams & { hooks?: unknown }).hooks = {
 			inputs: {
@@ -243,39 +256,8 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 		};
 	}
 
+	console.log('[PaymentIntent] Creating intent (order will be created by n8n webhook)');
 	const paymentIntent = await stripe.paymentIntents.create(params);
-
-	// Create Pending Order in PocketBase
-	if (shippingInfo && customerInfo) {
-		await createOrder({
-			userId: customerInfo.userId || undefined,
-			stripeSessionId: '',
-			stripePaymentIntent: paymentIntent.id,
-			customerEmail: customerInfo.email,
-			customerName: customerInfo.name,
-			items: items.map(
-				(i: CartItem) =>
-					({
-						productId: i.id,
-						variantId: i.variantId,
-						title: i.title || 'Unknown Product',
-						price: typeof i.price === 'number' ? i.price : parsePrice(i.price),
-						quantity: i.quantity,
-						color: i.color,
-						size: i.size,
-						image: i.image
-					}) as CreateOrderItemDTO
-			),
-			amountSubtotal: subtotal,
-			amountShipping: 0,
-			amountTax: taxAmountCents,
-			amountTotal: totalAmount,
-			currency: currency.toLowerCase(),
-			status: 'pending',
-			shippingAddress: shippingInfo,
-			notes: couponCode ? `Coupon applied: ${couponCode}` : undefined
-		});
-	}
 
 	return {
 		clientSecret: paymentIntent.client_secret,

@@ -1,164 +1,44 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
-	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
-	import RemoteImage from '$lib/components/ui/RemoteImage.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import LoadingState from '$lib/components/ui/LoadingState.svelte';
-	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import { onMount } from 'svelte';
-	import type { Order } from '$lib/types';
-	import { formatDate } from '$lib/utils';
-	import { formatCurrency } from '$lib/utils/price';
-	import { LAYOUT } from '$lib/constants';
+	import type { PageData } from './$types';
+	import OrderCard from '$lib/components/orders/OrderCard.svelte';
+	import { ShoppingBag, ArrowRight } from 'lucide-svelte';
 
-	let { data } = $props();
-
-	let isLoggedIn = $derived(auth.isAuthenticated);
-	let currentUser = $derived(auth.user);
-	let orders = $state<Order[]>([]);
-	let isLoading = $state(true);
-
-	// Redirect if not logged in
-	$effect(() => {
-		if (!isLoggedIn) {
-			goto('/account?redirect=/account/orders');
-		}
-	});
-
-	onMount(async () => {
-		if (isLoggedIn && currentUser) {
-			try {
-				// Use server-side API handler to bypass client-side permission issues
-				// and utilize admin privileges for fetching orders
-				const res = await fetch(`/api/orders?userId=${currentUser.id}`);
-				const result = await res.json();
-
-				if (result.orders) {
-					orders = result.orders;
-				}
-			} catch (e) {
-				console.error('Failed to load orders:', e);
-			}
-		}
-		isLoading = false;
-	});
-
-	// Use formatCurrency directly
-	function formatOrderPrice(amount: number, currency: string = 'USD'): string {
-		return formatCurrency(amount, { currency, isCents: true });
-	}
-
-	function getStatusColor(status: string): string {
-		switch (status) {
-			case 'paid':
-				return 'text-green-600 dark:text-green-400';
-			case 'processing':
-				return 'text-blue-600 dark:text-blue-400';
-			case 'shipped':
-				return 'text-purple-600 dark:text-purple-400';
-			case 'delivered':
-				return 'text-green-700 dark:text-green-300';
-			case 'cancelled':
-				return 'text-red-600 dark:text-red-400';
-			default:
-				return 'text-yellow-600 dark:text-yellow-400';
-		}
-	}
+	let { data } = $props<{ data: PageData }>();
 </script>
 
-<svelte:head>
-	<title>Order History | {data.settings.siteName}</title>
-</svelte:head>
+<div class="max-w-4xl mx-auto px-6 py-12">
+	<h1 class="font-display text-3xl md:text-4xl text-text-main dark:text-white mb-8">
+		Order History
+	</h1>
 
-<div class={LAYOUT.pageContainer}>
-	<div class={LAYOUT.contentWrapper}>
-		<PageHeader title="Order History" backLabel="Back to Account" backHref="/account" />
-
-		{#if isLoading}
-			<LoadingState message="Loading orders..." />
-		{:else if orders.length === 0}
-			<EmptyState
-				title="No Orders Yet"
-				description="Your order history will appear here after your first purchase."
-				actionLabel="Start Shopping"
-				actionHref="/shop"
-				icon="shopping_bag"
-			/>
-		{:else}
-			<div class="space-y-6">
-				{#each orders as order (order.id)}
-					<div
-						class="border border-primary/10 dark:border-white/10 p-6"
-						in:fade={{ duration: 300 }}
-					>
-						<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-							<div>
-								<p
-									class="text-[10px] uppercase tracking-[0.15em] text-primary/60 dark:text-white/60"
-								>
-									Order #{order.id.slice(0, 8).toUpperCase()}
-								</p>
-								<p class="text-sm">
-									{formatDate(order.created)}
-								</p>
-							</div>
-							<div class="flex items-center gap-6">
-								<span
-									class="text-[10px] uppercase tracking-[0.15em] font-bold {getStatusColor(
-										order.status
-									)}"
-								>
-									{order.status}
-								</span>
-								<span class="font-bold">
-									{formatOrderPrice(order.amountTotal, order.currency)}
-								</span>
-							</div>
-						</div>
-
-						<!-- Order Items -->
-						<div class="space-y-4">
-							{#each order.items as item (item.productId || item.title)}
-								<div class="flex gap-4">
-									{#if item.image}
-										<RemoteImage
-											src={item.image}
-											alt={item.title}
-											className="w-16 h-20 object-cover"
-										/>
-									{:else}
-										<div class="w-16 h-20 bg-primary/5 dark:bg-white/5"></div>
-									{/if}
-									<div class="flex-1">
-										<p class="font-medium">{item.title}</p>
-										<p class="text-xs text-primary/60 dark:text-white/60">
-											{#if item.color}Color: {item.color}{/if}
-											{#if item.size}
-												· Size: {item.size}{/if}
-											· Qty: {item.quantity}
-										</p>
-									</div>
-									<p class="text-sm">
-										{formatOrderPrice(item.price * item.quantity, order.currency)}
-									</p>
-								</div>
-							{/each}
-						</div>
-
-						{#if order.trackingNumber}
-							<div class="mt-6 pt-6 border-t border-primary/10 dark:border-white/10">
-								<p
-									class="text-[10px] uppercase tracking-[0.15em] text-primary/60 dark:text-white/60"
-								>
-									Tracking: {order.trackingCarrier || ''}
-									{order.trackingNumber}
-								</p>
-							</div>
-						{/if}
-					</div>
-				{/each}
+	{#if data.orders.length > 0}
+		<div class="grid grid-cols-1 gap-4">
+			{#each data.orders as order (order.id)}
+				<OrderCard {order} />
+			{/each}
+		</div>
+	{:else}
+		<!-- Empty State -->
+		<div
+			class="flex flex-col items-center justify-center py-20 px-4 text-center border border-dashed border-neutral-300 dark:border-neutral-700 rounded-xl bg-neutral-50 dark:bg-neutral-900/50"
+		>
+			<div
+				class="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-6"
+			>
+				<ShoppingBag size={32} class="text-neutral-400" />
 			</div>
-		{/if}
-	</div>
+			<h2 class="font-display text-xl text-text-main dark:text-white mb-2">No orders yet</h2>
+			<p class="text-neutral-500 dark:text-neutral-400 mb-8 max-w-sm mx-auto">
+				Looks like you haven't placed any orders yet. Start shopping to discover our premium
+				collection.
+			</p>
+			<a
+				href="/shop"
+				class="inline-flex items-center justify-center px-8 py-3 bg-black text-white dark:bg-white dark:text-black font-sans text-xs font-medium tracking-widest uppercase hover:opacity-80 transition-opacity"
+			>
+				Start Shopping
+				<ArrowRight size={16} class="ml-2" />
+			</a>
+		</div>
+	{/if}
 </div>

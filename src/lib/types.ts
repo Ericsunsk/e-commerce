@@ -260,6 +260,32 @@ export interface UserListItem {
 	quantity: number;
 }
 
-export type UserList = UserListsResponse<UserListItem[]> & {
-	userId: string;
-};
+// =============================================================================
+// Order History View Models
+// =============================================================================
+
+export interface OrderSummary {
+	id: string;
+	date: string; // ISO
+	status: OrderStatus;
+	total: number;
+	currency: string;
+	itemCount: number;
+	firstItemTitle?: string;
+}
+
+export interface OrderDetail extends OrderSummary {
+	items: {
+		id: string;
+		title: string;
+		price: number;
+		quantity: number;
+		image?: string;
+		variant?: string;
+	}[];
+	shippingAddress: ShippingAddress;
+	tracking?: {
+		number: string;
+		carrier: string;
+	};
+}

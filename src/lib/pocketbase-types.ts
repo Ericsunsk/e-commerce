@@ -183,6 +183,7 @@ export type OrderItemsRecord<Tvariant_snap_json = unknown> = {
 	sku_snap?: string;
 	variant_id?: RecordIdString;
 	variant_snap_json?: null | Tvariant_snap_json;
+	image_snap?: string;
 };
 
 export enum OrdersStatusOptions {

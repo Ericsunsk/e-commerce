@@ -37,6 +37,15 @@ coverage/
 pb_data/
 pocketbase
 
+# Stripe CLI (binary)
+stripe
+
+# Disabled server files
+*.disabled
+
+# Backups
+.specify/backups/
+
 # AI Agents & Spec Kit
 .claude/
 .specify/temp/

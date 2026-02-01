@@ -67,14 +67,38 @@ export const POST: RequestHandler = apiHandler(
 			items[existingIndex].quantity += newItem.quantity;
 		} else {
 			// Add new
-			items.push(newItem);
+			// Sanitize: remove any undefined fields to prevent PB errors
+			const sanitizedItem = JSON.parse(JSON.stringify(newItem));
+			items.push(sanitizedItem);
 		}
 
+		// Sanitize entire items array before saving
+		const sanitizedItems = JSON.parse(JSON.stringify(items));
+
 		if (cart) {
-			// Update existing record
-			await pb.collection(Collections.UserLists).update(cart.id, {
-				items: items
-			});
+			try {
+				// Update existing record
+				await pb.collection(Collections.UserLists).update(cart.id, {
+					items: sanitizedItems
+				});
+			} catch (err: unknown) {
+				console.error('Failed to update cart:', err);
+				// If record was deleted concurrently, try creating it
+				if (
+					typeof err === 'object' &&
+					err !== null &&
+					'status' in err &&
+					(err as any).status === 404
+				) {
+					await pb.collection(Collections.UserLists).create({
+						user: userId,
+						type: 'cart',
+						items: items
+					});
+				} else {
+					throw err;
+				}
+			}
 		} else {
 			// Create new record
 			await pb.collection(Collections.UserLists).create({
@@ -142,9 +166,30 @@ export const DELETE: RequestHandler = apiHandler(
 		const newItems = items.filter((i) => !(i.id === id && i.variantId === variantId));
 
 		if (newItems.length !== items.length) {
-			await pb.collection(Collections.UserLists).update(cart.id, {
-				items: newItems
-			});
+			try {
+				if (newItems.length === 0) {
+					// Cart is now empty - delete the record instead of updating with empty array
+					// (PocketBase 'items' field is required and rejects empty arrays)
+					await pb.collection(Collections.UserLists).delete(cart.id);
+				} else {
+					// Sanitize items before saving
+					const sanitizedItems = JSON.parse(JSON.stringify(newItems));
+					await pb.collection(Collections.UserLists).update(cart.id, {
+						items: sanitizedItems
+					});
+				}
+			} catch (err) {
+				console.error('Failed to update cart (remove item):', err);
+				// If 404, it means cart is already gone - that's fine
+				if (
+					typeof err === 'object' &&
+					err !== null &&
+					'status' in err &&
+					(err as any).status !== 404
+				) {
+					throw err;
+				}
+			}
 		}
 
 		return { success: true, items: newItems };

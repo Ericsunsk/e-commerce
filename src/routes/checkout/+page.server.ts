@@ -9,6 +9,9 @@ export const load: PageServerLoad = async () => {
 	// Initialize empty form with defaults
 	const form = await superValidate(zod(shippingAddressSchema));
 
+	// Set default country to US (2-letter code)
+	form.data.country = 'US';
+
 	return {
 		stripeKey: env.PUBLIC_STRIPE_KEY,
 		form

@@ -45,13 +45,13 @@
 	// No local form state, use $form
 
 	const countries = [
-		'United States',
-		'Canada',
-		'United Kingdom',
-		'Australia',
-		'Germany',
-		'France',
-		'Japan'
+		{ label: 'United States', value: 'US' },
+		{ label: 'Canada', value: 'CA' },
+		{ label: 'United Kingdom', value: 'GB' },
+		{ label: 'Australia', value: 'AU' },
+		{ label: 'Germany', value: 'DE' },
+		{ label: 'France', value: 'FR' },
+		{ label: 'Japan', value: 'JP' }
 	];
 
 	// Shipping Options - 数据驱动配送选项
@@ -116,6 +116,11 @@
 				$form.lastName = parts.slice(1).join(' ') || '';
 			}
 		}
+
+		// Set default country if empty
+		if (!$form.country) {
+			$form.country = 'US';
+		}
 	});
 
 	async function handleApplyCoupon() {
@@ -172,8 +177,10 @@
 					name: `${$form.firstName} ${$form.lastName}`,
 					line1: $form.address,
 					city: $form.city,
+					state: $form.state,
 					postalCode: $form.zip,
-					country: $form.country
+					// Ensure we send 2-letter code. If the value is somehow full name (autofill), map it or fallback.
+					country: $form.country.length === 2 ? $form.country : 'US'
 				},
 				customerInfo: {
 					email: $form.email,
@@ -251,8 +258,9 @@
 						address: {
 							line1: $form.address,
 							city: $form.city,
+							state: $form.state,
 							postal_code: $form.zip,
-							country: 'US' // Simplification for demo
+							country: $form.country.length === 2 ? $form.country : 'US'
 						}
 					}
 				}
@@ -385,16 +393,7 @@
 							error={$errors.address ? $errors.address[0] : ''}
 						/>
 
-						<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-							<FormInput
-								id="checkout-zip"
-								name="zip"
-								label="Zip Code"
-								autocomplete="postal-code"
-								bind:value={$form.zip}
-								error={$errors.zip ? $errors.zip[0] : ''}
-								className="col-span-1"
-							/>
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 							<FormInput
 								id="checkout-city"
 								name="city"
@@ -402,14 +401,28 @@
 								autocomplete="address-level2"
 								bind:value={$form.city}
 								error={$errors.city ? $errors.city[0] : ''}
-								className="col-span-1"
+							/>
+							<FormInput
+								id="checkout-state"
+								name="state"
+								label="State / Province"
+								autocomplete="address-level1"
+								bind:value={$form.state}
+								error={$errors.state ? $errors.state[0] : ''}
+							/>
+							<FormInput
+								id="checkout-zip"
+								name="zip"
+								label="Zip Code"
+								autocomplete="postal-code"
+								bind:value={$form.zip}
+								error={$errors.zip ? $errors.zip[0] : ''}
 							/>
 							<FormSelect
 								id="checkout-country"
 								label="Country"
 								bind:value={$form.country}
 								options={countries}
-								className="col-span-1"
 								hideLabel={true}
 							/>
 						</div>

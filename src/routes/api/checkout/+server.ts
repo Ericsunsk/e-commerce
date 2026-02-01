@@ -5,7 +5,7 @@ import type { RequestHandler } from './$types';
 import { checkoutSchema } from '$lib/schemas';
 import { apiHandler } from '$lib/server/api-handler';
 
-export const POST: RequestHandler = apiHandler(async ({ request, url }) => {
+export const POST: RequestHandler = apiHandler(async ({ request, url, locals }) => {
 	const body = await request.json();
 	const origin = url.origin;
 
@@ -55,6 +55,9 @@ export const POST: RequestHandler = apiHandler(async ({ request, url }) => {
 		mode: 'payment',
 		success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
 		cancel_url: `${origin}/checkout`,
+		// Pass user ID if authenticated
+		client_reference_id: locals.user?.id,
+		customer_email: locals.user?.email, // Pre-fill email if logged in
 		// Optional: Add shipping address collection
 		shipping_address_collection: {
 			allowed_countries: [...STRIPE.ALLOWED_COUNTRIES]

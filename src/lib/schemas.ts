@@ -39,6 +39,7 @@ export const shippingAddressSchema = z
 		address: z.string().min(1, { message: 'REQUIRED' }),
 		zip: z.string().min(1, { message: 'REQUIRED' }),
 		city: z.string().min(1, { message: 'REQUIRED' }),
+		state: z.string().default(''),
 		country: z.string().default('United States')
 	})
 	.superRefine((data, ctx) => {

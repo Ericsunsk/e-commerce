@@ -1,0 +1,587 @@
+{
+	"name": "Stripe Order Complete - Create Order, Clear Cart & Send Email",
+	"nodes": [
+		{
+			"parameters": {},
+			"id": "sticky-intro",
+			"name": "📋 Workflow 说明",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-400, -100],
+			"parameters": {
+				"content": "## 🛒 Stripe 订单完整流程\n\n**功能**: 支付成功后自动创建订单、清空购物车、发送确认邮件\n\n**触发条件**: Stripe `payment_intent.succeeded` 事件\n\n**Webhook URL**: `/webhook/stripe-order-webhook`\n\n---\n\n### 🔧 配置要点\n1. 在 Stripe Dashboard 添加 Webhook 端点\n2. 选择事件: `payment_intent.succeeded`\n3. 在 ⚙️ Global Config 节点中配置所有密钥\n\n### � 首次使用\n请先修改 Global Config 节点中的配置值",
+				"width": 360,
+				"height": 380,
+				"color": 7
+			}
+		},
+		{
+			"parameters": {},
+			"id": "sticky-config",
+			"name": "⚙️ 配置区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-30, -100],
+			"parameters": {
+				"content": "## ⚙️ 全局配置\n\n**在下方节点中修改所有配置值**\n\n包含:\n- PocketBase URL 和密钥\n- Resend API Key\n- 发件人信息\n- 站点名称",
+				"width": 280,
+				"height": 140,
+				"color": 6
+			}
+		},
+		{
+			"parameters": {
+				"jsCode": "// ══════════════════════════════════════════════════════════════════════\n// ⚙️ 全局配置 - 请在此处修改所有配置值\n// ══════════════════════════════════════════════════════════════════════\n\nconst CONFIG = {\n  // ═══════════════════════════════════════════════════════════════════\n  // 🗄️ PocketBase 配置\n  // ═══════════════════════════════════════════════════════════════════\n  POCKETBASE_URL: 'https://pb.elementhic.com',\n  POCKETBASE_WEBHOOK_SECRET: 'n8n-elementhic-webhook-2026',\n  \n  // ═══════════════════════════════════════════════════════════════════\n  // 📧 Resend 邮件配置\n  // ═══════════════════════════════════════════════════════════════════\n  RESEND_API_KEY: 're_WwoKz4V7_6FqvneFKgZ1r5ARCpQtPJqMN',\n  EMAIL_FROM_NAME: 'ELEMENTHIC',\n  EMAIL_FROM_ADDRESS: 'orders@elementhic.com',\n  \n  // ═══════════════════════════════════════════════════════════════════\n  // 🏪 站点配置\n  // ═══════════════════════════════════════════════════════════════════\n  SITE_NAME: 'ELEMENTHIC',\n  DEFAULT_CURRENCY: 'USD',\n  \n  // ═══════════════════════════════════════════════════════════════════\n  // 🔗 API 端点 (基于 PocketBase URL 自动生成)\n  // ═══════════════════════════════════════════════════════════════════\n  get ORDERS_API() {\n    return `${this.POCKETBASE_URL}/api/collections/orders/records`;\n  },\n  get USER_LISTS_API() {\n    return `${this.POCKETBASE_URL}/api/collections/user_lists/records`;\n  },\n  get EMAIL_FROM() {\n    return `${this.EMAIL_FROM_NAME} <${this.EMAIL_FROM_ADDRESS}>`;\n  }\n};\n\n// 输出配置供后续节点使用\nreturn {\n  json: {\n    config: CONFIG,\n    // 展开常用值方便直接引用\n    pocketbase_url: CONFIG.POCKETBASE_URL,\n    webhook_secret: CONFIG.POCKETBASE_WEBHOOK_SECRET,\n    orders_api: CONFIG.ORDERS_API,\n    user_lists_api: CONFIG.USER_LISTS_API,\n    resend_api_key: CONFIG.RESEND_API_KEY,\n    email_from: CONFIG.EMAIL_FROM,\n    site_name: CONFIG.SITE_NAME,\n    default_currency: CONFIG.DEFAULT_CURRENCY\n  }\n};"
+			},
+			"id": "global-config",
+			"name": "⚙️ Global Config",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [0, 100],
+			"notes": "⚙️ 全局配置节点\n\n📌 请在此处修改所有配置值:\n\n🗄️ PocketBase:\n- POCKETBASE_URL: API地址\n- POCKETBASE_WEBHOOK_SECRET: 认证密钥\n\n📧 Resend:\n- RESEND_API_KEY: API密钥\n- EMAIL_FROM_*: 发件人信息\n\n🏪 站点:\n- SITE_NAME: 站点名称\n- DEFAULT_CURRENCY: 默认货币"
+		},
+		{
+			"parameters": {},
+			"id": "sticky-trigger",
+			"name": "🟢 触发器区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [220, 80],
+			"parameters": {
+				"content": "## 🟢 第1步: 接收 Webhook\n\n接收 Stripe 发来的支付成功事件\n\n⚠️ 必须立即返回 200，否则 Stripe 会超时重试",
+				"width": 280,
+				"height": 140,
+				"color": 3
+			}
+		},
+		{
+			"parameters": {},
+			"id": "sticky-parse",
+			"name": "🔵 解析区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [450, 220],
+			"parameters": {
+				"content": "## 🔵 第2步: 解析订单数据\n\n从 PaymentIntent.metadata.order_data 中提取:\n- 用户信息\n- 商品列表\n- 金额明细\n- 收货地址",
+				"width": 280,
+				"height": 160,
+				"color": 1
+			}
+		},
+		{
+			"parameters": {},
+			"id": "sticky-order",
+			"name": "🟣 订单创建区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [870, 80],
+			"parameters": {
+				"content": "## 🟣 第3步: 创建订单\n\n调用 PocketBase API 创建订单记录\n\n**认证**: X-Webhook-Secret header\n**状态**: paid",
+				"width": 300,
+				"height": 140,
+				"color": 5
+			}
+		},
+		{
+			"parameters": {},
+			"id": "sticky-cart",
+			"name": "🟡 购物车清空区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [1320, -30],
+			"parameters": {
+				"content": "## 🟡 第4步: 清空购物车\n\n如果是登录用户，查找并删除其购物车\n\n1. 检查是否有 user_id\n2. 查询 user_lists 中的 cart\n3. 删除购物车记录",
+				"width": 320,
+				"height": 160,
+				"color": 4
+			}
+		},
+		{
+			"parameters": {},
+			"id": "sticky-email",
+			"name": "🔴 邮件发送区域",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [1970, 80],
+			"parameters": {
+				"content": "## 🔴 第5步: 发送确认邮件\n\n使用 Resend API 发送订单确认邮件\n\n**发件人**: 从 Global Config 读取\n**模板**: 自动生成 HTML 收据",
+				"width": 300,
+				"height": 140,
+				"color": 2
+			}
+		},
+		{
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "stripe-order-webhook",
+				"responseMode": "responseNode",
+				"options": {}
+			},
+			"id": "webhook-trigger",
+			"name": "Stripe Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [270, 300],
+			"webhookId": "stripe-order-webhook",
+			"notes": "🟢 接收 Stripe payment_intent.succeeded 事件\n\nWebhook URL: /webhook/stripe-order-webhook\n\n配置提示:\n1. 在 Stripe Dashboard 添加此 URL\n2. 选择事件 payment_intent.succeeded\n3. API 版本选择 Latest"
+		},
+		{
+			"parameters": {
+				"respondWith": "json",
+				"responseBody": "={\"received\": true}",
+				"options": {}
+			},
+			"id": "respond-immediately",
+			"name": "Respond 200",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [490, 160],
+			"notes": "🟢 立即返回 200 响应\n\n⚠️ 重要: 必须快速响应，否则 Stripe 会超时并重试发送 webhook"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Parse Stripe webhook payload\nconst config = $node['⚙️ Global Config'].json;\nconst body = $('Stripe Webhook').item.json.body;\n\n// Validate event type\nif (body.type !== 'payment_intent.succeeded') {\n  return [{ json: { skip: true, reason: 'Not payment_intent.succeeded', config } }];\n}\n\nconst paymentIntent = body.data.object;\nconst metadata = paymentIntent.metadata || {};\n\n// Parse order data from metadata\nlet orderData = {};\ntry {\n  orderData = JSON.parse(metadata.order_data || '{}');\n} catch (e) {\n  console.log('Failed to parse order_data:', e.message);\n}\n\nreturn [{\n  json: {\n    skip: false,\n    config,  // 传递配置给后续节点\n    payment_intent_id: paymentIntent.id,\n    customer_id: paymentIntent.customer || null,\n    stripe_amount: paymentIntent.amount,\n    stripe_currency: paymentIntent.currency,\n    \n    // Order data from metadata\n    user_id: orderData.user_id || metadata.user_id || '',\n    customer_email: orderData.customer_email || paymentIntent.receipt_email || '',\n    customer_name: orderData.customer_name || 'Guest',\n    items: orderData.items || [],\n    amount_subtotal: orderData.amount_subtotal || paymentIntent.amount,\n    amount_shipping: orderData.amount_shipping || 0,\n    amount_tax: orderData.amount_tax || 0,\n    amount_total: orderData.amount_total || paymentIntent.amount,\n    currency: orderData.currency || paymentIntent.currency || 'usd',\n    shipping_address: orderData.shipping_address || {},\n    coupon_code: orderData.coupon_code || metadata.coupon_code || ''\n  }\n}];"
+			},
+			"id": "parse-order-data",
+			"name": "Parse Order Data",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [490, 300],
+			"notes": "🔵 解析订单数据\n\n从 PaymentIntent.metadata.order_data (JSON) 中提取:\n- payment_intent_id: Stripe 支付 ID\n- user_id: PocketBase 用户 ID\n- customer_email: 客户邮箱\n- items: 商品列表\n- amount_total: 总金额 (分)\n- shipping_address: 收货地址\n\n同时传递 config 给后续节点"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"id": "check-skip",
+							"leftValue": "={{ $json.skip }}",
+							"rightValue": false,
+							"operator": {
+								"type": "boolean",
+								"operation": "equals"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "if-not-skip",
+			"name": "Should Process?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [710, 300],
+			"notes": "🔵 检查是否需要处理\n\n如果事件类型不是 payment_intent.succeeded，则跳过"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "={{ $node['⚙️ Global Config'].json.orders_api }}",
+				"sendHeaders": true,
+				"headerParameters": {
+					"parameters": [
+						{
+							"name": "X-Webhook-Secret",
+							"value": "={{ $node['⚙️ Global Config'].json.webhook_secret }}"
+						}
+					]
+				},
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"user\": {{ $node['Parse Order Data'].json.user_id ? '\"' + $node['Parse Order Data'].json.user_id + '\"' : 'null' }},\n  \"stripe_payment_intent\": \"{{ $node['Parse Order Data'].json.payment_intent_id }}\",\n  \"customer_email\": \"{{ $node['Parse Order Data'].json.customer_email }}\",\n  \"customer_name\": \"{{ $node['Parse Order Data'].json.customer_name }}\",\n  \"items\": {{ JSON.stringify($node['Parse Order Data'].json.items) }},\n  \"amount_subtotal\": {{ $node['Parse Order Data'].json.amount_subtotal }},\n  \"amount_shipping\": {{ $node['Parse Order Data'].json.amount_shipping }},\n  \"amount_tax\": {{ $node['Parse Order Data'].json.amount_tax }},\n  \"amount_total\": {{ $node['Parse Order Data'].json.amount_total }},\n  \"currency\": \"{{ $node['Parse Order Data'].json.currency }}\",\n  \"status\": \"paid\",\n  \"shipping_address\": {{ JSON.stringify($node['Parse Order Data'].json.shipping_address) }}\n}",
+				"options": {}
+			},
+			"id": "create-order",
+			"name": "Create Order",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [930, 200],
+			"notes": "🟣 创建订单到 PocketBase\n\nAPI URL: 从 Global Config 读取\n认证: X-Webhook-Secret (从 Config 读取)\n\n字段:\n- user: 用户 ID (可选)\n- stripe_payment_intent: Stripe ID\n- items: 商品快照 (JSON)\n- amount_*: 金额明细\n- status: paid"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"id": "has-user-id",
+							"leftValue": "={{ $node['Parse Order Data'].json.user_id }}",
+							"rightValue": "",
+							"operator": {
+								"type": "string",
+								"operation": "notEmpty"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "if-has-user",
+			"name": "Has User ID?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [1150, 200],
+			"notes": "🟡 检查是否为登录用户\n\n如果有 user_id，则需要清空购物车\n如果没有 (Guest)，直接跳到发邮件"
+		},
+		{
+			"parameters": {
+				"method": "GET",
+				"url": "={{ $node['⚙️ Global Config'].json.user_lists_api }}?filter=(user='{{ $node['Parse Order Data'].json.user_id }}' %26%26 type='cart')",
+				"sendHeaders": true,
+				"headerParameters": {
+					"parameters": [
+						{
+							"name": "X-Webhook-Secret",
+							"value": "={{ $node['⚙️ Global Config'].json.webhook_secret }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "find-cart",
+			"name": "Find User Cart",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1370, 100],
+			"notes": "🟡 查找用户购物车\n\nAPI URL: 从 Global Config 读取\n\n查询条件:\n- user = 用户ID\n- type = 'cart'\n\n注意: filter 中的 && 需要编码为 %26%26"
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "strict"
+					},
+					"conditions": [
+						{
+							"id": "cart-exists",
+							"leftValue": "={{ $json.totalItems }}",
+							"rightValue": 0,
+							"operator": {
+								"type": "number",
+								"operation": "gt"
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "if-cart-exists",
+			"name": "Cart Exists?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2,
+			"position": [1590, 100],
+			"notes": "🟡 检查购物车是否存在\n\n如果 totalItems > 0，则有购物车需要删除"
+		},
+		{
+			"parameters": {
+				"method": "DELETE",
+				"url": "={{ $node['⚙️ Global Config'].json.user_lists_api }}/{{ $json.items[0].id }}",
+				"sendHeaders": true,
+				"headerParameters": {
+					"parameters": [
+						{
+							"name": "X-Webhook-Secret",
+							"value": "={{ $node['⚙️ Global Config'].json.webhook_secret }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "delete-cart",
+			"name": "Delete Cart",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [1810, 0],
+			"notes": "🟡 删除购物车\n\nAPI URL: 从 Global Config 读取\n\n删除找到的第一个购物车记录"
+		},
+		{
+			"parameters": {
+				"jsCode": "// Generate HTML Receipt for Email\nconst orderData = $node['Parse Order Data'].json;\nconst config = $node['⚙️ Global Config'].json;\nconst createdOrder = $node['Create Order'].json;\nconst siteName = config.site_name || 'ELEMENTHIC';\nconst currency = (orderData.currency || config.default_currency || 'USD').toUpperCase();\n\n// Format Currency\nconst formatPrice = (amount) => {\n  return new Intl.NumberFormat('en-US', {\n    style: 'currency',\n    currency: currency\n  }).format(amount / 100);\n};\n\n// Generate Items HTML\nconst items = orderData.items || [];\nconst itemsHtml = items.map(item => `\n  <div style=\"border-bottom: 1px solid #eee; padding: 10px 0; display: flex; align-items: center;\">\n    <div style=\"flex-grow: 1;\">\n      <p style=\"margin: 0; font-weight: bold; color: #333;\">${item.title}</p>\n      <p style=\"margin: 0; font-size: 12px; color: #666;\">\n        Quantity: ${item.quantity} \n        ${item.size ? `| Size: ${item.size}` : ''} \n        ${item.color ? `| Color: ${item.color}` : ''}\n      </p>\n    </div>\n    <div style=\"font-weight: bold; color: #333;\">\n      ${formatPrice((item.price || 0) * (item.quantity || 1))}\n    </div>\n  </div>\n`).join('');\n\nconst shippingAddress = orderData.shipping_address || {};\nconst orderId = createdOrder.id || 'UNKNOWN';\n\nreturn {\n  json: {\n    order_id: orderId,\n    customer_email: orderData.customer_email,\n    customer_name: orderData.customer_name,\n    amount_total: orderData.amount_total,\n    config,  // 传递配置\n    emailHtml: `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }\n    .logo { font-size: 24px; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; }\n    .order-details { margin-bottom: 30px; background: #f9f9f9; padding: 20px; border-radius: 5px; }\n    .footer { text-align: center; font-size: 12px; color: #999; margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <div class=\"logo\">${siteName}</div>\n    </div>\n    \n    <h2>Thank you for your order, ${orderData.customer_name || 'Guest'}!</h2>\n    <p>We received your order and will process it shortly.</p>\n    \n    <div class=\"order-details\">\n      <h3 style=\"margin-top: 0;\">Order #${orderId.slice(-6).toUpperCase()}</h3>\n      <p style=\"margin: 0; color: #666;\">${new Date().toLocaleDateString()}</p>\n    </div>\n\n    <h3>Order Summary</h3>\n    ${itemsHtml}\n\n    <div style=\"margin-top: 20px; text-align: right; font-size: 18px; font-weight: bold;\">\n      Total: ${formatPrice(orderData.amount_total)}\n    </div>\n\n    <div style=\"margin-top: 40px;\">\n      <h3>Shipping Address</h3>\n      <p>\n        ${shippingAddress.name || ''}<br>\n        ${shippingAddress.line1 || ''}<br>\n        ${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.postalCode || ''}<br>\n        ${shippingAddress.country || ''}\n      </p>\n    </div>\n\n    <div class=\"footer\">\n      <p>&copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>\n    </div>\n  </div>\n</body>\n</html>`\n  }\n};"
+			},
+			"id": "generate-email",
+			"name": "Generate Email HTML",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [2030, 200],
+			"notes": "🔴 生成邮件 HTML\n\n使用订单数据和 Global Config 生成 HTML 收据\n\n站点名称: 从 Config 读取\n货币格式: 从 Config 读取"
+		},
+		{
+			"parameters": {
+				"method": "POST",
+				"url": "https://api.resend.com/emails",
+				"sendHeaders": true,
+				"headerParameters": {
+					"parameters": [
+						{
+							"name": "Authorization",
+							"value": "=Bearer {{ $node['⚙️ Global Config'].json.resend_api_key }}"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						}
+					]
+				},
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={\n  \"from\": \"{{ $node['⚙️ Global Config'].json.email_from }}\",\n  \"to\": \"{{ $json.customer_email }}\",\n  \"subject\": \"Order Confirmation #{{ $json.order_id.slice(-6).toUpperCase() }}\",\n  \"html\": {{ JSON.stringify($json.emailHtml) }}\n}",
+				"options": {}
+			},
+			"id": "send-email",
+			"name": "Send Email (Resend)",
+			"type": "n8n-nodes-base.httpRequest",
+			"typeVersion": 4.2,
+			"position": [2250, 200],
+			"notes": "🔴 发送确认邮件\n\n使用 Resend API 发送邮件\n\n所有配置从 Global Config 读取:\n- API Key\n- 发件人地址"
+		},
+		{
+			"parameters": {
+				"values": {
+					"string": [
+						{
+							"name": "status",
+							"value": "completed"
+						},
+						{
+							"name": "order_id",
+							"value": "={{ $node['Create Order'].json.id }}"
+						},
+						{
+							"name": "email_sent",
+							"value": "true"
+						},
+						{
+							"name": "message",
+							"value": "Order created, cart cleared, and email sent successfully"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "success-output",
+			"name": "Success",
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [2470, 200],
+			"notes": "✅ 流程完成\n\n所有步骤成功执行:\n- 订单已创建\n- 购物车已清空\n- 确认邮件已发送"
+		},
+		{
+			"parameters": {
+				"values": {
+					"string": [
+						{
+							"name": "status",
+							"value": "skipped"
+						},
+						{
+							"name": "reason",
+							"value": "={{ $json.reason || 'Event type not supported' }}"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "skip-output",
+			"name": "Skipped",
+			"type": "n8n-nodes-base.set",
+			"typeVersion": 3.4,
+			"position": [930, 400],
+			"notes": "⏭️ 跳过处理\n\n事件类型不是 payment_intent.succeeded，无需处理"
+		}
+	],
+	"connections": {
+		"⚙️ Global Config": {
+			"main": [
+				[
+					{
+						"node": "Stripe Webhook",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Stripe Webhook": {
+			"main": [
+				[
+					{
+						"node": "Respond 200",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Parse Order Data",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Parse Order Data": {
+			"main": [
+				[
+					{
+						"node": "Should Process?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Should Process?": {
+			"main": [
+				[
+					{
+						"node": "Create Order",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Skipped",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create Order": {
+			"main": [
+				[
+					{
+						"node": "Has User ID?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Has User ID?": {
+			"main": [
+				[
+					{
+						"node": "Find User Cart",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Generate Email HTML",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find User Cart": {
+			"main": [
+				[
+					{
+						"node": "Cart Exists?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Cart Exists?": {
+			"main": [
+				[
+					{
+						"node": "Delete Cart",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Generate Email HTML",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Delete Cart": {
+			"main": [
+				[
+					{
+						"node": "Generate Email HTML",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Generate Email HTML": {
+			"main": [
+				[
+					{
+						"node": "Send Email (Resend)",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Send Email (Resend)": {
+			"main": [
+				[
+					{
+						"node": "Success",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"staticData": null,
+	"tags": [
+		{
+			"name": "stripe",
+			"createdAt": "2026-02-01T08:00:00.000Z",
+			"updatedAt": "2026-02-01T08:00:00.000Z"
+		},
+		{
+			"name": "pocketbase",
+			"createdAt": "2026-02-01T08:00:00.000Z",
+			"updatedAt": "2026-02-01T08:00:00.000Z"
+		},
+		{
+			"name": "orders",
+			"createdAt": "2026-02-01T08:00:00.000Z",
+			"updatedAt": "2026-02-01T08:00:00.000Z"
+		},
+		{
+			"name": "email",
+			"createdAt": "2026-02-01T08:00:00.000Z",
+			"updatedAt": "2026-02-01T08:00:00.000Z"
+		}
+	],
+	"triggerCount": 1,
+	"pinData": {},
+	"meta": {
+		"templateCredsSetupCompleted": true,
+		"instanceId": "elementhic-ecommerce"
+	}
+}

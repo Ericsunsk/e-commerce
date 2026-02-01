@@ -23,6 +23,10 @@ export async function withAdmin<T>(operation: AdminOperation<T>, fallbackValue?:
 		// Log detailed error for debugging
 		const context = operation.name ? `[${operation.name}]` : '[AdminOp]';
 		console.error(`${context} failed:`, e?.message || e);
+		// Log PocketBase validation errors if present
+		if (e?.response?.data) {
+			console.error(`${context} PocketBase details:`, JSON.stringify(e.response.data, null, 2));
+		}
 
 		// If fallback is provided (even if null), return it
 		if (fallbackValue !== undefined) {
