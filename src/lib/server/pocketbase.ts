@@ -8,15 +8,53 @@ import type { TypedPocketBase } from '$lib/pocketbase-types';
 // It falls back to PUBLIC_POCKETBASE_URL if not provided.
 const pbUrl = env.POCKETBASE_URL || publicEnv.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
 
-// Global server-side instance
+// Global server-side instance (for non-admin operations like user auth)
 export const pb = new PocketBase(pbUrl) as TypedPocketBase;
 
 // Re-export unified image utilities
 export { getFileUrl, resolvePocketBaseImage, resolvePocketBaseGallery } from '$lib/utils/image';
 
+// Cache for admin credentials
+let adminEmail: string | undefined;
+let adminPassword: string | undefined;
+
+function getAdminCredentials() {
+	if (!adminEmail || !adminPassword) {
+		adminEmail = env.POCKETBASE_ADMIN_EMAIL || env.PB_ADMIN_EMAIL;
+		adminPassword = env.POCKETBASE_ADMIN_PASSWORD || env.PB_ADMIN_PASSWORD;
+	}
+	return { email: adminEmail, password: adminPassword };
+}
+
 /**
- * Initialize admin authentication
- * Returns the global PB instance authenticated as admin
+ * Create a NEW PocketBase instance authenticated as admin.
+ * This avoids concurrent request issues with shared global instance.
+ */
+export async function createAdminClient(): Promise<TypedPocketBase> {
+	const { email, password } = getAdminCredentials();
+
+	if (!email || !password) {
+		throw new Error('Missing PB_ADMIN_EMAIL or PB_ADMIN_PASSWORD environment variables');
+	}
+
+	// Create a fresh instance for this request
+	const adminPb = new PocketBase(pbUrl) as TypedPocketBase;
+	adminPb.autoCancellation(false);
+
+	try {
+		// PocketBase v0.23+ uses _superusers collection instead of admins
+		await adminPb.collection('_superusers').authWithPassword(email, password);
+		return adminPb;
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : String(err);
+		console.error('❌ Admin authentication failed:', message);
+		throw err;
+	}
+}
+
+/**
+ * @deprecated Use createAdminClient() instead for concurrent-safe admin operations
+ * Initialize admin authentication on global instance
  */
 export async function initAdmin() {
 	// Check if already authenticated as superuser
@@ -24,15 +62,15 @@ export async function initAdmin() {
 		return pb;
 	}
 
-	const email = env.POCKETBASE_ADMIN_EMAIL || env.PB_ADMIN_EMAIL;
-	const password = env.POCKETBASE_ADMIN_PASSWORD || env.PB_ADMIN_PASSWORD;
+	const { email, password } = getAdminCredentials();
 
 	if (!email || !password) {
 		throw new Error('Missing PB_ADMIN_EMAIL or PB_ADMIN_PASSWORD environment variables');
 	}
 
 	try {
-		await pb.admins.authWithPassword(email, password);
+		// PocketBase v0.23+ uses _superusers collection instead of admins
+		await pb.collection('_superusers').authWithPassword(email, password);
 		return pb;
 	} catch (err: unknown) {
 		const message = err instanceof Error ? err.message : String(err);

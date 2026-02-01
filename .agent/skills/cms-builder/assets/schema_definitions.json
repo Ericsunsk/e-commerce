@@ -1836,8 +1836,8 @@
 		],
 		"listRule": "@request.auth.id != \"\" && user = @request.auth.id",
 		"viewRule": "@request.auth.id != \"\" && user = @request.auth.id",
-		"createRule": "@request.auth.id != \"\"",
-		"updateRule": null,
+		"createRule": "@request.headers.x_webhook_secret = \"n8n-elementhic-webhook-2026\"",
+		"updateRule": "@request.headers.x_webhook_secret = \"n8n-elementhic-webhook-2026\"",
 		"deleteRule": null
 	},
 	{
@@ -2280,7 +2280,7 @@
 		"viewRule": "@request.auth.id = user.id",
 		"createRule": "@request.auth.id != \"\" && @request.auth.id = user.id",
 		"updateRule": "@request.auth.id = user.id",
-		"deleteRule": "@request.auth.id = user.id"
+		"deleteRule": "@request.auth.id = user.id || @request.headers.x_webhook_secret = \"n8n-elementhic-webhook-2026\""
 	},
 	{
 		"name": "collection_images",
