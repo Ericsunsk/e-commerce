@@ -1,7 +1,8 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.3.0 -> 1.3.1
-List of modified principles: None (Audit verification update)
+Version: 1.3.1 -> 1.3.2
+List of modified principles:
+- II. Apple UX Style & Aesthetics: Added Iconography and Styling Engine mandates.
 Added sections: None
 Removed sections: None
 Templates requiring updates:
@@ -27,7 +28,9 @@ Follow-up TODOs: None
 
 ### II. Apple UX Style & Aesthetics
 - **Premium Design**: Prioritize high-quality, vibrant aesthetics. Avoid generic browser defaults.
+- **Styling Engine**: **Tailwind CSS v4** is mandatory. Use `@theme` blocks for design tokens.
 - **Typography**: Use modern, clean typography (e.g., Inter, Outfit).
+- **Icons**: Use **Lucide Svelte** (stroke width 1.5px-2px). Consistency with typography is paramount.
 - **Color Palettes**: Use curated HSL tailored colors and smooth gradients. Ensure a consistent, premium dark/light mode experience.
 - **Motion**: Prioritize native `transition:` and `animate:flip`. Use GPU-accelerated properties (`transform`, `opacity`) for all animations.
 
@@ -81,4 +84,4 @@ Follow-up TODOs: None
 - Every new feature must be validated against these rules during the `Plan` and `Analyze` phases.
 - **Compliance**: Pull Requests violating these principles must be rejected, regardless of functional correctness.
 
-**Version**: 1.3.1 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-01
+**Version**: 1.3.2 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-01
