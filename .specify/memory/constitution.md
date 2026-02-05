@@ -1,24 +1,29 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.5.0 -> 1.5.1
+Version: 1.5.1 -> 1.5.2
 List of modified principles:
-- I. SvelteKit + Svelte 5 Protocol (The Runes): Updated TanStack Query version reference to v6.
+- II. Apple UX Style & Aesthetics: Updated font examples to match `src/app.css` tokens.
+- VIII. Spec-Driven Workflow (The Law): Clarified canonical `specs/<feature>/` traceability paths.
 Added sections:
 None
-Removed sections: None
+Removed sections:
+None
 Templates requiring updates:
-- .specify/templates/plan-template.md (✅ verified)
+- .specify/templates/plan-template.md (✅ updated)
 - .specify/templates/spec-template.md (✅ verified)
 - .specify/templates/tasks-template.md (✅ verified)
 Command files requiring updates:
 - .opencode/command/*.md (✅ verified)
 Runtime docs requiring updates:
 - README.md (✅ updated)
+- .github/pull_request_template.md (✅ updated)
 - .specify/CODE_REVIEW_GUIDE.md (✅ updated)
-- .specify/specs/core-commerce-platform/plan.md (✅ updated)
+Spec artifacts requiring updates:
+- .specify/specs/* -> specs/* (✅ moved + links corrected)
 Automation/scripts requiring updates:
 None
-Follow-up TODOs: None
+Follow-up TODOs:
+None
 -->
 
 # ELEMENTHIC Project Constitution
@@ -40,7 +45,7 @@ Follow-up TODOs: None
 ### II. Apple UX Style & Aesthetics
 - **Design Standard (MUST)**: Customer-facing UI MUST not ship with unstyled browser defaults.
 - **Styling Engine (MUST)**: **Tailwind CSS v4** is mandatory. Define design tokens via `@theme`.
-- **Typography (SHOULD)**: Use the project font tokens (e.g., Inter, Outfit) with clear hierarchy.
+- **Typography (SHOULD)**: Use the project font tokens (e.g., Manrope, Optima) with clear hierarchy.
 - **Icons (MUST)**: Use **Lucide Svelte** (stroke width 1.5px-2px) with consistent sizing.
 - **Color System (MUST)**: Use curated HSL tokens and gradients; avoid ad-hoc component colors.
 - **Motion (MUST)**: Animations MUST use GPU-safe properties (`transform`, `opacity`). Prefer
@@ -115,10 +120,10 @@ Follow-up TODOs: None
 - **Rationale**: Lower complexity increases velocity and reduces regression risk.
 
 ### VIII. Spec-Driven Workflow (The Law)
-- **Traceability (MUST)**: Every code change MUST trace back to an approved task from a `speckit`
-  plan (`tasks.md`).
-- **Chain of Custody (MUST)**: Features progress strictly through: `Constitution` -> `Spec` ->
-  `Plan` -> `Tasks` -> `Code`.
+- **Traceability (MUST)**: Every code change MUST trace back to an approved task in
+  `specs/<feature>/tasks.md`.
+- **Chain of Custody (MUST)**: Features progress strictly through: `Constitution` ->
+  `specs/<feature>/spec.md` -> `specs/<feature>/plan.md` -> `specs/<feature>/tasks.md` -> `Code`.
 - **Plan Fidelity (MUST)**: Deviations from `plan.md` during implementation require a documented
   amendment to the plan; silent drift is a violation.
 - **Rationale**: Spec-driven constraints prevent scope creep and keep implementation deterministic.
@@ -135,8 +140,9 @@ Follow-up TODOs: None
     - PATCH: Clarifications, wording, typo fixes, and non-semantic refinements.
 - **Compliance Reviews**:
     - Plans MUST include a "Constitution Check" gate before design and MUST re-check after design.
-    - PRs MUST show traceability (links to `spec.md`/`plan.md`/`tasks.md` and task IDs).
+    - PRs MUST show traceability (links to `specs/<feature>/spec.md`, `specs/<feature>/plan.md`,
+      `specs/<feature>/tasks.md`, plus task IDs).
     - PRs MUST NOT include secrets or workflow exports containing secrets/PII/pinData.
     - Reviewers MUST reject PRs violating MUST-level rules, regardless of functional correctness.
 
-**Version**: 1.5.1 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-03
+**Version**: 1.5.2 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-05

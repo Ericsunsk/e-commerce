@@ -1,7 +1,7 @@
 ## 📋 规范追溯
 
-- [ ] 关联 Spec: `.specify/specs/XXX/spec.md`
-- [ ] 关联 Plan: `.specify/specs/XXX/plan.md`
+- [ ] 关联 Spec: `specs/XXX/spec.md`
+- [ ] 关联 Plan: `specs/XXX/plan.md`
 - [ ] 关联 Task ID: `[填写]`
 
 ---

@@ -226,6 +226,7 @@ export type PagesRecord = {
 
 export type ProductVariantsRecord = {
 	color: string;
+	color_swatch?: string;
 	id: string;
 	price_override?: number;
 	product: RecordIdString;

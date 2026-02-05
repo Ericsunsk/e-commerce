@@ -1,6 +1,6 @@
 # ELEMENTHIC 代码审查指南
 
-基于项目的 **Spec-Driven Development** 规范与 **Constitution v1.5.1** 原则。
+基于项目的 **Spec-Driven Development** 规范与 **Constitution v1.5.2** 原则。
 
 ---
 
@@ -46,7 +46,7 @@
 
 | 元素 | 检查项 |
 |------|--------|
-| **字体** | Inter / Outfit，避免系统默认 |
+| **字体** | Manrope / Optima，避免系统默认 |
 | **颜色** | HSL 调色，遵循 `--color-*` CSS 变量 |
 | **动画** | 仅 `transform` / `opacity`，使用 `--ease-apple-spring` |
 | **过渡** | Svelte 原生 `transition:` 和 `animate:flip` |

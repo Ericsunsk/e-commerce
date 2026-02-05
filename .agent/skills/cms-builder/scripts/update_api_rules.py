@@ -9,6 +9,7 @@ import json
 import sys
 import os
 import urllib3
+from typing import Optional
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -37,7 +38,7 @@ def get_webhook_secret():
     return secret
 
 
-def get_orders_secret_expr(base_url: str, headers: dict) -> str | None:
+def get_orders_secret_expr(base_url: str, headers: dict) -> Optional[str]:
     """Derive webhook rule expression from the existing 'orders' collection.
 
     This avoids needing to expose/store WEBHOOK_SECRET locally.
@@ -115,7 +116,18 @@ def update_api_rules():
     # Update Orders collection
     print("\nUpdating 'orders' API rules...")
 
+    # Existing default behavior:
+    # - Auth users can list/view ONLY their own orders.
+    # - Webhook secret can create/update/delete (used by n8n).
+    #
+    # n8n also needs to LIST orders to perform idempotent lookup by
+    # stripe_payment_intent before creating a new record.
+    user_owns_order_expr = '@request.auth.id != "" && user = @request.auth.id'
+    webhook_or_user_expr = f"({user_owns_order_expr}) || ({secret_expr})"
+
     orders_update = {
+        "listRule": webhook_or_user_expr,
+        "viewRule": webhook_or_user_expr,
         "createRule": secret_expr,
         "updateRule": secret_expr,
         "deleteRule": secret_expr,

@@ -116,6 +116,7 @@ export function mapVariantsFromExpand(
 
 		product: v.product,
 		color: v.color,
+		colorSwatch: v.color_swatch || undefined,
 		size: v.size,
 		sku: v.sku,
 

@@ -31,7 +31,7 @@ The current implementation is a modern, high-performance e-commerce platform bui
 
 ### Documentation
 ```text
-.specify/specs/core-commerce-platform/
+specs/core-commerce-platform/
 ├── plan.md              # This file
 └── spec.md              # Baseline Requirements
 ```

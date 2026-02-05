@@ -42,6 +42,7 @@ stripe
 
 # n8n workflow exports (may contain secrets/PII)
 Stripe Order.json
+Elementhic Stripe Order.json
 Elementhic Stripe Order-*.json
 
 # Disabled server files

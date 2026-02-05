@@ -31,6 +31,17 @@
 			: (product.attributes?.colors as string[]) || []
 	);
 
+	let colorSwatchByLabel = $derived.by(() => {
+		const map = new Map<string, string>();
+		for (const v of product.variants ?? []) {
+			const label = (v.color || '').trim();
+			if (!label || map.has(label)) continue;
+			const swatch = (v.colorSwatch || '').trim();
+			if (swatch) map.set(label, swatch);
+		}
+		return map;
+	});
+
 	// Derived available sizes for selected color
 	let availableSizes = $derived.by(() => {
 		if (!product.variants || product.variants.length === 0)
@@ -147,16 +158,23 @@
 	);
 
 	// Color Mapping Helper
-	function getColorStyle(colorName: string) {
-		const c = colorName.toLowerCase();
+	function getColorStyle(colorLabel: string) {
+		const swatch = colorSwatchByLabel.get(colorLabel);
+		if (swatch) return swatch;
+
+		const c = colorLabel.toLowerCase();
 		// Special overrides for better visibility/style
 		if (c === 'black') return '#111111';
 		if (c === 'white') return '#ffffff';
 		if (c === 'grey' || c === 'gray') return '#888888';
 		if (c === 'navy') return '#000080';
 
-		// Try to use the name directly (works for 'blue', 'red', hex codes, etc.)
-		return colorName;
+		// Allow raw CSS color values as a fallback (hex, rgb(), hsl(), oklch(), etc.)
+		if (/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(colorLabel)) return colorLabel;
+		if (/^(rgb|hsl|oklch|oklab)\(/i.test(colorLabel)) return colorLabel;
+
+		// Safe visual fallback if no swatch is configured.
+		return '#e5e5e5';
 	}
 </script>
 
@@ -252,6 +270,18 @@
 					<!-- Colors -->
 					{#if derivedColors && derivedColors.length > 0}
 						<div class="space-y-3">
+							<div class="flex items-center justify-between">
+								<div
+									class="text-[10px] font-sans font-medium uppercase tracking-[0.2em] text-primary/50 dark:text-white/50"
+								>
+									Color
+								</div>
+								{#if selectedColor}
+									<div class="text-[11px] font-sans text-primary dark:text-white">
+										{selectedColor}
+									</div>
+								{/if}
+							</div>
 							<div class="flex flex-wrap gap-2">
 								{#each derivedColors as color}
 									<button

@@ -20,7 +20,7 @@
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 - **Svelte 5 Runes**: N/A (后端 API 逻辑为主)
-- **Apple UX Style**: 邮件模版需符合 Minimal Luxury 风格，采用 Inter 字体，极简排版。
+- **Apple UX Style**: 邮件模版需符合 Minimal Luxury 风格，采用 Manrope/Optima 字体，极简排版。
 - **Performance**: Webhook 必须异步处理召回逻辑，主线程 200ms 内返回 200 OK 给 Stripe。
 - **Security**: 严格使用 `$env/static/private` 存储 n8n Webhook Key 和 Stripe Secret。
 
@@ -29,7 +29,7 @@
 ### Documentation (this feature)
 
 ```text
-.specify/specs/002-cart-recovery/
+specs/002-cart-recovery/
 ├── plan.md              # This file
 ├── spec.md              # Specification
 └── data-model.md        # PocketBase Collections definition

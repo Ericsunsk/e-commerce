@@ -44,7 +44,7 @@
 - **FR-001**: 必须在 `app.css` 中定义基于 Apple 规范的 Spring 动画曲线。
 - **FR-002**: 所有交互动画必须使用 GPU 加速属性（`transform`, `opacity`）。
 - **FR-003**: Header 和 Drawer 必须实现全暗/全亮模式下的毛玻璃兼容色值。
-- **FR-004**: 字体排版必须严格执行宪法中的 `Optima`/`Inter` 配对，并微调字间距（tracking-tight）。
+- **FR-004**: 字体排版必须严格执行宪法中的 `Optima`/`Manrope` 配对，并微调字间距（tracking-tight）。
 
 ### Key Entities
 - **UI Theme**: 存储核心的 HSL 颜色变量和 Blur 强度。

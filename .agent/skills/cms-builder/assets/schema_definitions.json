@@ -614,7 +614,7 @@
 				"id": "file1704208859",
 				"maxSelect": 1,
 				"maxSize": 0,
-				"mimeTypes": ["image/webp", "image/jpeg", "image/png", "image/avif"],
+				"mimeTypes": ["image/webp", "image/jpeg", "image/png", "image/avif", "image/svg+xml"],
 				"name": "icon",
 				"presentable": false,
 				"protected": false,
@@ -1904,8 +1904,8 @@
 			"CREATE INDEX `idx_orders_user_placed_at_override` ON `orders` (`user`, `placed_at_override`)",
 			"CREATE INDEX `idx_orders_status` ON `orders` (`status`)"
 		],
-		"listRule": "@request.auth.id != \"\" && user = @request.auth.id",
-		"viewRule": "@request.auth.id != \"\" && user = @request.auth.id",
+		"listRule": "(@request.auth.id != \"\" && user = @request.auth.id) || (@request.headers.x_webhook_secret = \"__WEBHOOK_SECRET__\" || @request.query.webhook_secret = \"__WEBHOOK_SECRET__\")",
+		"viewRule": "(@request.auth.id != \"\" && user = @request.auth.id) || (@request.headers.x_webhook_secret = \"__WEBHOOK_SECRET__\" || @request.query.webhook_secret = \"__WEBHOOK_SECRET__\")",
 		"createRule": "@request.headers.x_webhook_secret = \"__WEBHOOK_SECRET__\" || @request.query.webhook_secret = \"__WEBHOOK_SECRET__\"",
 		"updateRule": "@request.headers.x_webhook_secret = \"__WEBHOOK_SECRET__\" || @request.query.webhook_secret = \"__WEBHOOK_SECRET__\"",
 		"deleteRule": "@request.headers.x_webhook_secret = \"__WEBHOOK_SECRET__\" || @request.query.webhook_secret = \"__WEBHOOK_SECRET__\""
@@ -2284,6 +2284,20 @@
 				"primaryKey": true,
 				"required": true,
 				"system": true,
+				"type": "text"
+			},
+			{
+				"autogeneratePattern": "",
+				"hidden": false,
+				"id": "text5544731167",
+				"max": 0,
+				"min": 0,
+				"name": "color_swatch",
+				"pattern": "",
+				"presentable": false,
+				"primaryKey": false,
+				"required": false,
+				"system": false,
 				"type": "text"
 			}
 		],

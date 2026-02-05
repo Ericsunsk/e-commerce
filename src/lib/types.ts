@@ -43,6 +43,7 @@ export const ProductVariantSchema = z.object({
 
 	product: z.string(),
 	color: z.string(),
+	colorSwatch: z.string().optional(),
 	size: z.string(),
 	sku: z.string(),
 

@@ -265,8 +265,9 @@ maintenance_mode: false
 |:---|:---|:---|:---|
 | `product` | Relation | ✅ | 关联的主商品 |
 | `sku` | Text | ✅ | **唯一 SKU 编码** |
-| `color` | Text | ❌ | 颜色 (如 Black) |
-| `size` | Text | ❌ | 尺寸 (如 M, L, XL) |
+| `color` | Text | ✅ | 颜色标签（前端展示名，如 Midnight Navy） |
+| `color_swatch` | Text | ❌ | 色块颜色（Hex/CSS，例如 #111111） |
+| `size` | Text | ✅ | 尺寸 (如 M, L, XL) |
 | `price_override` | Number | ❌ | **规格特价** (若留空则使用商品基础价格) |
 | `stock_quantity` | Number | ✅ | **当前库存** (Source of Truth) |
 
