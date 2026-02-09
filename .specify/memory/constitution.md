@@ -1,8 +1,8 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.5.2 -> 1.5.3
+Version: 1.5.3 -> 1.5.4
 List of modified principles:
-- V. Backend & Architecture (Adaptive Edge): Clarified documentation secret hygiene and workflow reference policy.
+- VIII. Spec-Driven Workflow (The Law): Added command guidance neutrality requirement for `.opencode/command/*.md`.
 Added sections:
 None
 Removed sections:
@@ -14,7 +14,7 @@ Templates requiring updates:
 Command files requiring updates:
 - .opencode/command/*.md (✅ verified)
 Runtime docs requiring updates:
-- .agent/docs/atomic-api-guide.md (✅ updated)
+- README.md (✅ verified)
 Automation/scripts requiring updates:
 None
 Follow-up TODOs:
@@ -125,6 +125,9 @@ None
   `specs/<feature>/spec.md` -> `specs/<feature>/plan.md` -> `specs/<feature>/tasks.md` -> `Code`.
 - **Plan Fidelity (MUST)**: Deviations from `plan.md` during implementation require a documented
   amendment to the plan; silent drift is a violation.
+- **Command Guidance Neutrality (MUST)**: Files in `.opencode/command/*.md` MUST use OpenCode-generic
+  guidance and MUST NOT include stale agent-specific operational instructions unless explicitly marked
+  as compatibility notes.
 - **Rationale**: Spec-driven constraints prevent scope creep and keep implementation deterministic.
 
 ## Governance
@@ -144,4 +147,4 @@ None
     - PRs MUST NOT include secrets or workflow exports containing secrets/PII/pinData.
     - Reviewers MUST reject PRs violating MUST-level rules, regardless of functional correctness.
 
-**Version**: 1.5.3 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-09
+**Version**: 1.5.4 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-02-09
