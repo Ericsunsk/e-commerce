@@ -1,0 +1,72 @@
+node_modules/
+
+# SvelteKit
+/.svelte-kit
+/build
+/package
+
+# OS
+.DS_Store
+Thumbs.db
+*.icloud
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Test Artifacts
+playwright-report/
+test-results/
+blob-report/
+/playwright/.cache/
+coverage/
+
+# PocketBase (Local development)
+pb_data/
+pocketbase
+
+# Stripe CLI (binary)
+stripe
+
+# n8n workflow exports (may contain secrets/PII)
+Stripe Order.json
+Elementhic Stripe Order.json
+Elementhic Stripe Order-*.json
+
+# Disabled server files
+*.disabled
+
+# Backups
+.specify/backups/
+
+# AI Agents & Spec Kit
+.claude/
+.specify/temp/
+.specify/**/*.bak
+.agent/cache/
+.agent/temp/
+.agent/workflows/
+
+# Python
+__pycache__/
+
+# IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo

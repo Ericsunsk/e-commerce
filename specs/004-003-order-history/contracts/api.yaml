@@ -1,0 +1,97 @@
+openapi: 3.0.0
+info:
+  title: Order History API
+  version: 1.0.0
+paths:
+  /account/orders:
+    get:
+      summary: List user orders
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderSummary'
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+
+  /account/orders/{id}:
+    get:
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Full order details with items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '404':
+          description: Order not found or not owned by user
+
+components:
+  schemas:
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        created:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, paid, processing, shipped, delivered, cancelled]
+        amountTotal:
+          type: number
+        currency:
+          type: string
+
+    OrderDetail:
+      allOf:
+        - $ref: '#/components/schemas/OrderSummary'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  price:
+                    type: number
+                  quantity:
+                    type: number
+                  variant:
+                    type: string
+            shippingAddress:
+              type: object
