@@ -113,8 +113,9 @@ curl -X POST https://elementhic.com/api/coupons/increment \
 
 ### 导入步骤
 1. 打开 n8n
-2. 进入已上传的订单工作流（`Elementhic Stripe Order`）
-3. 修改 **⚙️ Config** 节点中的配置值
+2. 从项目文件导入工作流：`.agent/workflows/Elementhic Stripe Order.json`
+3. 进入已导入的订单工作流（`Elementhic Stripe Order`）
+4. 修改 **⚙️ Config** 节点中的配置值
 
 ### 配置项
 | 变量 | 说明 |

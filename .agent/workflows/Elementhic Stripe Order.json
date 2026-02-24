@@ -1,0 +1,1026 @@
+{
+  "name": "Elementhic Stripe Order",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-order-webhook",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "5173253b-f770-4da2-93ca-e079c0b752a9",
+      "name": "Stripe Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        11760,
+        4240
+      ],
+      "webhookId": "webhook_id_redacted",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "POCKETBASE_URL",
+              "value": "https://pb.example.com",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "SVELTEKIT_URL",
+              "value": "https://shop.example.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "WEBHOOK_SECRET",
+              "value": "n8n-webhook-secret-example",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "STRIPE_WEBHOOK_SECRET",
+              "value": "stripe_webhook_secret_redacted",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "RESEND_API_KEY",
+              "value": "resend_api_key_redacted",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "EMAIL_FROM",
+              "value": "Example Store <redacted@example.com>",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "SITE_NAME",
+              "value": "ELEMENTHIC",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e4bf02e6-e470-40cd-beeb-bd204c6f002c",
+      "name": "⚙️ Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        11584,
+        4432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json || {};\n\nconst cfg = d.cfg || {};\nconst rawBody = typeof d.rawBody === 'string' ? d.rawBody : '';\nconst signatures = Array.isArray(d.signatures) ? d.signatures : [];\nconst expected = String(d.expected || '');\n\nif (d.valid_pre !== true) {\n  return [{ json: { ok: false, reason: d.reason || 'Invalid request' } }];\n}\n\nfunction constantTimeEqual(a, b) {\n  const aBuf = Buffer.from(String(a));\n  const bBuf = Buffer.from(String(b));\n  const len = Math.max(aBuf.length, bBuf.length);\n  let diff = aBuf.length ^ bBuf.length;\n  for (let i = 0; i < len; i++) {\n    diff |= (aBuf[i] || 0) ^ (bBuf[i] || 0);\n  }\n  return diff === 0;\n}\n\nconst valid = signatures.some((sig) => constantTimeEqual(sig, expected));\nif (!valid) {\n  return [{ json: { ok: false, reason: 'Signature mismatch' } }];\n}\n\nlet event;\ntry {\n  event = JSON.parse(rawBody);\n} catch {\n  return [{ json: { ok: false, reason: 'Invalid JSON' } }];\n}\n\nif (event.type !== 'payment_intent.succeeded') {\n  return [{ json: { ok: false, reason: 'Not payment_intent.succeeded' } }];\n}\n\nconst pi = event.data?.object || {};\nconst meta = pi.metadata || {};\n\nlet orderData = {};\ntry {\n  if (meta.order_data) {\n    orderData = JSON.parse(meta.order_data);\n  } else if (meta.order_data_parts) {\n    const parts = [];\n    for (let i = 1; i <= Number(meta.order_data_parts); i++) {\n      parts.push(meta[`order_data_part_${i}`] || '');\n    }\n    orderData = JSON.parse(parts.join(''));\n  }\n} catch {}\n\nconst amountTotal = Number(orderData.amount_total ?? pi.amount ?? 0);\nconst rawItems = Array.isArray(orderData.items) ? orderData.items : [];\nconst rawSum = rawItems.reduce(\n  (a, i) => a + Number(i.price ?? 0) * Number(i.quantity ?? 1),\n  0\n);\nconst scale = rawSum > 0 && amountTotal / rawSum > 20 ? 100 : 1;\n\nconst items = rawItems.map((it) => ({\n  productId: String(it.productId || it.id || ''),\n  variantId: it.variantId ? String(it.variantId) : null,\n  title: String(it.title || 'Product'),\n  price: scale === 100\n    ? Math.round(Number(it.price) * 100)\n    : Math.round(Number(it.price)),\n  quantity: Number(it.quantity || 1),\n  color: String(it.color || ''),\n  size: String(it.size || ''),\n  image: String(it.image || ''),\n}));\n\nconst placedAt =\n  orderData.placed_at_override ||\n  (pi.created\n    ? new Date(pi.created * 1000).toISOString()\n    : new Date().toISOString());\n\nreturn [{\n  json: {\n    ok: true,\n    cfg,\n    event_id: event.id,\n    payment_intent_id: pi.id,\n    user_id: orderData.user_id || meta.user_id || '',\n    cart_record_id: orderData.cart_record_id || meta.cart_record_id || '',\n    customer_email: orderData.customer_email || pi.receipt_email || '',\n    customer_name: orderData.customer_name || 'Guest',\n    items,\n    amount_subtotal: Number(orderData.amount_subtotal || amountTotal),\n    amount_shipping: Number(orderData.amount_shipping || 0),\n    amount_tax: Number(orderData.amount_tax || 0),\n    amount_total: amountTotal,\n    coupon_code: orderData.coupon_code || '',\n    currency: orderData.currency || pi.currency || 'usd',\n    shipping_address: orderData.shipping_address || {},\n    placed_at: placedAt,\n  },\n}];"
+      },
+      "id": "daba5853-1531-4377-b4cd-bc093b14ead1",
+      "name": "🔐 Verify & Parse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        11808,
+        4464
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "ok",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "16040871-921c-4857-aead-0444b759fcf0",
+      "name": "Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        11952,
+        4464
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://pb.example.com/api/collections/orders/records?filter=' + encodeURIComponent('stripe_payment_intent=\"' + $json.payment_intent_id + '\"') + '&perPage=1' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "c571862d-8ddb-4dbb-83b5-5537c91b9efe",
+      "name": "🔍 Find Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        12128,
+        4304
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = ($items('🔐 Verify & Parse', 0, 0)[0] || { json: {} }).json;\nconst search = $input.first().json;\nconst existing = search.items?.[0];\n\nif (existing) {\n  let meta = {};\n  try { meta = JSON.parse(existing.notes || '{}'); } catch {}\n\n  return [{\n    json: {\n      ...prev,\n      order_id: existing.id,\n      order_meta: meta,\n      is_new: false\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...prev,\n    order_id: null,\n    order_meta: {\n      schema: 'v2',\n      steps: { stock: false, coupon: false, email: false },\n      ts: { created: new Date().toISOString() }\n    },\n    is_new: true\n  }\n}];"
+      },
+      "id": "ac2b2f09-0e19-4cce-8a4e-76632a3aa49e",
+      "name": "📋 Resolve Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        12288,
+        4304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "is-new",
+              "leftValue": "={{ $json.is_new }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7193d58b-9726-4165-80a0-f6c68e9c559d",
+      "name": "New?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        12464,
+        4304
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://pb.example.com/api/collections/orders/records",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user",
+              "value": "={{ $json.user_id || undefined }}"
+            },
+            {
+              "name": "stripe_payment_intent",
+              "value": "={{ $json.payment_intent_id }}"
+            },
+            {
+              "name": "customer_email",
+              "value": "={{ $json.customer_email }}"
+            },
+            {
+              "name": "customer_name",
+              "value": "={{ $json.customer_name }}"
+            },
+            {
+              "name": "items",
+              "value": "={{ JSON.stringify($json.items) }}"
+            },
+            {
+              "name": "amount_subtotal",
+              "value": "={{ $json.amount_subtotal }}"
+            },
+            {
+              "name": "amount_shipping",
+              "value": "={{ $json.amount_shipping }}"
+            },
+            {
+              "name": "amount_tax",
+              "value": "={{ $json.amount_tax }}"
+            },
+            {
+              "name": "amount_total",
+              "value": "={{ $json.amount_total }}"
+            },
+            {
+              "name": "currency",
+              "value": "={{ $json.currency }}"
+            },
+            {
+              "name": "status",
+              "value": "paid"
+            },
+            {
+              "name": "shipping_address",
+              "value": "={{ JSON.stringify($json.shipping_address) }}"
+            },
+            {
+              "name": "notes",
+              "value": "={{ JSON.stringify($json.order_meta) }}"
+            },
+            {
+              "name": "placed_at_override",
+              "value": "={{ $json.placed_at }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "300446f1-03ee-40bd-8ffa-770dd7701e49",
+      "name": "➕ Create Order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        12640,
+        4288
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = ($items('New?', 0, 0)[0] || { json: {} }).json;\nconst created = $input.first().json;\n\nreturn [{\n  json: {\n    ...prev,\n    order_id: created.id,\n    order_meta: prev.order_meta\n  }\n}];"
+      },
+      "id": "e7447984-f2ce-4b9d-beb8-ffd15f553140",
+      "name": "📎 Attach ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        12800,
+        4384
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "stock-done",
+              "leftValue": "={{ $json.order_meta && $json.order_meta.steps ? $json.order_meta.steps.stock : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "08edd833-1ee9-4bbb-9075-8a6baa709d1d",
+      "name": "Need Stock?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        12720,
+        4592
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://shop.example.com/api/inventory/deduct",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"orderId\": \"{{ $json.order_id }}\",\n  \"items\": {{ JSON.stringify($json.items.map(i => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity }))) }}\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "fbf3a5d6-10ff-44a1-ae16-f9e678393f10",
+      "name": "🔒 Stock Deduct",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        13264,
+        4416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = ($items('📦 Order Ready', 0, 0)[0] || { json: {} }).json;\nconst result = $input.first().json;\n\nconst meta = { ...base.order_meta };\nmeta.steps = meta.steps || {};\nmeta.steps.stock = result.success === true;\nmeta.ts = meta.ts || {};\nmeta.ts.stock = new Date().toISOString();\nif (!result.success) meta.stock_error = result.error || 'unknown';\n\nreturn [{ json: { ...base, order_meta: meta, stock_result: result } }];"
+      },
+      "id": "bb09aa5c-f02d-4ee2-bd82-8f5b680cce19",
+      "name": "📝 Stock Meta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        13440,
+        4416
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-coupon",
+              "leftValue": "={{ $json.coupon_code }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "coupon-not-done",
+              "leftValue": "={{ $json.order_meta && $json.order_meta.steps ? $json.order_meta.steps.coupon : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c6913791-ff3a-47b3-9458-5c7c4dd97c97",
+      "name": "Need Coupon?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        13296,
+        4608
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://shop.example.com/api/coupons/increment",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"couponCode\": \"{{ $json.coupon_code }}\",\n  \"orderId\": \"{{ $json.order_id }}\"\n}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "13db3974-c169-4460-bca4-f2384cd58deb",
+      "name": "🔒 Coupon Incr",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        13296,
+        4848
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = ($items('Need Coupon?', 0, 0)[0] || { json: {} }).json;\nconst result = $input.first().json;\n\nconst meta = { ...base.order_meta };\nmeta.steps = meta.steps || {};\nmeta.steps.coupon = result.success === true;\nmeta.ts = meta.ts || {};\nmeta.ts.coupon = new Date().toISOString();\n\nreturn [{ json: { ...base, order_meta: meta, coupon_result: result } }];"
+      },
+      "id": "f49f84de-066f-4631-b335-d3e0b99032eb",
+      "name": "📝 Coupon Meta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        13664,
+        4848
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-email",
+              "leftValue": "={{ $json.customer_email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "email-not-done",
+              "leftValue": "={{ $json.order_meta && $json.order_meta.steps ? $json.order_meta.steps.email : false }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "52741acc-5559-4b62-97c6-82bb5f8bb9a9",
+      "name": "Need Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        13664,
+        4608
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json || {};\nconst cfg = d.cfg || {};\nconst currency = String(d.currency || 'USD').toUpperCase();\n\nconst fmt = (amountCents) => {\n  const safeAmount = Number(amountCents || 0);\n  return new Intl.NumberFormat('en-US', {\n    style: 'currency',\n    currency\n  }).format(safeAmount / 100);\n};\n\nconst items = Array.isArray(d.items) ? d.items : [];\nlet itemsHtml = '';\n\nfor (const item of items) {\n  const title = String(item.title || 'Product');\n  const color = String(item.color || '');\n  const size = String(item.size || '');\n  const qty = Number(item.quantity || 0);\n  const lineTotal = Number(item.price || 0) * qty;\n  const variantInfo = [color, size].filter(Boolean).join(' / ');\n\n  itemsHtml += `\n    <tr>\n      <td style=\"padding:8px;border-bottom:1px solid #eee\">\n        <strong>${title}</strong>\n        ${variantInfo ? `<br><small style=\"color:#666\">${variantInfo}</small>` : ''}\n      </td>\n      <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:center\">${qty}</td>\n      <td style=\"padding:8px;border-bottom:1px solid #eee;text-align:right\">${fmt(lineTotal)}</td>\n    </tr>\n  `;\n}\n\nconst addr = d.shipping_address || {};\nconst orderId = String(d.order_id || '').slice(-6).toUpperCase();\nconst orderDate = d.placed_at ? new Date(d.placed_at).toLocaleDateString() : new Date().toLocaleDateString();\nconst siteName = String(cfg.SITE_NAME || 'ELEMENTHIC');\n\nconst emailHtml = `\n<!DOCTYPE html>\n<html>\n  <body style=\"font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#333\">\n    <div style=\"text-align:center;border-bottom:2px solid #000;padding-bottom:16px;margin-bottom:24px\">\n      <h1 style=\"margin:0;letter-spacing:0.15em;font-size:24px\">${siteName}</h1>\n    </div>\n    <h2 style=\"margin:0 0 8px\">Thank you for your order!</h2>\n    <p style=\"color:#666;margin:0 0 24px\">Order #${orderId} • ${orderDate}</p>\n    <table style=\"width:100%;border-collapse:collapse;margin-bottom:24px\">\n      <thead>\n        <tr style=\"background:#f5f5f5\">\n          <th style=\"padding:8px;text-align:left\">Item</th>\n          <th style=\"padding:8px;text-align:center\">Qty</th>\n          <th style=\"padding:8px;text-align:right\">Price</th>\n        </tr>\n      </thead>\n      <tbody>${itemsHtml}</tbody>\n      <tfoot>\n        <tr><td colspan=\"2\" style=\"padding:8px;text-align:right\">Subtotal</td><td style=\"padding:8px;text-align:right\">${fmt(d.amount_subtotal)}</td></tr>\n        <tr><td colspan=\"2\" style=\"padding:8px;text-align:right\">Shipping</td><td style=\"padding:8px;text-align:right\">${fmt(d.amount_shipping)}</td></tr>\n        <tr><td colspan=\"2\" style=\"padding:8px;text-align:right\">Tax</td><td style=\"padding:8px;text-align:right\">${fmt(d.amount_tax)}</td></tr>\n        <tr><td colspan=\"2\" style=\"padding:8px;text-align:right;font-weight:bold\">Total</td><td style=\"padding:8px;text-align:right;font-weight:bold\">${fmt(d.amount_total)}</td></tr>\n      </tfoot>\n    </table>\n    <div style=\"background:#f9f9f9;padding:16px;margin-bottom:24px\">\n      <h3 style=\"margin:0 0 8px;font-size:14px\">Shipping Address</h3>\n      <p style=\"margin:0;font-size:14px;color:#666\">\n        ${addr.name || d.customer_name || ''}<br>\n        ${addr.line1 || ''}${addr.line2 ? '<br>' + addr.line2 : ''}<br>\n        ${addr.city || ''}, ${addr.state || ''} ${addr.postalCode || ''}<br>\n        ${addr.country || ''}\n      </p>\n    </div>\n    <p style=\"text-align:center;font-size:12px;color:#999\">Questions? Reply to this email.</p>\n  </body>\n</html>\n`;\n\nreturn [\n  {\n    json: {\n      ...d,\n      email_html: emailHtml\n    }\n  }\n];"
+      },
+      "id": "c9068fb9-8ca7-4fec-b13e-4289aca4aa79",
+      "name": "✉️ Gen Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        13840,
+        4432
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.cfg.RESEND_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"from\": \"{{ $json.cfg.EMAIL_FROM }}\",\n  \"to\": \"{{ $json.customer_email }}\",\n  \"subject\": \"Order Confirmation #{{ $json.order_id.slice(-6).toUpperCase() }}\",\n  \"html\": {{ JSON.stringify($json.email_html) }}\n}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "f32622cc-e1e8-445c-997e-22844e62479d",
+      "name": "📤 Send Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14032,
+        4432
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = ($items('Need Email?', 0, 0)[0] || { json: {} }).json;\nconst result = $input.first().json;\n\nconst meta = { ...base.order_meta };\nmeta.steps = meta.steps || {};\nmeta.steps.email = !!result.id;\nmeta.ts = meta.ts || {};\nmeta.ts.email = new Date().toISOString();\n\nreturn [{ json: { ...base, order_meta: meta, email_result: result } }];"
+      },
+      "id": "90121b13-f9b7-4990-be5b-a08a73e5b9e0",
+      "name": "📝 Email Meta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        14208,
+        4432
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://pb.example.com/api/collections/orders/records/' + $json.order_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "notes",
+              "value": "={{ JSON.stringify($json.order_meta) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "0017e2e9-db83-4eb3-b78e-0f8b8b344ed1",
+      "name": "💾 Save Meta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14192,
+        4640
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-cart",
+              "leftValue": "={{ $json.cart_record_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7aada988-5fa6-4bf8-b5c9-896c3a18af5d",
+      "name": "Has Cart?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        14384,
+        4640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "={{ 'https://pb.example.com/api/collections/user_lists/records/' + $json.cart_record_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Webhook-Secret",
+              "value": "={{ $json.cfg.WEBHOOK_SECRET }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "615e9d4a-eda0-42b6-88ad-6e4e08cd1182",
+      "name": "🗑️ Delete Cart",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        14592,
+        4624
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $input.first().json || {};\n\nconst hookItem = $('Stripe Webhook').first();\nconst req = hookItem.json || {};\n\nconst sigHeader = String(\n  req.headers?.['stripe-signature'] || req.headers?.['Stripe-Signature'] || ''\n);\n\n// Prefer exact raw body captured by Webhook node\nlet rawBody = '';\nconst bin = hookItem.binary?.data;\nif (bin?.data && typeof bin.data === 'string') {\n  try {\n    rawBody = Buffer.from(bin.data, 'base64').toString('utf8');\n  } catch {}\n}\n\nif (!rawBody) {\n  if (typeof req.rawBody === 'string') rawBody = req.rawBody;\n  else if (typeof req.body === 'string') rawBody = req.body;\n  else rawBody = req.body ? JSON.stringify(req.body) : '';\n}\n\nlet timestamp = 0;\nconst signatures = [];\n\nif (sigHeader) {\n  for (const part of sigHeader.split(',')) {\n    const [k, v] = part.trim().split('=');\n    if (k === 't') timestamp = Number(v);\n    if (k === 'v1' && v) signatures.push(v);\n  }\n}\n\nconst payload = `${timestamp || 0}.${rawBody}`;\n\nif (!sigHeader || !rawBody) {\n  return [{\n    json: {\n      cfg,\n      sigHeader,\n      rawBody,\n      timestamp,\n      signatures,\n      payload,\n      valid_pre: false,\n      reason: 'Missing signature or body',\n    },\n  }];\n}\n\nif (!timestamp || signatures.length === 0) {\n  return [{\n    json: {\n      cfg,\n      sigHeader,\n      rawBody,\n      timestamp,\n      signatures,\n      payload,\n      valid_pre: false,\n      reason: 'Invalid signature format',\n    },\n  }];\n}\n\nconst now = Math.floor(Date.now() / 1000);\nif (Math.abs(now - timestamp) > 300) {\n  return [{\n    json: {\n      cfg,\n      sigHeader,\n      rawBody,\n      timestamp,\n      signatures,\n      payload,\n      valid_pre: false,\n      reason: 'Signature expired',\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    cfg,\n    sigHeader,\n    rawBody,\n    timestamp,\n    signatures,\n    payload,\n    valid_pre: true,\n  },\n}];"
+      },
+      "id": "693fba1a-4e98-4011-b429-ef2d4232867a",
+      "name": "🧾 Prepare Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        11600,
+        4640
+      ]
+    },
+    {
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.payload }}",
+        "dataPropertyName": "expected",
+        "secret": "={{ $json.cfg.STRIPE_WEBHOOK_SECRET || '' }}"
+      },
+      "id": "a914cae3-ae23-4046-9931-14fb4af5515f",
+      "name": "🔏 Stripe HMAC",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [
+        11872,
+        4640
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Stripe Webhook": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔐 Verify & Parse": {
+      "main": [
+        [
+          {
+            "node": "Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid?": {
+      "main": [
+        [
+          {
+            "node": "🔍 Find Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Find Order": {
+      "main": [
+        [
+          {
+            "node": "📋 Resolve Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Resolve Order": {
+      "main": [
+        [
+          {
+            "node": "New?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New?": {
+      "main": [
+        [
+          {
+            "node": "➕ Create Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Need Stock?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "➕ Create Order": {
+      "main": [
+        [
+          {
+            "node": "📎 Attach ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Need Stock?": {
+      "main": [
+        [
+          {
+            "node": "🔒 Stock Deduct",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Need Coupon?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔒 Stock Deduct": {
+      "main": [
+        [
+          {
+            "node": "📝 Stock Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Need Coupon?": {
+      "main": [
+        [
+          {
+            "node": "🔒 Coupon Incr",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Need Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔒 Coupon Incr": {
+      "main": [
+        [
+          {
+            "node": "📝 Coupon Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Need Email?": {
+      "main": [
+        [
+          {
+            "node": "✉️ Gen Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "💾 Save Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✉️ Gen Email": {
+      "main": [
+        [
+          {
+            "node": "📤 Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Send Email": {
+      "main": [
+        [
+          {
+            "node": "📝 Email Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Save Meta": {
+      "main": [
+        [
+          {
+            "node": "Has Cart?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Cart?": {
+      "main": [
+        [
+          {
+            "node": "🗑️ Delete Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Config": {
+      "main": [
+        [
+          {
+            "node": "🧾 Prepare Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧾 Prepare Signature": {
+      "main": [
+        [
+          {
+            "node": "🔏 Stripe HMAC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔏 Stripe HMAC": {
+      "main": [
+        [
+          {
+            "node": "🔐 Verify & Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Stock Meta": {
+      "main": [
+        [
+          {
+            "node": "Need Coupon?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Coupon Meta": {
+      "main": [
+        [
+          {
+            "node": "Need Email?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Email Meta": {
+      "main": [
+        [
+          {
+            "node": "💾 Save Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📎 Attach ID": {
+      "main": [
+        [
+          {
+            "node": "Need Stock?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "workflow_version_redacted",
+  "meta": {
+    "instanceId": "instance_id_redacted"
+  },
+  "id": "workflow_id_redacted",
+  "tags": []
+}
