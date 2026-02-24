@@ -8,6 +8,7 @@
 	import CookieBanner from '$lib/components/CookieBanner.svelte';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import { fade } from 'svelte/transition';
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { env } from '$env/dynamic/public';
 
@@ -21,7 +22,14 @@
 	import { toastStore } from '$lib/stores/toast.svelte';
 	import Metadata from '$lib/components/seo/Metadata.svelte';
 
+	const COOKIE_CONSENT_KEY = 'cookie_consent';
+	const COOKIE_CONSENT_EVENT = 'cookie-consent-change';
+
 	let { children, data } = $props();
+	let cookieConsent = $state<string | null>(null);
+	const canLoadAnalytics = $derived(
+		Boolean(env.PUBLIC_ANALYTICS_CODE) && cookieConsent === 'accepted'
+	);
 
 	const queryClient = new QueryClient({
 		mutationCache: new MutationCache({
@@ -108,6 +116,24 @@
 	function toggleCart() {
 		isCartOpen = !isCartOpen;
 	}
+
+	onMount(() => {
+		const syncCookieConsent = () => {
+			cookieConsent = localStorage.getItem(COOKIE_CONSENT_KEY);
+		};
+
+		const handleCookieConsentChange = (event: Event) => {
+			const customEvent = event as CustomEvent<{ status?: string }>;
+			cookieConsent = customEvent.detail?.status ?? localStorage.getItem(COOKIE_CONSENT_KEY);
+		};
+
+		syncCookieConsent();
+		window.addEventListener(COOKIE_CONSENT_EVENT, handleCookieConsentChange);
+
+		return () => {
+			window.removeEventListener(COOKIE_CONSENT_EVENT, handleCookieConsentChange);
+		};
+	});
 </script>
 
 <Metadata
@@ -120,7 +146,7 @@
 <svelte:head>
 	<link rel="icon" href={data.settings.icon || favicon} />
 
-	{#if env.PUBLIC_ANALYTICS_CODE}
+	{#if canLoadAnalytics}
 		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 		{@html env.PUBLIC_ANALYTICS_CODE}
 	{/if}

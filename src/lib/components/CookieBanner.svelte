@@ -1,59 +1,100 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import Button from '$lib/components/ui/Button.svelte';
 	import { onMount } from 'svelte';
+
+	const COOKIE_CONSENT_KEY = 'cookie_consent';
+	const COOKIE_CONSENT_EVENT = 'cookie-consent-change';
 
 	let isVisible = $state(false);
 
 	onMount(() => {
-		const consent = localStorage.getItem('cookie_consent');
+		const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
 		if (!consent) {
-			// Delay showing slightly for better UX
 			setTimeout(() => {
 				isVisible = true;
-			}, 1000);
+			}, 800);
 		}
 	});
 
-	function accept() {
-		localStorage.setItem('cookie_consent', 'accepted');
+	function setConsent(status: 'accepted' | 'declined') {
+		localStorage.setItem(COOKIE_CONSENT_KEY, status);
+		window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_EVENT, { detail: { status } }));
 		isVisible = false;
 	}
 
-	function decline() {
-		// Technically minimal cookies are essential, so 'decline' usually means 'only essential'
-		localStorage.setItem('cookie_consent', 'declined');
-		isVisible = false;
+	function accept() {
+		setConsent('accepted');
 	}
+
+	function decline() {
+		setConsent('declined');
+	}
+
+	$effect(() => {
+		if (!isVisible) return;
+
+		const root = document.documentElement;
+		const previousRootOverflow = root.style.overflow;
+		const previousBodyOverflow = document.body.style.overflow;
+		const previousBodyPosition = document.body.style.position;
+		const previousBodyTop = document.body.style.top;
+		const previousBodyLeft = document.body.style.left;
+		const previousBodyRight = document.body.style.right;
+		const previousBodyWidth = document.body.style.width;
+		const scrollY = window.scrollY;
+
+		root.style.overflow = 'hidden';
+		document.body.style.overflow = 'hidden';
+		document.body.style.position = 'fixed';
+		document.body.style.top = `-${scrollY}px`;
+		document.body.style.left = '0';
+		document.body.style.right = '0';
+		document.body.style.width = '100%';
+
+		return () => {
+			root.style.overflow = previousRootOverflow;
+			document.body.style.overflow = previousBodyOverflow;
+			document.body.style.position = previousBodyPosition;
+			document.body.style.top = previousBodyTop;
+			document.body.style.left = previousBodyLeft;
+			document.body.style.right = previousBodyRight;
+			document.body.style.width = previousBodyWidth;
+			window.scrollTo(0, scrollY);
+		};
+	});
 </script>
 
 {#if isVisible}
 	<div
-		transition:fade={{ duration: 300 }}
-		class="fixed bottom-0 left-0 w-full z-50 bg-zinc-900 text-white p-4 md:p-6 border-t border-zinc-800 shadow-2xl"
+		transition:fade={{ duration: 400 }}
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="cookie-banner-title"
+		aria-describedby="cookie-banner-desc"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm p-4"
 	>
-		<div
-			class="max-w-[1200px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-		>
-			<div class="flex-1">
-				<p class="text-xs uppercase tracking-widest font-bold mb-1">We use cookies</p>
-				<p class="text-xs text-zinc-400 max-w-2xl">
-					We use cookies to enhance your browsing experience, serve personalized content, and
-					analyze our traffic. By clicking "Accept All", you consent to our use of cookies.
-				</p>
-			</div>
-			<div class="flex items-center gap-3">
-				<Button
-					variant="outline"
-					size="sm"
-					className="!text-white !border-zinc-700 hover:!bg-zinc-800 hover:!text-white"
+		<div class="w-full max-w-md bg-white p-10 border border-black">
+			<h2 id="cookie-banner-title" class="text-xl font-medium text-black mb-4 tracking-tight">
+				Cookies.
+			</h2>
+			<p id="cookie-banner-desc" class="text-sm text-black mb-10 leading-relaxed">
+				We use cookies to ensure you get the best experience. By continuing to use this site, you
+				consent to our use of cookies.
+			</p>
+
+			<div class="flex flex-col sm:flex-row items-center justify-end gap-4">
+				<button
+					class="w-full sm:w-auto px-8 py-3 border border-black bg-transparent text-black text-[10px] font-medium tracking-[0.1em] uppercase hover:bg-black hover:text-white transition-colors duration-200"
 					onclick={decline}
 				>
 					Essential Only
-				</Button>
-				<Button size="sm" className="!bg-white !text-black hover:!bg-zinc-200" onclick={accept}>
-					Accept All
-				</Button>
+				</button>
+				<button
+					class="w-full sm:w-auto px-8 py-3 border border-black bg-transparent text-black text-[10px] font-medium tracking-[0.1em] uppercase hover:bg-black hover:text-white transition-colors duration-200"
+					onclick={accept}
+				>
+					Accept
+				</button>
 			</div>
 		</div>
 	</div>
