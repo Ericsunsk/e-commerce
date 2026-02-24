@@ -15,6 +15,12 @@
 **Target Platform**: Edge Platforms (SvelteKit) + n8n Cloud/Self-hosted
 **Project Type**: Mixed (Web Backend + Automation)
 
+## Commerce Model Constraints (Updated 2026-02-24)
+
+- 商品价格统一来源于 `products`（Stripe 映射），召回快照中的单价必须与该来源一致。
+- `product_variants.price_override` 已移除，召回链路不得依赖变体覆盖价。
+- `stock_status` 不再落库，若需要库存判断，必须基于 `stock_quantity` 在运行时计算。
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
@@ -59,7 +65,7 @@ src/
     - `email`: string
     - `stripe_session_id`: string (unique)
     - `status`: select (pending, sent, converted, failed)
-    - `cart_snapshot`: json
+    - `cart_snapshot`: json（推荐结构：`items[]` 含 `productId`/`variantId`/`quantity`/`unitPriceCents`/`color`/`size`/`title`）
 2.  **Collection: `reward_tokens`**:
     - `code`: string
     - `discount_type`: fixed/percentage

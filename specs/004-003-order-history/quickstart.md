@@ -17,4 +17,5 @@ This feature adds a "My Orders" section to the account area.
 ## Testing
 - **List View**: Check that orders are sorted by date (newest first).
 - **Detail View**: Click an order. Verify items, total, and status match.
+- **Price Snapshot**: Verify item unit price snapshot is consistent with product-level pricing source (cents-based storage + UI formatting).
 - **Security**: Try accessing `/account/orders/SOME_OTHER_ID`. Should 404 or 403.

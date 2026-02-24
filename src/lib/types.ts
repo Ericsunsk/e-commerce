@@ -51,8 +51,7 @@ export const ProductVariantSchema = z.object({
 
 	// Mapped
 	image: z.string().optional(),
-	stockQuantity: z.number().optional(), // alias
-	priceOverride: z.number().optional() // alias
+	stockQuantity: z.number().optional() // alias
 });
 export type ProductVariant = z.infer<typeof ProductVariantSchema>;
 

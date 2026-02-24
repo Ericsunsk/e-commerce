@@ -2,7 +2,7 @@
  
  **Feature Branch**: `004-003-order-history`  
  **Created**: 2026-02-01
- **Status**: Draft  
+ **Status**: Draft (Updated 2026-02-24)  
  **Input**: User description: "顾客购买商品之后看不到order history,加入order history功能"
  
  ## 1. Context & Objectives *(The "Why")*
@@ -39,19 +39,21 @@
  - **In-Scope**: Frontend UI for list and detail views, Backend loaders to fetch data from PocketBase.
  - **Out-of-Scope/Integrations**: Modification of order status (handled by Stripe webhooks/admin), email notifications.
  
- ### Non-Functional Requirements
- - **Performance**: List load time < 200ms.
- - **Security & Privacy**: Users must strictly only see their OWN orders. Strict RLS (Row Level Security) or server-side filtering.
- - **Reliability/Error Handling**: Graceful error if PocketBase is unreachable.
+### Non-Functional Requirements
+- **Performance**: List load time < 200ms.
+- **Security & Privacy**: Users must strictly only see their OWN orders. Strict RLS (Row Level Security) or server-side filtering.
+- **Reliability/Error Handling**: Graceful error if PocketBase is unreachable.
+- **Data Consistency**: Order item price snapshots must align with the unified product-level pricing model (no variant-level price override dependency).
+- **Inventory Model Awareness**: Order history display must not depend on persisted variant stock status fields.
  
  ### Logic Edge Cases
  - **Guest Checkout**: Orders made as guest (not linked to user ID) will NOT appear here unless manually linked (out of scope for now).
  - **Concurrency**: Minimal concern as this is a read-only view for the user.
  
- ## 4. Domain Entities *(Conceptual Model)*
- 
- - **Order**: Represents a completed checkout session. Attributes: `id`, `user_id` (relation), `status` (paid, shipped, etc.), `total_amount`, `created_at`.
- - **OrderItem**: Individual products within an order. Attributes: `order_id` (relation), `product_id` (relation), `quantity`, `price_at_purchase`.
+## 4. Domain Entities *(Conceptual Model)*
+
+- **Order**: Represents a completed checkout session. Attributes: `id`, `user` (relation), `status` (paid, shipped, etc.), `amount_total`, `currency`, `placed_at` / `placed_at_override`.
+- **OrderItem**: Individual products within an order. Attributes: `order_id` (relation), `product_id` (relation), `variant_id`, `quantity`, `price_snap`, `product_title_snap`, `variant_snap_json`, `sku_snap`, `image_snap`.
  
  ## 5. Success Criteria *(Measurable Outcomes)*
  
@@ -62,3 +64,5 @@
 ## Clarifications
 ### Session 2026-02-01
 - Q: Product Data Persistence Strategy? → A: Option A - Snapshot Strategy (Copy Title, Price, Image to OrderItem to withstand product deletion).
+### Session 2026-02-24
+- Q: Price source and inventory status assumptions? → A: Order snapshots follow product-level unified pricing; no dependency on `product_variants.price_override` or persisted `stock_status`.

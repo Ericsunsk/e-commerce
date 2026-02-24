@@ -61,7 +61,6 @@ ELEMENTHIC 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性�
 |------|------|
 | [📜 项目宪法](.specify/memory/constitution.md) | **最高准则**: 包含核心规范、架构原则与代码准则 |
 | [🎯 功能规范](specs/) | 包含 [001-UX进化](specs/001-ux-evolution/spec.md), [002-购物车召回](specs/002-cart-recovery/spec.md), [004-订单历史](specs/004-003-order-history/spec.md) 等 |
-| [🤖 AI cms-skills](.agent/skills/cms-builder/SKILL.md) | PocketBase 集合架构定义与操作规程 |
 | [⚡ 原子 API 指南](.agent/docs/atomic-api-guide.md) | 库存扣减与优惠券递增的原子操作 API |
 | [🔐 .env.example](./.env.example) | 环境变量配置与安全准则 |
 
@@ -69,10 +68,12 @@ ELEMENTHIC 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性�
 
 ## 🧱 数据模型约定（当前）
 
-- `products`：承载商品主信息与 Stripe 映射（如 `stripe_product_id` / `stripe_price_id`）
-- `product_variants`：承载规格真相（`sku`、`color`、`size`、`stock_quantity`、`stock_status`）
-- 规格媒体按颜色复用：`main_image` / `gallery_images` 只需在同色一个规格记录维护，前端会同色回退
-- `sku` 当前按变体唯一管理（建议格式：`<STYLE>-<COLOR>-<SIZE>`）
+- `products`：承载商品主信息与 Stripe 映射（`stripe_product_id` / `stripe_price_id`），并作为统一价格来源。
+- `product_variants`：承载规格与库存（`sku`、`color`、`size`、`stock_quantity`）及规格媒体（`main_image` / `gallery_images` / `color_swatch`）。
+- `price_override` 不再使用（已移除），变体不再参与独立定价。
+- `stock_status` 不再落库，运行时由 `stock_quantity` 动态计算。
+- 规格媒体按颜色复用：`main_image` / `gallery_images` 只需在同色一个规格记录维护，前端会同色回退。
+- `sku` 当前按变体唯一管理（建议格式：`<STYLE>-<COLOR>-<SIZE>`）。
 
 ---
 

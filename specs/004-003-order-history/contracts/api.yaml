@@ -62,7 +62,10 @@ components:
       properties:
         id:
           type: string
-        created:
+        placedAt:
+          type: string
+          format: date-time
+        placedAtOverride:
           type: string
           format: date-time
         status:
@@ -85,13 +88,24 @@ components:
                 properties:
                   id:
                     type: string
+                  productId:
+                    type: string
+                  variantId:
+                    type: string
                   title:
                     type: string
                   price:
                     type: number
+                    description: Unit price snapshot in cents
                   quantity:
                     type: number
-                  variant:
+                  image:
+                    type: string
+                  skuSnap:
+                    type: string
+                  color:
+                    type: string
+                  size:
                     type: string
             shippingAddress:
               type: object

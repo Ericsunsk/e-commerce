@@ -230,19 +230,11 @@ export type ProductVariantsRecord = {
 	gallery_images?: FileNameString[];
 	id: string;
 	main_image?: FileNameString;
-	price_override?: number;
 	product: RecordIdString;
 	size: string;
 	sku: string;
-	stock_status?: ProductVariantsStockStatusOptions;
 	stock_quantity: number;
 };
-
-export enum ProductVariantsStockStatusOptions {
-	'in_stock' = 'in_stock',
-	'low_stock' = 'low_stock',
-	'out_of_stock' = 'out_of_stock'
-}
 export type ProductsRecord<Tattributes = unknown> = {
 	attributes?: null | Tattributes;
 	category?: RecordIdString[];

@@ -10,7 +10,6 @@ import {
 	requireObjectBody,
 	throwBadRequest
 } from '$lib/server/request-body';
-import { computeStockStatus } from '$lib/server/stock-status';
 import type { RequestHandler } from './$types';
 
 interface DeductItem {
@@ -119,8 +118,7 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 
 				const newStock = currentStock - item.quantity;
 				await pb.collection(Collections.ProductVariants).update(variant.id, {
-					stock_quantity: newStock,
-					stock_status: computeStockStatus(newStock)
+					stock_quantity: newStock
 				});
 
 				result.newStock = newStock;

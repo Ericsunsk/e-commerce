@@ -38,6 +38,8 @@
 
 - **Security**: Always filter by `filter: 'user = "${locals.user.id}"'` in `getList` or `getFirstListItem`. Never trust client-side IDs without ownership check.
 - **Performance**: Pagination for the order list? For MVP (Scenario 1), we can limit to top 50 or use infinite scroll. Decision: **Pagination** (standard PB `getList(1, 50)`).
+- **Snapshot Consistency**: Persist `price_snap` as cents from the product-level unified price source; do not depend on variant override pricing.
+- **Inventory Independence**: Order history display should rely on snapshots only, not live variant stock status fields.
 
 ## 3. Alternatives Considered
 

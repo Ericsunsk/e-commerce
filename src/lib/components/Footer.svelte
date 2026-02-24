@@ -12,6 +12,7 @@
 	}
 
 	let { navItems = [] }: FooterProps = $props();
+	const COOKIE_SETTINGS_OPEN_EVENT = 'cookie-settings-open';
 
 	let email = $state('');
 	let status = $state<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -41,6 +42,10 @@
 			status = 'idle';
 			message = '';
 		}, 3000);
+	}
+
+	function openCookieSettings() {
+		window.dispatchEvent(new Event(COOKIE_SETTINGS_OPEN_EVENT));
 	}
 </script>
 
@@ -107,21 +112,21 @@
 
 		<!-- Right: Links -->
 		<div
-			class="flex flex-wrap gap-x-8 gap-y-4 items-center justify-start lg:justify-end text-[10px] font-sans uppercase tracking-[0.15em] text-primary dark:text-white"
+			class="flex flex-wrap gap-x-8 gap-y-4 items-center justify-start lg:justify-end text-[10px] font-sans uppercase tracking-[0.15em] text-black"
 		>
-			<button class="flex items-center gap-1 hover:opacity-60 {TRANSITIONS.opacity} cursor-pointer">
-				<span>UNITED STATES (USD $)</span>
-				<span class="material-symbols-outlined text-[14px]">expand_less</span>
-			</button>
-
 			{#each navItems as link (link.url)}
-				<a
-					href={link.url}
-					class="hover:text-primary/70 dark:hover:text-white/70 {TRANSITIONS.colors}"
-				>
+				<a href={link.url} class="text-black no-underline hover:underline underline-offset-2">
 					{link.label}
 				</a>
 			{/each}
+
+			<button
+				type="button"
+				class="text-black no-underline hover:underline underline-offset-2 cursor-pointer"
+				onclick={openCookieSettings}
+			>
+				COOKIE SETTINGS
+			</button>
 		</div>
 	</div>
 </footer>

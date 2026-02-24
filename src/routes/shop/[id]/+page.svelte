@@ -92,29 +92,36 @@
 	// Variant galleries live on `product_variants.gallery_images`.
 	let sortedImages = $derived.by(() => {
 		const defaultImages = product.images || [];
+		const dedupeImages = (images: Array<string | undefined>) => [
+			...new Set(images.filter((img): img is string => !!img))
+		];
 
 		if (!selectedColor) return defaultImages;
 
-		// Find the variant for the selected color (and size if selected, otherwise just color)
-		const variant = product.variants?.find(
-			(v) => v.color === selectedColor && (selectedSize ? v.size === selectedSize : true)
-		);
+		const variantsForColor = (product.variants || []).filter((v) => v.color === selectedColor);
+		if (variantsForColor.length === 0) return defaultImages;
+
+		const exactVariant = selectedSize
+			? variantsForColor.find((v) => v.size === selectedSize)
+			: undefined;
+		const variant = exactVariant || variantsForColor[0];
 
 		const variantGallery = variant?.galleryImages?.filter(Boolean) ?? [];
 		const variantImage = variant?.image;
 
 		if (variantGallery.length > 0) {
 			// Ensure a dedicated variant image (if any) is included.
-			if (variantImage && !variantGallery.includes(variantImage)) {
-				return [variantImage, ...variantGallery];
-			}
-			return variantGallery;
+			return dedupeImages([variantImage, ...variantGallery]);
 		}
 
 		if (variantImage) {
-			const otherImages = defaultImages.filter((img) => img !== variantImage);
-			return [variantImage, ...otherImages];
+			return [variantImage];
 		}
+
+		const colorFallbackImages = dedupeImages(
+			variantsForColor.flatMap((v) => [v.image, ...(v.galleryImages || [])])
+		);
+		if (colorFallbackImages.length > 0) return colorFallbackImages;
 
 		return defaultImages;
 	});
@@ -136,6 +143,18 @@
 		const width = target.clientWidth;
 		currentImageIndex = Math.round(target.scrollLeft / width);
 	}
+
+	$effect(() => {
+		if (!selectedColor || !selectedSize || !product.variants?.length) return;
+
+		const existsInColor = product.variants.some(
+			(v) => v.color === selectedColor && v.size === selectedSize
+		);
+
+		if (!existsInColor) {
+			selectedSize = '';
+		}
+	});
 
 	function addToBag() {
 		if (!selectedSize) {
@@ -307,7 +326,11 @@
 											? 'ring-1 ring-offset-2 ring-primary dark:ring-white'
 											: ''}"
 										style="background-color: {getColorStyle(color)}"
-										onclick={() => (selectedColor = color)}
+										onclick={() => {
+											selectedColor = color;
+											selectedSize = '';
+											sizeError = false;
+										}}
 										aria-label="Select color {color}"
 									></button>
 								{/each}
@@ -323,11 +346,10 @@
 								{@const isOutOfStock = typeof item === 'object' && (item.stock || 0) <= 0}
 								<button
 									class="h-10 border text-[11px] font-sans font-medium transition-all {isOutOfStock
-										? 'opacity-40 cursor-not-allowed'
-										: 'hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-primary cursor-pointer'} {selectedSize ===
-									sizeLabel
-										? 'bg-primary text-white border-primary dark:bg-white dark:text-primary dark:border-white'
-										: 'border-gray-200 dark:border-white/20 text-primary dark:text-white'} {sizeError &&
+										? 'bg-gray-200 text-gray-500 border-gray-300 dark:bg-white/10 dark:text-white/40 dark:border-white/15 cursor-not-allowed pointer-events-none'
+										: selectedSize === sizeLabel
+											? 'bg-primary text-white border-black dark:bg-white dark:text-primary cursor-pointer'
+											: 'border-black text-primary dark:text-white hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-primary cursor-pointer'} {sizeError &&
 									!selectedSize
 										? 'animate-shake'
 										: ''}"
@@ -338,9 +360,6 @@
 									}}
 								>
 									{sizeLabel}
-									{#if isOutOfStock}
-										<span class="block text-[8px] opacity-60">SOLD OUT</span>
-									{/if}
 								</button>
 							{/each}
 						</div>

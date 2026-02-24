@@ -13,6 +13,8 @@
 ### Task 1: Initialize DB Schema
 - [ ] **Action**: 在 PocketBase 建立 `recovery_actions` 和 `reward_tokens` 两个 Collection。
     - `recovery_actions`: 字段包含 `email`, `stripe_session_id`, `status` (pending/sent/converted/failed), `cart_snapshot` (json)。
+    - `cart_snapshot.items[]` 建议结构：`productId`, `variantId`, `title`, `quantity`, `unitPriceCents`, `color`, `size`, `image`, `skuSnap`。
+    - `unitPriceCents` 必须来自产品级价格源（Stripe 映射），不得依赖变体覆盖价。
     - `reward_tokens`: 字段包含 `code`, `discount_type`, `used` (bool), `expiry` (datetime)。
 - [ ] **Validation**: 手动在 PB 管理面板添加一条测试数据，确保字段类型和权限配置（Admin-only）正确。
 

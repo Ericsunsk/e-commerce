@@ -59,6 +59,10 @@ curl -X POST https://elementhic.com/api/inventory/deduct \
   }'
 ```
 
+**请求约束**:
+- 当一个 `productId` 对应多个变体时，`variantId` 必填；否则接口会返回失败并要求显式传入变体。
+- 接口执行的是“校验后扣减”语义：库存不足会返回失败，不会写入。
+
 **响应**:
 ```json
 {
@@ -76,6 +80,10 @@ curl -X POST https://elementhic.com/api/inventory/deduct \
   "processedAt": "2026-02-04T08:30:00.000Z"
 }
 ```
+
+**实现对齐（当前）**:
+- 库存写入仅更新 `product_variants.stock_quantity`。
+- `stock_status` 不再落库（运行时按 `stock_quantity` 计算）。
 
 ### 2. 优惠券原子递增 - `POST /api/coupons/increment`
 
@@ -146,6 +154,14 @@ curl -X POST https://elementhic.com/api/coupons/increment \
 - 工作流检查 `steps.stock/coupon/email` 状态
 - 已完成的步骤会被跳过
 - Stripe 重发 webhook 时自动补跑未完成步骤
+
+---
+
+## 🧩 数据模型对齐（2026-02-24）
+
+- 商品价格来源统一为 `products`（Stripe 映射价格）。
+- `product_variants.price_override` 已移除，工作流与 API 不应依赖变体覆盖价。
+- `product_variants.gallery_images` 与 `products.attributes` 保留，用于商品展示与详情内容。
 
 ---
 

@@ -4,6 +4,7 @@
 
 	const COOKIE_CONSENT_KEY = 'cookie_consent';
 	const COOKIE_CONSENT_EVENT = 'cookie-consent-change';
+	const COOKIE_SETTINGS_OPEN_EVENT = 'cookie-settings-open';
 
 	let isVisible = $state(false);
 
@@ -14,6 +15,16 @@
 				isVisible = true;
 			}, 800);
 		}
+
+		const openSettings = () => {
+			isVisible = true;
+		};
+
+		window.addEventListener(COOKIE_SETTINGS_OPEN_EVENT, openSettings);
+
+		return () => {
+			window.removeEventListener(COOKIE_SETTINGS_OPEN_EVENT, openSettings);
+		};
 	});
 
 	function setConsent(status: 'accepted' | 'declined') {

@@ -1,6 +1,7 @@
 # Data Model: Order History
 
 **Spec**: [004-003-order-history/spec.md](./spec.md)
+**Updated**: 2026-02-24
 
 ## Entities
 
@@ -14,7 +15,8 @@
 | `status` | Select | pending, paid, processing, shipped, delivered, cancelled |
 | `amount_total` | Number | Final charge amount |
 | `currency` | Text | e.g. 'usd' |
-| `created` | Date | Purchase timestamp |
+| `placed_at` | Date | Purchase timestamp |
+| `placed_at_override` | Date | Optional canonical business timestamp |
 | `shipping_address` | JSON | Snapshot of address at time of purchase |
 | `tracking_number` | Text | Optional tracking info |
 | `tracking_carrier` | Text | Optional carrier info |
@@ -26,11 +28,18 @@
 |-------|------|-------------|
 | `order_id` | Relation(orders) | Parent order |
 | `product_id` | Relation(products) | Linked product (if still exists) |
+| `variant_id` | Relation(product_variants) | Selected variant at purchase time (if exists) |
 | `product_title_snap` | Text | Snapshot of title (preserve history if product changes) |
-| `price_snap` | Number | Snapshot of price paid |
+| `price_snap` | Number | Snapshot of unit price paid (cents), sourced from unified product-level pricing |
 | `quantity` | Number | Count purchased |
 | `variant_snap_json` | JSON | { color: "Red", size: "M" } |
 | `sku_snap` | Text | Stock Keeping Unit snapshot |
+| `image_snap` | Text | Snapshot image URL |
+
+## Model Constraints
+
+- Pricing is unified at product level (`products` + Stripe mapping); order snapshots do not depend on variant-level override fields.
+- Variant stock status is runtime-derived from `stock_quantity`; order history does not depend on persisted `stock_status`.
 
 ## View Models (Frontend)
 
@@ -52,11 +61,15 @@ interface OrderSummary {
 interface OrderDetail extends OrderSummary {
   items: Array<{
     id: string;
+    productId: string;
+    variantId?: string;
     title: string;
-    price: number;
+    price: number; // cents
     quantity: number;
     image?: string;
-    variant?: string;
+    skuSnap?: string;
+    color?: string;
+    size?: string;
   }>;
   shippingAddress: ShippingAddress;
   tracking?: {

@@ -183,9 +183,7 @@ export function useCart() {
 
 		addItem(product: Product, color: string, size: string) {
 			const variant = product.variants?.find((v) => v.color === color && v.size === size);
-			const variantPrice = parsePrice(variant?.priceOverride);
-			const basePrice = parsePrice(product.price) || parsePrice(product.priceValue);
-			const priceVal = variantPrice > 0 ? variantPrice : basePrice;
+			const priceVal = parsePrice(product.price) || parsePrice(product.priceValue);
 			const imageUrl = variant?.image ?? product.image ?? product.images?.[0] ?? '';
 
 			addMutation.mutate({

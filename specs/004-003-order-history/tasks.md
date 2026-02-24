@@ -22,6 +22,7 @@ description: "Task list for Order History feature"
 **Purpose**: Secure data fetching logic
 
 - [x] T004 [Backend] Implement `getOrdersWithItems` or update `getOrdersByUser` in `src/lib/server/orders.ts` to efficiently fetch/map items.
+      - Ensure order item mapping preserves snapshot fields (`price_snap`, `sku_snap`, `variant_snap_json`, `image_snap`) and treats `price_snap` as cents.
 - [x] T005 [Backend] Implement `getOrderById` in `src/lib/server/orders.ts` with strict ownership check (`locals.user.id`).
 
 ---

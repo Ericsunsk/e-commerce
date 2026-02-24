@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-cart-recovery`  
 **Created**: 2026-01-27  
-**Status**: Draft  
+**Status**: Draft (Updated 2026-02-24)  
 **Input**: Integrated automation for customer retention.
 
 ## 1. Context & Objectives *(The "Why")*
@@ -49,6 +49,8 @@
 - **Performance**: Webhook 响应必须在 200ms 内完成（使用异步 Queue/Worker）。
 - **Security & Privacy**: 召回邮件必须包含“退订”选项；优惠券必须是单次使用的。
 - **Reliability/Error Handling**: 如果 n8n 挂了，系统必须记录日志并在恢复后重试（幂等性操作）。
+- **Data Consistency**: 召回快照价格必须与系统统一价格来源一致（产品级 Stripe 价格）；不允许变体级覆盖价。
+- **Inventory Model**: 库存状态由 `stock_quantity` 动态推导，召回链路不依赖持久化的 `stock_status` 字段。
 
 ### Logic Edge Cases
 - 用户在收到召回邮件前已经手动回访并完成了后续支付。
@@ -56,7 +58,8 @@
 
 ## 4. Domain Entities *(Conceptual Model)*
 
-- **AbandonedSession**: 记录被遗弃的购物车快照，包含用户 Email、商品清单、过期时间。
+- **AbandonedSession**: 记录被遗弃的购物车快照，包含用户 Email、商品清单、过期时间。  
+  `cart_snapshot.items[]` 最少包含：`productId`、`variantId`、`title`、`quantity`、`unitPriceCents`、`color`、`size`、`image`（可选 `skuSnap`）。
 - **RecoveryAction**: 记录召回动作的状态（待发送、已发送、已转化、已失效）。
 - **RewardToken**: 关联到召回邮件的单次使用折扣码。
 

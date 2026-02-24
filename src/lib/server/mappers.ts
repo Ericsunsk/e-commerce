@@ -187,12 +187,11 @@ export function mapVariantsFromExpand(
 			size: v.size,
 			sku: v.sku,
 			galleryImages,
-			stockStatus: v.stock_status || undefined,
+			stockStatus: computeStockStatus(Number(v.stock_quantity) || 0),
 
 			// Mapped
 			image,
-			stockQuantity: v.stock_quantity,
-			priceOverride: v.price_override
+			stockQuantity: v.stock_quantity
 		};
 	});
 }

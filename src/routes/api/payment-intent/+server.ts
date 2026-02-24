@@ -225,19 +225,7 @@ export const POST: RequestHandler = apiHandler(async ({ request }) => {
 				throwBadRequest(`Item out of stock: ${product.title}. Please remove it from your cart.`);
 			}
 
-			let unitPrice =
-				typeof variant?.priceOverride === 'number' && variant.priceOverride > 0
-					? variant.priceOverride
-					: product.priceValue;
-
-			if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-				const variantFallback = product.variants?.find(
-					(entry) => typeof entry.priceOverride === 'number' && entry.priceOverride > 0
-				)?.priceOverride;
-				if (typeof variantFallback === 'number' && variantFallback > 0) {
-					unitPrice = variantFallback;
-				}
-			}
+			let unitPrice = product.priceValue;
 
 			if ((!Number.isFinite(unitPrice) || unitPrice <= 0) && import.meta.env.DEV) {
 				unitPrice = STRIPE_TEST_FALLBACK_PRICE_VALUE;

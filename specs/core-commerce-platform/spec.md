@@ -2,7 +2,7 @@
 
 **Feature Branch**: `000-baseline-platform`  
 **Created**: 2026-01-27  
-**Status**: Baseline (Reverse-Engineered)
+**Status**: Baseline (Reverse-Engineered, Updated 2026-02-24)
 **Input**: Existing codebase analysis
 
 ## User Scenarios & Testing
@@ -48,9 +48,12 @@ As a shopper, I can save items to a wishlist for later consideration.
 - **FR-003**: System MUST support sorting by Price (Low/High) and Newness.
 - **FR-004**: System MUST utilize `$derived` runes for real-time filtering logic based on URL store and state.
 - **FR-005**: System MUST use `@sveltejs/enhanced-img` for all product thumbnails.
+- **FR-006**: System MUST use product-level pricing as the single source of truth (`products.stripe_price_id` / Stripe price lookup); variant-level price override is not supported.
+- **FR-007**: System MUST derive variant stock status from `product_variants.stock_quantity` at runtime; `stock_status` is not persisted.
 
 ### Key Entities
-- **Product**: ID, Title, Price, Category, Images, Variants (Size/Color).
+- **Product**: ID, Title, Description, Slug, Category, `stripe_product_id`, `stripe_price_id`, `main_image`, `attributes`, and computed display price.
+- **ProductVariant**: `sku`, `color`, `color_swatch`, `size`, `stock_quantity`, `main_image`, `gallery_images` (stock status is computed runtime).
 - **Category**: Title, Slug, Parent Relationship.
 - **User**: Email, Name, Auth tokens (managed by PocketBase).
 
