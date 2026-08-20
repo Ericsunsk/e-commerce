@@ -29,7 +29,7 @@
 	let message = $state('');
 	let isSocialOpen = $state(false);
 	let isWhatsAppQrOpen = $state(false);
-	let socialMenu: HTMLDivElement;
+	let socialMenu = $state<HTMLDivElement>();
 
 	onMount(() => {
 		const closeSocialMenu = (event: MouseEvent) => {
@@ -86,6 +86,11 @@
 	function toggleSocialMenu() {
 		isSocialOpen = !isSocialOpen;
 		if (isSocialOpen === false) isWhatsAppQrOpen = false;
+	}
+
+	function isSocialNavItem(link: NavItem) {
+		const label = link.label.trim().toLowerCase();
+		return label === 'social' || label === 'social media';
 	}
 </script>
 
@@ -155,9 +160,70 @@
 			class="flex flex-wrap gap-x-8 gap-y-4 items-center justify-start lg:justify-end text-[10px] font-sans uppercase tracking-[0.15em] text-black"
 		>
 			{#each navItems as link (link.url)}
-				<a href={link.url} class="text-black no-underline hover:underline underline-offset-2">
-					{link.label}
-				</a>
+				{#if isSocialNavItem(link)}
+					<div class="relative" bind:this={socialMenu}>
+						<button
+							type="button"
+							class="text-black no-underline hover:underline underline-offset-2 cursor-pointer"
+							onclick={toggleSocialMenu}
+							aria-expanded={isSocialOpen}
+							aria-controls="social-media-links"
+						>
+							{link.label}
+						</button>
+
+						{#if isSocialOpen}
+							<div
+								id="social-media-links"
+								class="absolute bottom-full right-0 z-20 mb-4 flex flex-col gap-4 border border-black/15 bg-white px-5 py-4 shadow-lg dark:border-white/20 dark:bg-black"
+							>
+								<div class="flex flex-row gap-x-5 whitespace-nowrap">
+									{#each socialLinks as socialLink (socialLink.url)}
+										<a
+											href={socialLink.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="text-black no-underline hover:underline underline-offset-2 dark:text-white"
+										>
+											{socialLink.label}
+										</a>
+									{/each}
+									<button
+										type="button"
+										class="text-black no-underline hover:underline underline-offset-2 dark:text-white"
+										onclick={() => (isWhatsAppQrOpen = !isWhatsAppQrOpen)}
+										aria-expanded={isWhatsAppQrOpen}
+										aria-controls="whatsapp-qr"
+									>
+										WhatsApp
+									</button>
+								</div>
+
+								{#if isWhatsAppQrOpen}
+									<div
+										id="whatsapp-qr"
+										class="flex flex-col items-center gap-2 border-t border-black/10 pt-4 dark:border-white/20"
+									>
+										<img
+											src="/whatsapp-qr.jpg"
+											alt="WhatsApp QR code"
+											class="h-44 w-44 object-contain"
+										/>
+										<span
+											class="text-[9px] uppercase tracking-[0.15em] text-black/60 dark:text-white/60"
+										>
+											Scan to connect
+										</span>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{:else}
+					<a href={link.url} class="text-black no-underline hover:underline underline-offset-2">
+						{link.label}
+					</a>
+				{/if}
 			{/each}
 
 			<button
@@ -168,59 +234,6 @@
 				COOKIE SETTINGS
 			</button>
 
-			<div class="relative" bind:this={socialMenu}>
-				<button
-					type="button"
-					class="text-black no-underline hover:underline underline-offset-2 cursor-pointer"
-					onclick={toggleSocialMenu}
-					aria-expanded={isSocialOpen}
-					aria-controls="social-media-links"
-				>
-					SOCIAL MEDIA
-				</button>
-
-				{#if isSocialOpen}
-					<div
-						id="social-media-links"
-						class="absolute bottom-full right-0 z-20 mb-4 flex flex-col gap-4 border border-black/15 bg-white px-5 py-4 shadow-lg dark:border-white/20 dark:bg-black"
-					>
-						<div class="flex flex-row gap-x-5 whitespace-nowrap">
-							{#each socialLinks as link (link.url)}
-								<a
-									href={link.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									class="text-black no-underline hover:underline underline-offset-2 dark:text-white"
-								>
-									{link.label}
-								</a>
-							{/each}
-							<button
-								type="button"
-								class="text-black no-underline hover:underline underline-offset-2 dark:text-white"
-								onclick={() => (isWhatsAppQrOpen = !isWhatsAppQrOpen)}
-								aria-expanded={isWhatsAppQrOpen}
-								aria-controls="whatsapp-qr"
-							>
-								WhatsApp
-							</button>
-						</div>
-
-						{#if isWhatsAppQrOpen}
-							<div id="whatsapp-qr" class="flex flex-col items-center gap-2 border-t border-black/10 pt-4 dark:border-white/20">
-								<img
-									src="/whatsapp-qr.jpg"
-									alt="WhatsApp QR code"
-									class="h-44 w-44 object-contain"
-								/>
-								<span class="text-[9px] uppercase tracking-[0.15em] text-black/60 dark:text-white/60">
-									Scan to connect
-								</span>
-							</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
 		</div>
 	</div>
 </footer>
