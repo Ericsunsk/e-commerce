@@ -9,7 +9,7 @@ import {
 } from './utils';
 
 /**
- * Elementhic E2E Tests - Shopping Flow
+ * Jevarie E2E Tests - Shopping Flow
  * =====================================
  * Tests the complete shopping journey from browsing to cart
  */

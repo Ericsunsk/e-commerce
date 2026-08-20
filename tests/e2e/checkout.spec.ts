@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { addFirstProductViaQuickAdd, clearClientState, goToCheckout } from './utils';
 
 /**
- * Elementhic E2E Tests - Checkout Flow
+ * Jevarie E2E Tests - Checkout Flow
  * ====================================
  * Verifies the full purchase journey:
  * 1. Add to cart

@@ -1,4 +1,4 @@
-# ELEMENTHIC 代码审查指南
+# JEVARIE 代码审查指南
 
 基于项目的 **Spec-Driven Development** 规范与 **Constitution v1.5.2** 原则。
 

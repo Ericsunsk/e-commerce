@@ -49,7 +49,7 @@ specs/core-commerce-platform/
 1.  **[Notify] Order Confirmation**:
     - **Trigger**: SvelteKit API (`/api/webhooks/resend`)
     - **Logic**: Renders HTML template -> Sends via Resend.
-    - **Webhook**: `https://n8n.elementhic.com/webhook/order-created-v1`
+    - **Webhook**: `https://n8n.jevarie.com/webhook/order-created-v1`
 2.  **[Sync] Product Logic**:
     - **Status**: Migrated to SvelteKit Internal Webhooks.
 

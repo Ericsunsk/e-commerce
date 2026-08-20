@@ -75,7 +75,7 @@
 		<h1
 			class="font-display text-[12vw] md:text-[14vw] font-bold tracking-[0.05em] leading-none text-red-600 select-none whitespace-nowrap"
 		>
-			GLAMOURIA
+			JEVARIE
 		</h1>
 	</div>
 

@@ -48,7 +48,7 @@ e-commerce/
 
 **请求**:
 ```bash
-curl -X POST https://elementhic.com/api/inventory/deduct \
+curl -X POST https://jevarie.com/api/inventory/deduct \
   -H "X-Webhook-Secret: <WEBHOOK_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -89,7 +89,7 @@ curl -X POST https://elementhic.com/api/inventory/deduct \
 
 **请求**:
 ```bash
-curl -X POST https://elementhic.com/api/coupons/increment \
+curl -X POST https://jevarie.com/api/coupons/increment \
   -H "X-Webhook-Secret: <WEBHOOK_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"couponCode": "SAVE10", "orderId": "order_id"}'
@@ -113,8 +113,8 @@ curl -X POST https://elementhic.com/api/coupons/increment \
 
 ### 导入步骤
 1. 打开 n8n
-2. 从项目文件导入工作流：`.agent/workflows/Elementhic Stripe Order.json`
-3. 进入已导入的订单工作流（`Elementhic Stripe Order`）
+2. 从项目文件导入工作流：`.agent/workflows/Jevarie Stripe Order.json`
+3. 进入已导入的订单工作流（`Jevarie Stripe Order`）
 4. 修改 **⚙️ Config** 节点中的配置值
 
 ### 配置项

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { clickNavLink, dismissCookieBanner, openCartDrawer } from './utils';
 
 /**
- * Elementhic E2E Tests - Core User Flows
+ * Jevarie E2E Tests - Core User Flows
  * =======================================
  * Tests critical user journeys to ensure site functionality
  */
@@ -13,7 +13,7 @@ test.describe('Homepage', () => {
 		await page.waitForLoadState('networkidle');
 
 		// Check page title contains site name
-		await expect(page).toHaveTitle(/elementhic/i);
+		await expect(page).toHaveTitle(/jevarie/i);
 
 		// Hero section should be visible
 		const heroSection = page.locator('section').first();

@@ -21,7 +21,7 @@ Follow-up TODOs:
 None
 -->
 
-# ELEMENTHIC Project Constitution
+# JEVARIE Project Constitution
 
 ## Core Principles
 

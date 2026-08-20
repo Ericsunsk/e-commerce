@@ -123,7 +123,7 @@ export const LAYOUT = {
 // 实际业务配置应通过 data.settings 从 PocketBase 获取
 // =============================================================================
 export const DEFAULTS = {
-	siteName: 'ELEMENTHIC',
+	siteName: 'JEVARIE',
 	currencySymbol: '$',
 	currencyCode: 'USD',
 	freeShippingThreshold: 300,

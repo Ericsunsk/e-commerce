@@ -29,16 +29,16 @@ const scriptSrc = [
 	'unsafe-eval',
 	'https://js.stripe.com',
 	'https://*.umami.is',
-	'https://analytics.elementhic.com',
+	'https://analytics.jevarie.com',
 	'https://static.cloudflareinsights.com'
 ];
 
 const connectSrc = [
 	'self',
-	'https://pb.elementhic.com',
+	'https://pb.jevarie.com',
 	'https://api.stripe.com',
 	'https://*.umami.is',
-	'https://analytics.elementhic.com'
+	'https://analytics.jevarie.com'
 ];
 
 // Add dynamic analytics domain if found
@@ -72,8 +72,8 @@ const config = {
 					'self',
 					'data:',
 					'blob:',
-					'https://pb.elementhic.com',
-					'https://img.elementhic.com',
+					'https://pb.jevarie.com',
+					'https://img.jevarie.com',
 					'https://*.stripe.com',
 					'https://images.unsplash.com'
 				],

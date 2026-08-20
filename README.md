@@ -1,6 +1,6 @@
-# ELEMENTHIC | 高端 Headless 电商平台
+# JEVARIE | 高端 Headless 电商平台
 
-ELEMENTHIC 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能电商平台，采用 **PocketBase** 作为全能后端的 "Vibe" 架构设计。本项目严格遵循 **Apple UX (Minimal Luxury)** 设计风格与 **Spec-Driven Development** 开发范式。
+JEVARIE 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能电商平台，采用 **PocketBase** 作为全能后端的 "Vibe" 架构设计。本项目严格遵循 **Apple UX (Minimal Luxury)** 设计风格与 **Spec-Driven Development** 开发范式。
 
 ---
 
@@ -24,7 +24,7 @@ ELEMENTHIC 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性�
 - **表单**: Superforms + Zod (Type-safe Validation)
 - **后端**: PocketBase (SQLite / Go) + Rate Limiting
 - **支付**: Stripe Connect / Elements / Tax (Automatic VAT/Sales Tax)
-- **工作流**: n8n（以实例内工作流为准：`Elementhic Stripe Order`、`Elementhic-Stripe to PocketBase Sync`）
+- **工作流**: n8n（以实例内工作流为准：`Jevarie Stripe Order`、`Jevarie-Stripe to PocketBase Sync`）
 - **测试**: Playwright (E2E) + Vitest (Unit)
 - **代码质量**: ESLint 9 + Prettier 3 + Husky + lint-staged
 - **开发工具**: OpenCode / Antigravity + GitHub Spec Kit
