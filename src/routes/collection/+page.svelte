@@ -31,25 +31,22 @@
 	let heroImageLeft = $derived(getImageUrl(leftRecord));
 	let heroImageRight = $derived(getImageUrl(rightRecord));
 
-	// 动态获取链接和标题
-	let leftLink = $derived(leftRecord?.link || '/shop?gender=womens');
-	let rightLink = $derived(rightRecord?.link || '/shop?gender=mens');
-	let leftTitle = $derived(leftRecord?.title || 'Shop Woman > New Arrivals');
-	let rightTitle = $derived(rightRecord?.title || 'Shop Man');
-	let heroPanels = $derived([
-		{
-			id: 'left',
-			link: leftLink,
-			title: leftTitle,
-			image: heroImageLeft
-		},
-		{
-			id: 'right',
-			link: rightLink,
-			title: rightTitle,
-			image: heroImageRight
-		}
-	]);
+	let heroPanels = $derived(
+		[
+			{
+				id: 'left',
+				link: leftRecord?.link?.trim() || '',
+				title: leftRecord?.title?.trim() || '',
+				image: heroImageLeft
+			},
+			{
+				id: 'right',
+				link: rightRecord?.link?.trim() || '',
+				title: rightRecord?.title?.trim() || '',
+				image: heroImageRight
+			}
+		].filter((panel) => panel.image)
+	);
 
 	// 滚动交互逻辑 (Single Element Hybrid)
 	let scrollY = $state(0);
@@ -75,15 +72,15 @@
 		<h1
 			class="font-display text-[12vw] md:text-[14vw] font-bold tracking-[0.05em] leading-none text-red-600 select-none whitespace-nowrap"
 		>
-			JEVARIE
+			{data.settings.siteName}
 		</h1>
 	</div>
 
 	<!-- HERO SECTION: Split Screen -->
 	<div class="relative w-full h-screen flex flex-col md:flex-row z-0">
 		{#each heroPanels as panel (panel.id)}
-			<a href={panel.link} class="flex-1 block bg-background-light dark:bg-primary overflow-hidden">
-				{#if panel.image}
+			{#if panel.link}
+				<a href={panel.link} class="flex-1 block bg-background-light dark:bg-primary overflow-hidden">
 					<RemoteImage
 						src={panel.image}
 						alt={panel.title}
@@ -91,8 +88,18 @@
 						priority={true}
 						thumb="2000x0"
 					/>
-				{/if}
-			</a>
+				</a>
+			{:else}
+				<div class="flex-1 bg-background-light dark:bg-primary overflow-hidden">
+					<RemoteImage
+						src={panel.image}
+						alt={panel.title}
+						className="w-full h-full"
+						priority={true}
+						thumb="2000x0"
+					/>
+				</div>
+			{/if}
 		{/each}
 	</div>
 
