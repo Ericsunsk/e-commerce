@@ -15,8 +15,8 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			valibot: path.resolve(__dirname, './src/lib/noop.ts'),
-			'@valibot/to-json-schema': path.resolve(__dirname, './src/lib/noop.ts')
+			valibot: path.resolve(__dirname, './src/lib/shared/kernel/noop.ts'),
+			'@valibot/to-json-schema': path.resolve(__dirname, './src/lib/shared/kernel/noop.ts')
 		}
 	}
 });

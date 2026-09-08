@@ -44,6 +44,7 @@
 		"@types/node": "^25.1.0",
 		"@types/sanitize-html": "^2.16.0",
 		"@vitest/ui": "^4.0.17",
+		"dependency-cruiser": "^18.2.0",
 		"eslint": "^9.39.2",
 		"eslint-plugin-svelte": "^3.14.0",
 		"globals": "^17.2.0",
