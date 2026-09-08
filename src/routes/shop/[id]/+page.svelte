@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { ProductListGrid } from '$domains/catalog';
 	import { RemoteImage, toastStore } from '$shared/ui';

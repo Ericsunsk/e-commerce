@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { TRANSITIONS, MESSAGES } from '$shared/kernel';
 	import { toastStore, Badge } from '$shared/ui';

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart } from '$domains/cart';
 	import { fade } from 'svelte/transition';
-	import { DEFAULTS } from '$lib/constants';
+	import { DEFAULTS } from '$shared/kernel';
 
 	const cart = useCart();
 

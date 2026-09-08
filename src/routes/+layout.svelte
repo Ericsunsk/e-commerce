@@ -2,7 +2,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	import { Header, MobileMenu, Footer, CookieBanner } from '$domains/content';
-	import CartDrawer from '$lib/components/CartDrawer.svelte';
+	import { CartDrawer } from '$domains/cart';
 	import { Toast } from '$shared/ui';
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';

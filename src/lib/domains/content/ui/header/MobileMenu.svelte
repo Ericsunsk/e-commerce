@@ -3,7 +3,7 @@
 	import { fly, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { SHOP_CATEGORIES } from '$domains/catalog';
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart } from '$domains/cart';
 
 	const cart = useCart();
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart } from '$domains/cart';
 	import { goto } from '$app/navigation';
 	import { DEFAULTS, isLinkActive } from '$shared/kernel';
 	import HeaderSearch from './header/HeaderSearch.svelte';

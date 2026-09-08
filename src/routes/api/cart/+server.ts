@@ -1,4 +1,4 @@
-import { cartHandlers } from '$lib/server/user-list-routes';
+import { cartHandlers } from '$domains/cart/server';
 
 export const GET = cartHandlers.GET;
 export const POST = cartHandlers.POST;

@@ -1,12 +1,11 @@
 <script lang="ts">
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart, LineItemMeta } from '$domains/cart';
 	import { auth } from '$domains/customer';
 	import { toastStore, Button, FormInput, FormSelect } from '$shared/ui';
 	import { MESSAGES, COLORS, TYPOGRAPHY, buildFullName, formatCurrency } from '$shared/kernel';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
-	import LineItemMeta from '$lib/components/ui/LineItemMeta.svelte';
 	import ShippingOption from '$lib/components/ui/ShippingOption.svelte';
 	import type { Stripe, StripeElements } from '@stripe/stripe-js';
 	import { superForm } from 'sveltekit-superforms';

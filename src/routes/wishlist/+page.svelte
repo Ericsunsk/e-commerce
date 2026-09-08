@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { useWishlist, WishlistItemCard, type WishlistItem } from '$domains/customer';
-	import { useCart } from '$lib/stores/cart.svelte';
+	import { useCart, type CartItem } from '$domains/cart';
 	import { Button } from '$shared/ui';
 	import { fade } from 'svelte/transition';
 	import { flip } from 'svelte/animate';
@@ -8,8 +8,6 @@
 
 	const wishlist = useWishlist();
 	const cart = useCart();
-
-	import type { CartItem } from '$lib/types';
 
 	// Receive global settings data
 	let { data } = $props();
