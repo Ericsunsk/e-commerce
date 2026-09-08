@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import '../app.css'; // 关键：手动引入 CSS，因为 layout 挂了
-	import { DEFAULTS } from '$lib/constants';
+	import { DEFAULTS } from '$shared/kernel';
 
 	// 可以在这里引入你的 Logo 图片，或者直接用文字
 	// import logo from '$lib/assets/logo.svg';

@@ -1,9 +1,10 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
-	import { Header, MobileMenu, Footer, CookieBanner } from '$domains/content';
+	import { Header, MobileMenu, Footer, CookieBanner, Metadata, type NavItem } from '$domains/content';
 	import { CartDrawer } from '$domains/cart';
-	import { Toast } from '$shared/ui';
+	import { Toast, toastStore } from '$shared/ui';
+	import { NavigationLocationOptions } from '$shared/infrastructure';
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
@@ -16,8 +17,6 @@
 		QueryCache
 	} from '@tanstack/svelte-query';
 	import { browser } from '$app/environment';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import Metadata from '$lib/components/seo/Metadata.svelte';
 
 	const COOKIE_CONSENT_KEY = 'cookie_consent';
 	const COOKIE_CONSENT_EVENT = 'cookie-consent-change';
@@ -66,8 +65,6 @@
 		isMenuOpen = !isMenuOpen;
 	}
 
-	import type { NavItem } from '$lib/types';
-	import { NavigationLocationOptions } from '$lib/pocketbase-types';
 
 	// Fallback navigation if data is missing or sparse
 	let headerNav = $derived.by(() => {

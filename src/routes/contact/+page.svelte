@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import FormInput from '$lib/components/ui/FormInput.svelte';
-	import FormSelect from '$lib/components/ui/FormSelect.svelte';
-	import FormTextarea from '$lib/components/ui/FormTextarea.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { COLORS, SPACING, TYPOGRAPHY, DEFAULTS } from '$lib/constants';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { MESSAGES } from '$lib/messages';
+	import { FormInput, FormSelect, FormTextarea, Button, toastStore } from '$shared/ui';
+	import { COLORS, SPACING, TYPOGRAPHY, DEFAULTS, MESSAGES } from '$shared/kernel';
 
 	let { data } = $props();
 

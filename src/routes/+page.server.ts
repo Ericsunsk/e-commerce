@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
 import { getFeaturedProducts, getCategories } from '$domains/catalog/server';
 import { getPage, getPageSections, getAssetsByGroup } from '$domains/content/server';
-import { UiAssetsGroupOptions } from '$lib/pocketbase-types';
+import { UiAssetsGroupOptions } from '$shared/infrastructure';
 
 export const load: PageServerLoad = async () => {
 	const [page, featuredProducts, sections, categories, homeAssets] = await Promise.all([

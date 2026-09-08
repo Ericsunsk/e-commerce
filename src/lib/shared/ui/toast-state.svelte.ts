@@ -1,5 +1,5 @@
 // Toast Store - 全局通知管理
-// 使用方式: import { toastStore } from '$lib/stores/toast.svelte';
+// 使用方式: import { toastStore } from '$shared/ui';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 

@@ -9,7 +9,7 @@ import {
 	requireObjectBody,
 	throwBadRequest
 } from '$shared/infrastructure/server';
-import { assertN8nWebhookAuthorized } from '$lib/server/n8n-webhook';
+import { assertN8nWebhookAuthorized } from '$domains/order/server';
 import type { RequestHandler } from './$types';
 
 interface DeductItem {

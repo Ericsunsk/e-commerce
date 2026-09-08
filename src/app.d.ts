@@ -1,4 +1,4 @@
-import type { TypedPocketBase, UsersResponse } from '$lib/pocketbase-types';
+import type { TypedPocketBase, UsersResponse } from '$shared/infrastructure';
 
 declare global {
 	namespace App {
