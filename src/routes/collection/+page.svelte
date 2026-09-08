@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ProductListGrid from '$lib/components/shop/ProductListGrid.svelte';
-	import RemoteImage from '$lib/components/ui/RemoteImage.svelte';
-	import { getFileUrl } from '$lib/utils/image';
+	import { ProductListGrid } from '$domains/catalog';
+	import { RemoteImage } from '$shared/ui';
+	import { getFileUrl } from '$shared/kernel';
 
 	let { data } = $props();
 

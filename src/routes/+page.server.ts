@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { getFeaturedProducts, getCategories } from '$lib/server/products';
+import { getFeaturedProducts, getCategories } from '$domains/catalog/server';
 import { getPage, getPageSections, getAssetsByGroup } from '$lib/server/content';
 import { UiAssetsGroupOptions } from '$lib/pocketbase-types';
 

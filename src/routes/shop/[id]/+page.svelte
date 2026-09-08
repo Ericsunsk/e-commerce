@@ -2,12 +2,9 @@
 	import { page } from '$app/stores';
 	import { useCart } from '$lib/stores/cart.svelte';
 	import { useWishlist } from '$lib/stores/wishlist.svelte';
-	import ProductListGrid from '$lib/components/shop/ProductListGrid.svelte';
-	import RemoteImage from '$lib/components/ui/RemoteImage.svelte';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { MESSAGES } from '$lib/messages';
-	import { fade } from 'svelte/transition';
-	import { COLORS } from '$lib/constants';
+	import { ProductListGrid } from '$domains/catalog';
+	import { RemoteImage, toastStore } from '$shared/ui';
+	import { MESSAGES, COLORS } from '$shared/kernel';
 
 	const cart = useCart();
 	const wishlist = useWishlist();

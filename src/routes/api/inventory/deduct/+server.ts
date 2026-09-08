@@ -1,15 +1,15 @@
-import { Collections } from '$lib/pocketbase-types';
-import { apiHandler } from '$lib/server/api-handler';
-import { withKeyedLock } from '$lib/server/locks';
-import { assertN8nWebhookAuthorized } from '$lib/server/n8n-webhook';
-import { createAdminClient } from '$lib/server/pocketbase';
+import { Collections } from '$shared/infrastructure';
 import {
+	apiHandler,
+	withKeyedLock,
+	createAdminClient,
 	readOptionalTrimmedString,
 	readRequiredTrimmedString,
 	parseAndNormalizeJsonBody,
 	requireObjectBody,
 	throwBadRequest
-} from '$lib/server/request-body';
+} from '$shared/infrastructure/server';
+import { assertN8nWebhookAuthorized } from '$lib/server/n8n-webhook';
 import type { RequestHandler } from './$types';
 
 interface DeductItem {

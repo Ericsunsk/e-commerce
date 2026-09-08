@@ -1,4 +1,4 @@
-import { getProducts } from '$lib/server/products';
+import { getProducts } from '$domains/catalog/server';
 import { getNavigation } from '$lib/server/site';
 
 export async function GET({ url }: { url: URL }) {

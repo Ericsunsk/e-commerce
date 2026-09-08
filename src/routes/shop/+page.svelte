@@ -1,9 +1,7 @@
 <script lang="ts">
-	import ProductListGrid from '$lib/components/shop/ProductListGrid.svelte';
-	import ProductGridSkeleton from '$lib/components/ui/ProductGridSkeleton.svelte';
-	import Drawer from '$lib/components/ui/Drawer.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { parsePrice } from '$lib/utils/price';
+	import { ProductListGrid, ProductGridSkeleton } from '$domains/catalog';
+	import { Drawer, Button } from '$shared/ui';
+	import { parsePrice } from '$shared/kernel';
 	import SectionRenderer from '$lib/components/SectionRenderer.svelte';
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
