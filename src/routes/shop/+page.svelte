@@ -2,7 +2,7 @@
 	import { ProductListGrid, ProductGridSkeleton } from '$domains/catalog';
 	import { Drawer, Button } from '$shared/ui';
 	import { parsePrice } from '$shared/kernel';
-	import SectionRenderer from '$lib/components/SectionRenderer.svelte';
+	import { SectionRenderer } from '$domains/content';
 	import { fade } from 'svelte/transition';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';

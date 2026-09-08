@@ -1,12 +1,9 @@
 <script lang="ts">
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
-	import Header from '$lib/components/Header.svelte';
-	import MobileMenu from '$lib/components/header/MobileMenu.svelte';
-	import Footer from '$lib/components/Footer.svelte';
+	import { Header, MobileMenu, Footer, CookieBanner } from '$domains/content';
 	import CartDrawer from '$lib/components/CartDrawer.svelte';
-	import CookieBanner from '$lib/components/CookieBanner.svelte';
-	import Toast from '$lib/components/ui/Toast.svelte';
+	import { Toast } from '$shared/ui';
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';

@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getPage, getPageSections } from '$lib/server/content';
+import { getPage, getPageSections } from '$domains/content/server';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const slug = params.slug;

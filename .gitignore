@@ -57,6 +57,7 @@ Jevarie Stripe Order-*.json
 .specify/**/*.bak
 .agent/cache/
 .agent/temp/
+.codegraph/
 
 # Python
 __pycache__/

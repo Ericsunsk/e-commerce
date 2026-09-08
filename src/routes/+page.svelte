@@ -1,6 +1,5 @@
 <script lang="ts">
-	import SectionRenderer from '$lib/components/SectionRenderer.svelte';
-	import Metadata from '$lib/components/seo/Metadata.svelte';
+	import { SectionRenderer, Metadata } from '$domains/content';
 
 	let { data } = $props();
 

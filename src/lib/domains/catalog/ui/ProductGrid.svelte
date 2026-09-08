@@ -7,7 +7,7 @@
 		subheading?: string;
 		settings?: {
 			actions?: Array<{ text?: string; link?: string }>;
-		};
+		} | null;
 	}
 
 	interface Props {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SectionRenderer from '$lib/components/SectionRenderer.svelte';
+	import { SectionRenderer } from '$domains/content';
 
 	let { data } = $props();
 

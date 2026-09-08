@@ -1,5 +1,5 @@
 import type { LayoutServerLoad } from './$types';
-import { getGlobalSettings, getNavigation } from '$lib/server/site';
+import { getGlobalSettings, getNavigation } from '$domains/content/server';
 import { error } from '@sveltejs/kit';
 
 export const load: LayoutServerLoad = async ({ url }) => {

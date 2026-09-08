@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { getProducts, getCategories, getCatalogFilters } from '$domains/catalog/server';
-import { getPage, getPageSections } from '$lib/server/content';
+import { getPage, getPageSections } from '$domains/content/server';
 import type { NavItem } from '$lib/types';
 
 export const load: PageServerLoad = async ({ url, parent }) => {

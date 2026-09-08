@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { getFeaturedProducts, getCategories } from '$domains/catalog/server';
-import { getPage, getPageSections, getAssetsByGroup } from '$lib/server/content';
+import { getPage, getPageSections, getAssetsByGroup } from '$domains/content/server';
 import { UiAssetsGroupOptions } from '$lib/pocketbase-types';
 
 export const load: PageServerLoad = async () => {

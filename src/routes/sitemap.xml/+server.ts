@@ -1,5 +1,5 @@
 import { getProducts } from '$domains/catalog/server';
-import { getNavigation } from '$lib/server/site';
+import { getNavigation } from '$domains/content/server';
 
 export async function GET({ url }: { url: URL }) {
 	const origin = url.origin;
