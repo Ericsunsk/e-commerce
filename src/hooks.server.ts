@@ -1,9 +1,9 @@
 import { type Handle } from '@sveltejs/kit';
-import { checkoutLimiter, apiLimiter } from '$lib/server/limiter';
+import { checkoutLimiter, apiLimiter } from '$shared/infrastructure/server';
 import PocketBase from 'pocketbase';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
-import type { TypedPocketBase, UsersResponse } from '$lib/pocketbase-types';
+import type { TypedPocketBase, UsersResponse } from '$shared/infrastructure';
 
 function buildCspHeader(url: URL): string {
 	const isHttps = url.protocol === 'https:';

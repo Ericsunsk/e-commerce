@@ -1,17 +1,11 @@
 <script lang="ts">
-	import { Collections } from '$lib/pocketbase-types';
+	import { Collections, pb } from '$shared/infrastructure';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { auth, AccountEmptyState, AddressFormField, type UserAddress } from '$domains/customer';
 	import { onMount } from 'svelte';
-	import { pb } from '$lib/pocketbase';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { MESSAGES } from '$lib/messages';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import LoadingState from '$lib/components/ui/LoadingState.svelte';
-	import AccountEmptyState from '$lib/components/account/AccountEmptyState.svelte';
-	import AddressFormField from '$lib/components/account/AddressFormField.svelte';
-	import { LAYOUT, BUTTON_STYLES } from '$lib/constants';
+	import { toastStore, PageHeader, LoadingState } from '$shared/ui';
+	import { MESSAGES, LAYOUT, BUTTON_STYLES } from '$shared/kernel';
 
 	// Define local interface for Address with isDefault derived property
 	interface AddressWithDefault {

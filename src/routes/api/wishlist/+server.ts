@@ -1,4 +1,4 @@
-import { wishlistHandlers } from '$lib/server/user-list-routes';
+import { wishlistHandlers } from '$domains/customer/server';
 
 export const GET = wishlistHandlers.GET;
 export const POST = wishlistHandlers.POST;

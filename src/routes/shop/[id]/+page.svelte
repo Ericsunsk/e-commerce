@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { useCart } from '$lib/stores/cart.svelte';
-	import { useWishlist } from '$lib/stores/wishlist.svelte';
+	import { useWishlist } from '$domains/customer';
 	import { ProductListGrid } from '$domains/catalog';
 	import { RemoteImage, toastStore } from '$shared/ui';
 	import { MESSAGES, COLORS } from '$shared/kernel';

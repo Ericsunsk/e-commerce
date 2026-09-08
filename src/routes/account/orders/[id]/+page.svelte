@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import AccountBackLink from '$lib/components/account/AccountBackLink.svelte';
-	import AccountPageShell from '$lib/components/account/AccountPageShell.svelte';
+	import { AccountBackLink, AccountPageShell } from '$domains/customer';
 	import OrderSummary from '$lib/components/orders/OrderSummary.svelte';
 	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
-	import { formatCurrency } from '$lib/utils/price';
+	import { formatCurrency } from '$shared/kernel';
 	import { fade } from 'svelte/transition';
 
 	let { data } = $props<{ data: PageData }>();

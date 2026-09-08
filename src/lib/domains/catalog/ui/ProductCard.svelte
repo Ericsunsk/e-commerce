@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { useCart } from '$lib/stores/cart.svelte';
-	import { useWishlist } from '$lib/stores/wishlist.svelte';
+	import { useWishlist } from '$domains/customer';
 	import { TRANSITIONS, MESSAGES } from '$shared/kernel';
 	import { toastStore, Badge } from '$shared/ui';
 	import CoverImageLayer from './CoverImageLayer.svelte';

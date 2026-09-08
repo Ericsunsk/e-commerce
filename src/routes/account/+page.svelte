@@ -2,15 +2,11 @@
 	import { fade, fly } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { MESSAGES } from '$lib/messages';
-	import RemoteImage from '$lib/components/ui/RemoteImage.svelte';
-	import FormInput from '$lib/components/ui/FormInput.svelte';
-	import { buildFullName } from '$lib/utils/name';
+	import { auth, loginSchema, registerSchema, passwordRecoverySchema } from '$domains/customer';
+	import { toastStore, RemoteImage, FormInput } from '$shared/ui';
+	import { MESSAGES, buildFullName } from '$shared/kernel';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 as zod } from 'sveltekit-superforms/adapters';
-	import { loginSchema, registerSchema, passwordRecoverySchema } from '$lib/schemas';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

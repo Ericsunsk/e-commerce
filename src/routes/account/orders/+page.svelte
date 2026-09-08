@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import AccountEmptyState from '$lib/components/account/AccountEmptyState.svelte';
+	import { AccountEmptyState, AccountPageShell, AccountBackLink } from '$domains/customer';
 	import OrderCard from '$lib/components/orders/OrderCard.svelte';
-	import AccountPageShell from '$lib/components/account/AccountPageShell.svelte';
-	import AccountBackLink from '$lib/components/account/AccountBackLink.svelte';
 	import { ShoppingBag } from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
 

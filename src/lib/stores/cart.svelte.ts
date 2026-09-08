@@ -4,8 +4,8 @@ import { formatCurrency as formatCurrencyUtil, parsePrice } from '$lib/utils/pri
 import type { Product, CartItem } from '$lib/types';
 import { DEFAULTS, STORAGE_KEYS } from '$lib/constants';
 import { queryKeys } from '$lib/keys';
-import { auth } from './auth.svelte';
-import { createOptimisticQueryHelpers } from './query-optimistic';
+import { auth } from '$domains/customer';
+import { createOptimisticQueryHelpers } from '$shared/infrastructure';
 import { browser } from '$app/environment';
 
 // =============================================================================

@@ -1,19 +1,13 @@
 <script lang="ts">
 	import { useCart } from '$lib/stores/cart.svelte';
-	import { auth } from '$lib/stores/auth.svelte';
-	import { toastStore } from '$lib/stores/toast.svelte';
-	import { MESSAGES } from '$lib/messages';
+	import { auth } from '$domains/customer';
+	import { toastStore, Button, FormInput, FormSelect } from '$shared/ui';
+	import { MESSAGES, COLORS, TYPOGRAPHY, buildFullName, formatCurrency } from '$shared/kernel';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
 	import LineItemMeta from '$lib/components/ui/LineItemMeta.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import FormInput from '$lib/components/ui/FormInput.svelte';
-	import FormSelect from '$lib/components/ui/FormSelect.svelte';
 	import ShippingOption from '$lib/components/ui/ShippingOption.svelte';
-	import { COLORS, TYPOGRAPHY } from '$lib/constants';
-	import { buildFullName } from '$lib/utils/name';
-	import { formatCurrency } from '$lib/utils/price';
 	import type { Stripe, StripeElements } from '@stripe/stripe-js';
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';

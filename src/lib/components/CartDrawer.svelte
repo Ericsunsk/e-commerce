@@ -7,7 +7,7 @@
 	import Drawer from './ui/Drawer.svelte';
 	import FreeShippingProgress from './ui/FreeShippingProgress.svelte';
 	import { TRANSITIONS } from '$lib/constants';
-	import { auth } from '$lib/stores/auth.svelte';
+	import { auth } from '$domains/customer';
 
 	const cart = useCart();
 

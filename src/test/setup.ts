@@ -1,4 +1,12 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+vi.mock('$env/dynamic/public', () => ({
+	env: {
+		PUBLIC_POCKETBASE_URL: 'http://127.0.0.1:8090',
+		PUBLIC_R2_CDN_URL: ''
+	}
+}));
 
 // Mock crypto for UUIDs in tests
 Object.defineProperty(globalThis, 'crypto', {
