@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/public';
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 as zod } from 'sveltekit-superforms/adapters';
-import { shippingAddressSchema } from '$lib/schemas';
+import { shippingAddressSchema } from '$domains/checkout';
 import { fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {

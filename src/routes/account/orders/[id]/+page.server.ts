@@ -1,11 +1,9 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getOrderById } from '$lib/server/orders';
-import type { OrderDetail } from '$lib/types';
-import { Collections, type ProductsResponse, type TypedPocketBase } from '$lib/pocketbase-types';
-import { getFileUrl } from '$lib/utils/image';
-import { getErrorStatus } from '$lib/server/pocketbase-json';
-import { createAdminClient } from '$lib/server/pocketbase';
+import { getOrderById, type OrderDetail } from '$domains/order/server';
+import { Collections, type ProductsResponse, type TypedPocketBase } from '$shared/infrastructure';
+import { getFileUrl } from '$shared/kernel';
+import { getErrorStatus, createAdminClient } from '$shared/infrastructure/server';
 
 async function resolveProductMainImage(pb: TypedPocketBase, idOrSlug: string): Promise<string> {
 	if (!idOrSlug) return '';

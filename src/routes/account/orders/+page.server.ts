@@ -1,7 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getOrdersByUserWithClient } from '$lib/server/orders';
-import type { OrderSummary } from '$lib/types';
+import { getUserOrders } from '$domains/order/server';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// 1. Auth Check
@@ -10,22 +9,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	// 2. Fetch Orders
-	const orders = await getOrdersByUserWithClient(locals.pb, locals.user.id);
-
-	// 3. Map to View Model (OrderSummary)
-	const orderSummaries: OrderSummary[] = orders.map((order) => {
-		const firstItem = order.items[0];
-		const date = order.placed_at_override || order.placed_at || '';
-		return {
-			id: order.id,
-			date,
-			status: order.status,
-			total: order.amountTotal,
-			currency: order.currency,
-			itemCount: order.items.reduce((acc, item) => acc + item.quantity, 0),
-			firstItemTitle: firstItem ? firstItem.title : 'Unknown Item'
-		};
-	});
+	const orderSummaries = await getUserOrders(locals.pb, locals.user.id);
 
 	return {
 		orders: orderSummaries,

@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { AccountBackLink, AccountPageShell } from '$domains/customer';
-	import OrderSummary from '$lib/components/orders/OrderSummary.svelte';
-	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
+	import { OrderSummary, OrderItemThumbnail } from '$domains/order';
 	import { formatCurrency } from '$shared/kernel';
 	import { fade } from 'svelte/transition';
 

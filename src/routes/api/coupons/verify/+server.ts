@@ -3,16 +3,15 @@
  * 使用统一的优惠券验证服务
  */
 
-import { validateAndApplyCoupon } from '$lib/server/coupons';
-
+import { validateAndApplyCoupon } from '$domains/checkout/server';
 import type { RequestHandler } from './$types';
-import { apiHandler } from '$lib/server/api-handler';
 import {
+	apiHandler,
 	parseAndNormalizeJsonBody,
 	readRequiredTrimmedString,
 	requireObjectBody,
 	throwBadRequest
-} from '$lib/server/request-body';
+} from '$shared/infrastructure/server';
 
 interface VerifyCouponRequest {
 	code: string;

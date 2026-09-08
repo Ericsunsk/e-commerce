@@ -1,22 +1,25 @@
-import { stripe } from '$lib/server/stripe';
+import {
+	stripe,
+	validateAndApplyCouponWithClient,
+	STRIPE
+} from '$domains/checkout/server';
 import {
 	resolveCheckoutProductWithClient,
 	STRIPE_TEST_FALLBACK_PRICE_VALUE
-} from '$lib/server/products';
-import { validateAndApplyCouponWithClient } from '$lib/server/coupons';
-import { STRIPE } from '$lib/constants';
-import { Collections } from '$lib/pocketbase-types';
+} from '$domains/catalog/server';
+import { Collections } from '$shared/infrastructure';
 import type { RequestHandler } from './$types';
 import type Stripe from 'stripe';
-import { apiHandler } from '$lib/server/api-handler';
-import type { ShippingAddress, CartItem } from '$lib/types';
-import { withAdmin } from '$lib/server/admin';
 import {
+	apiHandler,
+	withAdmin,
 	parseAndNormalizeJsonBody,
 	readOptionalTrimmedString,
 	requireObjectBody,
 	throwBadRequest
-} from '$lib/server/request-body';
+} from '$shared/infrastructure/server';
+import type { ShippingAddress } from '$domains/order';
+import type { CartItem } from '$domains/cart';
 
 type PaymentIntentCustomerInfo = {
 	userId?: string;

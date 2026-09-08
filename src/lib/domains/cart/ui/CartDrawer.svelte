@@ -2,7 +2,7 @@
 	let { isOpen = $bindable(false) } = $props();
 	import { useCart } from './cart-state.svelte';
 	import { goto } from '$app/navigation';
-	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
+	import { OrderItemThumbnail } from '$domains/order';
 	import LineItemMeta from './LineItemMeta.svelte';
 	import { Drawer } from '$shared/ui';
 	import FreeShippingProgress from './FreeShippingProgress.svelte';

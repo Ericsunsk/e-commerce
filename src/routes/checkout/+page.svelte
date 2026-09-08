@@ -5,13 +5,12 @@
 	import { MESSAGES, COLORS, TYPOGRAPHY, buildFullName, formatCurrency } from '$shared/kernel';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import OrderItemThumbnail from '$lib/components/ui/OrderItemThumbnail.svelte';
-	import ShippingOption from '$lib/components/ui/ShippingOption.svelte';
+	import { ShippingOption, shippingAddressSchema, type ShippingAddressSchema } from '$domains/checkout';
+	import { OrderItemThumbnail } from '$domains/order';
 	import type { Stripe, StripeElements } from '@stripe/stripe-js';
 	import { superForm } from 'sveltekit-superforms';
 	import { zodClient } from 'sveltekit-superforms/adapters';
 	import type { PageData } from './$types';
-	import { shippingAddressSchema, type ShippingAddressSchema } from '$lib/schemas';
 
 	const cart = useCart();
 

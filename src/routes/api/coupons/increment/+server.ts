@@ -1,16 +1,16 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { Collections } from '$lib/pocketbase-types';
-import { apiHandler } from '$lib/server/api-handler';
-import { getCouponStateIssue, normalizeCouponCode } from '$lib/server/coupons';
-import { withKeyedLock } from '$lib/server/locks';
-import { assertN8nWebhookAuthorized } from '$lib/server/n8n-webhook';
-import { createAdminClient } from '$lib/server/pocketbase';
+import { Collections } from '$shared/infrastructure';
 import {
+	apiHandler,
+	withKeyedLock,
+	createAdminClient,
 	parseAndNormalizeJsonBody,
 	readOptionalTrimmedString,
 	readRequiredTrimmedString,
 	requireObjectBody
-} from '$lib/server/request-body';
+} from '$shared/infrastructure/server';
+import { getCouponStateIssue, normalizeCouponCode } from '$domains/checkout';
+import { assertN8nWebhookAuthorized } from '$domains/order/server';
 
 interface IncrementRequest {
 	couponCode: string;
