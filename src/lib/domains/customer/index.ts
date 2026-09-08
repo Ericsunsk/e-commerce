@@ -2,12 +2,7 @@
 export * from './domain/models';
 export * from './domain/schemas';
 
-// Application services
-export * from './application/auth-service';
-export * from './application/address-service';
-export * from './application/wishlist-service';
-
-// UI state and stores
+// UI state and stores (deep state modules - authoritative client interfaces)
 export * from './ui/auth-state.svelte';
 export * from './ui/wishlist-state.svelte';
 

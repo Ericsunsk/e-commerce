@@ -1,10 +1,7 @@
 // Domain models and rules
 export * from './domain/models';
 
-// Application services
-export * from './application/cart-service';
-
-// UI state and stores
+// UI state and stores (deep state module - authoritative client interface)
 export * from './ui/cart-state.svelte';
 
 // UI components

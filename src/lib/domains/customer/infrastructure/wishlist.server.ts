@@ -1,9 +1,12 @@
 import { WishlistItemSchema, type WishlistItem } from '../domain/models';
-import { createUserListHandlers } from '$shared/infrastructure/server';
+import { postWishlistItem, removeWishlistItem } from '../domain/wishlist-mutations';
+import { createDocumentListHandlers } from '$shared/infrastructure/server';
 
-export const wishlistHandlers = createUserListHandlers<WishlistItem>({
+export const wishlistHandlers = createDocumentListHandlers<WishlistItem>({
 	type: 'wishlist',
 	itemSchema: WishlistItemSchema,
-	postMode: 'appendIfMissing',
-	deleteMode: 'removeAllWhenVariantMissing'
+	mutations: {
+		post: postWishlistItem,
+		remove: removeWishlistItem
+	}
 });

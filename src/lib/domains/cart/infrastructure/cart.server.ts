@@ -1,10 +1,14 @@
 import { CartItemSchema, type CartItem } from '../domain/models';
-import { createUserListHandlers } from '$shared/infrastructure/server';
+import { postCartItem, patchCartItemQuantity, removeCartItem } from '../domain/list-mutations';
+import { createDocumentListHandlers } from '$shared/infrastructure/server';
 
-export const cartHandlers = createUserListHandlers<CartItem>({
+export const cartHandlers = createDocumentListHandlers<CartItem>({
 	type: 'cart',
 	itemSchema: CartItemSchema,
-	postMode: 'mergeQuantity',
-	deleteMode: 'exactVariant',
-	enablePatchQuantity: true
+	mutations: {
+		post: postCartItem,
+		patch: patchCartItemQuantity,
+		remove: removeCartItem
+	},
+	missingListMessage: 'Cart not found'
 });
