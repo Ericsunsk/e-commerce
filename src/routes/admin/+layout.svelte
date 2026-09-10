@@ -133,16 +133,16 @@
 							href={item.href}
 							onclick={() => (drawerOpen = false)}
 							title={isCollapsed ? item.label : undefined}
-							class="flex items-center rounded-xl text-xs font-semibold tracking-wider uppercase transition-colors {isCollapsed
+							class="flex items-center rounded-xl text-xs tracking-wider uppercase transition-colors text-zinc-900 {isCollapsed
 								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
 								: 'gap-3 px-3 py-2.5'} {active
-								? 'bg-zinc-100 text-zinc-900 shadow-none font-bold'
-								: 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70'}"
+								? 'bg-zinc-100 font-semibold'
+								: 'hover:bg-zinc-100/80 font-normal'}"
 						>
 							<UiIcon
 								icon={NavIcon}
 								size={18}
-								class={active ? 'text-zinc-900 shrink-0' : 'text-zinc-400 shrink-0'}
+								class="text-zinc-900 shrink-0"
 							/>
 							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 						</a>
@@ -160,21 +160,21 @@
 					<button
 						type="button"
 						onclick={toggleCollapsed}
-						class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+						class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
 						aria-label="展开侧边栏"
 						title="展开侧边栏"
 					>
-						<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
+						<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-900" />
 					</button>
 				{:else}
 					<button
 						type="button"
 						onclick={toggleCollapsed}
-						class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+						class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
 						aria-label="折叠侧边栏"
 						title="折叠侧边栏"
 					>
-						<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
+						<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-900 shrink-0" />
 						<span>折叠侧边栏</span>
 					</button>
 				{/if}
