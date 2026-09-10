@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import {
 		LayoutDashboard,
@@ -14,7 +15,9 @@
 		X,
 		Menu,
 		ExternalLink,
-		LogOut
+		LogOut,
+		PanelLeftClose,
+		PanelLeftOpen
 	} from 'lucide-svelte';
 	import { AdminLogo, UiIcon } from '$shared/ui';
 	import type { LayoutData } from './$types';
@@ -35,14 +38,35 @@
 	];
 
 	let drawerOpen = $state(false);
+	let isCollapsed = $state(false);
 	const isLogin = $derived($page.url.pathname.startsWith('/admin/login'));
+
+	onMount(() => {
+		try {
+			const saved = localStorage.getItem('admin_sidebar_collapsed');
+			if (saved !== null) {
+				isCollapsed = saved === 'true';
+			}
+		} catch {
+			// ignore
+		}
+	});
+
+	function toggleCollapsed() {
+		isCollapsed = !isCollapsed;
+		try {
+			localStorage.setItem('admin_sidebar_collapsed', String(isCollapsed));
+		} catch {
+			// ignore
+		}
+	}
 
 	function isActive(href: string): boolean {
 		const pathname = $page.url.pathname;
 		return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 	}
 
-	const userInitials = $derived(data.adminEmail ? data.adminEmail.slice(0, 2).toUpperCase() : 'AD');
+	const logoutTooltip = $derived(data.adminEmail ? `退出登录 (${data.adminEmail})` : '退出登录');
 </script>
 
 <svelte:head>
@@ -87,27 +111,31 @@
 
 			<!-- Sidebar -->
 			<aside
-				class="fixed lg:sticky top-0 z-50 lg:z-10 w-64 shrink-0 h-screen border-r border-zinc-200 bg-zinc-50 px-5 py-6 flex flex-col justify-between transition-transform duration-200 {drawerOpen
+				class="fixed lg:sticky top-0 z-50 lg:z-10 shrink-0 h-screen border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 py-6 {isCollapsed
+					? 'w-64 px-5 lg:w-20 lg:px-3'
+					: 'w-64 px-5'} {drawerOpen
 					? 'translate-x-0 shadow-xl'
 					: '-translate-x-full lg:translate-x-0'}"
 			>
-				<div class="flex flex-col gap-6">
+				<div class="flex flex-col gap-6 overflow-y-auto min-h-0 flex-1">
 					<!-- Brand logo -->
-					<div class="flex items-center justify-between px-1">
-						<div class="flex items-center gap-2.5">
-							<AdminLogo class="w-8 h-8" iconSize={16} />
-							<div>
-								<h1 class="text-xs font-bold uppercase tracking-[0.25em] text-zinc-900">JEVARIE</h1>
-								<p class="text-[9px] uppercase tracking-[0.15em] text-zinc-400 font-semibold">
+					<div class="flex items-center {isCollapsed ? 'lg:justify-center' : 'justify-between'} px-1">
+						<a href="/admin" class="flex items-center gap-2.5 min-w-0" title="管理后台首页">
+							<AdminLogo class="w-8 h-8 shrink-0" iconSize={16} />
+							<div class="min-w-0 {isCollapsed ? 'lg:hidden' : ''}">
+								<h1 class="text-xs font-bold uppercase tracking-[0.25em] text-zinc-900 truncate">JEVARIE</h1>
+								<p class="text-[9px] uppercase tracking-[0.15em] text-zinc-400 font-semibold truncate">
 									店铺管理
 								</p>
 							</div>
-						</div>
+						</a>
 						<a
 							href="/"
 							target="_blank"
 							title="查看线上店铺"
-							class="text-zinc-400 hover:text-zinc-800 p-1.5 rounded-md hover:bg-zinc-100 transition-colors"
+							class="text-zinc-400 hover:text-zinc-800 p-1.5 rounded-md hover:bg-zinc-100 transition-colors {isCollapsed
+								? 'lg:hidden'
+								: ''}"
 						>
 							<UiIcon icon={ExternalLink} size={16} />
 						</a>
@@ -117,51 +145,96 @@
 
 					<!-- Navigation links -->
 					<nav class="flex flex-col gap-1">
-						<p class="px-3 text-[10px] uppercase font-bold tracking-[0.2em] text-zinc-400 mb-1">
-							导航
-						</p>
+						{#if !isCollapsed}
+							<p class="px-3 text-[10px] uppercase font-bold tracking-[0.2em] text-zinc-400 mb-1">
+								导航
+							</p>
+						{/if}
 						{#each nav as item (item.href)}
 							{@const active = isActive(item.href)}
 							{@const NavIcon = item.icon}
 							<a
 								href={item.href}
 								onclick={() => (drawerOpen = false)}
-								class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {active
+								title={isCollapsed ? item.label : undefined}
+								class="flex items-center rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {isCollapsed
+									? 'lg:justify-center lg:p-2.5 px-3.5 py-2.5 gap-3'
+									: 'gap-3 px-3.5 py-2.5'} {active
 									? 'bg-zinc-900 text-white shadow-xs'
 									: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'}"
 							>
-								<UiIcon icon={NavIcon} size={18} class={active ? 'text-white' : 'text-zinc-400'} />
-								{item.label}
+								<UiIcon
+									icon={NavIcon}
+									size={18}
+									class={active ? 'text-white' : 'text-zinc-400 shrink-0'}
+								/>
+								<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 							</a>
 						{/each}
 					</nav>
 				</div>
 
-				<!-- User profile & Logout -->
-				<div class="flex flex-col gap-3 pt-4 border-t border-zinc-100">
-					<div class="flex items-center gap-3 px-2 py-1">
-						<div
-							class="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-200 text-zinc-800 flex items-center justify-center text-[11px] font-bold shrink-0"
-						>
-							{userInitials}
+				<!-- Sidebar Footer: Collapse Toggle & Logout -->
+				<div class="pt-3 border-t border-zinc-200/80 shrink-0">
+					{#if isCollapsed}
+						<div class="hidden lg:flex flex-col items-center gap-1.5">
+							<button
+								type="button"
+								onclick={toggleCollapsed}
+								class="p-2.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+								aria-label="展开侧边栏"
+								title="展开侧边栏"
+							>
+								<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
+							</button>
+							<form method="POST" action="/admin/logout">
+								<button
+									type="submit"
+									class="p-2.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+									aria-label="退出登录"
+									title={logoutTooltip}
+								>
+									<UiIcon icon={LogOut} size={16} />
+								</button>
+							</form>
 						</div>
-						<div class="min-w-0 flex-1">
-							<p class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">超级管理员</p>
-							<p class="text-xs font-semibold text-zinc-800 truncate" title={data.adminEmail || ''}>
-								{data.adminEmail || '管理员'}
-							</p>
+					{:else}
+						<div class="hidden lg:flex items-center justify-between gap-1">
+							<button
+								type="button"
+								onclick={toggleCollapsed}
+								class="flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+								aria-label="折叠侧边栏"
+								title="折叠侧边栏"
+							>
+								<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
+								<span>折叠侧边栏</span>
+							</button>
+							<form method="POST" action="/admin/logout">
+								<button
+									type="submit"
+									class="p-2 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+									aria-label="退出登录"
+									title={logoutTooltip}
+								>
+									<UiIcon icon={LogOut} size={16} />
+								</button>
+							</form>
 						</div>
-					</div>
+					{/if}
 
-					<form method="POST" action="/admin/logout">
-						<button
-							type="submit"
-							class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-						>
-							<UiIcon icon={LogOut} size={16} />
-							退出登录
-						</button>
-					</form>
+					<!-- Mobile Drawer Logout -->
+					<div class="lg:hidden">
+						<form method="POST" action="/admin/logout">
+							<button
+								type="submit"
+								class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+							>
+								<UiIcon icon={LogOut} size={16} />
+								退出登录
+							</button>
+						</form>
+					</div>
 				</div>
 			</aside>
 
