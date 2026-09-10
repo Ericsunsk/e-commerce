@@ -42,6 +42,58 @@
 	const effectiveCollapsed = $derived(isCollapsed && !isHovered);
 	const isLogin = $derived($page.url.pathname.startsWith('/admin/login'));
 
+	let showStickyTitle = $state(false);
+	let dynamicTitle = $state('');
+
+	const currentNav = $derived.by(() => {
+		const pathname = $page.url.pathname;
+		if (pathname === '/admin') return nav[0];
+		return (
+			nav
+				.slice(1)
+				.filter((item) => pathname === item.href || pathname.startsWith(item.href + '/'))
+				.sort((a, b) => b.href.length - a.href.length)[0] || nav[0]
+		);
+	});
+
+	function updateStickyTitle() {
+		if (typeof window === 'undefined') return;
+		if (window.scrollY <= 10) {
+			showStickyTitle = false;
+			return;
+		}
+		const heading = document.querySelector('main h1');
+		if (!heading) {
+			showStickyTitle = false;
+			return;
+		}
+		const rect = heading.getBoundingClientRect();
+		// 顶栏高 56px (h-14)。当页面主标题向上滚动触碰顶栏下沿 (rect.top <= 56) 时自动出现在顶栏靠左位置
+		showStickyTitle = rect.top <= 56;
+		const text = heading.textContent?.replace(/\s+/g, ' ').trim();
+		if (text) {
+			dynamicTitle = text;
+		}
+	}
+
+	function updateHeadingText() {
+		if (typeof document === 'undefined') return;
+		const heading = document.querySelector('main h1');
+		if (heading?.textContent) {
+			const text = heading.textContent.replace(/\s+/g, ' ').trim();
+			if (text) dynamicTitle = text;
+		}
+	}
+
+	$effect(() => {
+		const _ = $page.url.pathname;
+		showStickyTitle = false;
+		requestAnimationFrame(() => {
+			updateHeadingText();
+			updateStickyTitle();
+		});
+	});
+
 	onMount(() => {
 		try {
 			const saved = localStorage.getItem('admin_sidebar_collapsed');
@@ -51,6 +103,28 @@
 		} catch {
 			// ignore
 		}
+
+		let ticking = false;
+		const onScroll = () => {
+			if (!ticking) {
+				requestAnimationFrame(() => {
+					updateStickyTitle();
+					ticking = false;
+				});
+				ticking = true;
+			}
+		};
+
+		window.addEventListener('scroll', onScroll, { passive: true });
+		window.addEventListener('resize', onScroll, { passive: true });
+
+		updateHeadingText();
+		updateStickyTitle();
+
+		return () => {
+			window.removeEventListener('scroll', onScroll);
+			window.removeEventListener('resize', onScroll);
+		};
 	});
 
 	function toggleCollapsed() {
@@ -192,7 +266,7 @@
 			<header
 				class="sticky top-0 z-30 h-14 bg-white border-b border-zinc-200 px-4 sm:px-6 flex items-center justify-between"
 			>
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-3 min-w-0">
 					<!-- Mobile menu button -->
 					<button
 						onclick={() => (drawerOpen = !drawerOpen)}
@@ -218,6 +292,31 @@
 							{data.siteName || 'JEVARIE'}
 						</span>
 					</div>
+
+					<!-- Sticky Route Title (平时桌面端左侧完全空白；当页面向下滚动主标题触碰顶栏时，平滑淡入浮现) -->
+					{#if currentNav}
+						{@const CurrentIcon = currentNav.icon}
+						<button
+							type="button"
+							onclick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+							class="hidden lg:flex items-center gap-2 min-w-0 text-left transition-all duration-200 ease-out cursor-pointer hover:opacity-80 {showStickyTitle
+								? 'opacity-100 translate-y-0'
+								: 'opacity-0 -translate-y-1 pointer-events-none'}"
+							title="回到顶部"
+						>
+							<UiIcon
+								icon={CurrentIcon}
+								size={ICONS.sizeNav}
+								strokeWidth={ICONS.strokeWidth}
+								class="{ICONS.navClass} shrink-0"
+							/>
+							<span
+								class="text-xs font-normal tracking-wider uppercase text-zinc-900 truncate"
+							>
+								{dynamicTitle || currentNav.label}
+							</span>
+						</button>
+					{/if}
 				</div>
 
 				<!-- Right profile -->
