@@ -38,6 +38,8 @@
 
 	let drawerOpen = $state(false);
 	let isCollapsed = $state(false);
+	let isHovered = $state(false);
+	const effectiveCollapsed = $derived(isCollapsed && !isHovered);
 	const isLogin = $derived($page.url.pathname.startsWith('/admin/login'));
 
 	onMount(() => {
@@ -84,24 +86,35 @@
 			></button>
 		{/if}
 
+		<!-- Desktop Spacer: 保持主内容区宽度稳定，折叠态 hover 时以悬浮浮层展开，避免主页面重排抖动 -->
+		<div
+			class="hidden lg:block shrink-0 transition-[width] duration-200 {isCollapsed
+				? 'w-14'
+				: 'w-52'}"
+		></div>
+
 		<!-- Left Column: Sidebar (垂直贯穿到底，包含顶部 Logo 栏 + 导航链接 + 底部折叠切换) -->
 		<aside
-			class="fixed lg:sticky top-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between transition-all duration-200 {isCollapsed
+			onmouseenter={() => (isHovered = true)}
+			onmouseleave={() => (isHovered = false)}
+			class="fixed top-0 left-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between transition-[width,box-shadow,transform] duration-200 {effectiveCollapsed
 				? 'w-52 lg:w-14'
-				: 'w-52'} {drawerOpen
+				: 'w-52'} {isCollapsed && isHovered
+				? 'lg:shadow-xl lg:z-40'
+				: ''} {drawerOpen
 				? 'translate-x-0 shadow-xl'
 				: '-translate-x-full lg:translate-x-0'}"
 		>
 			<div class="flex flex-col min-h-0 flex-1">
 				<!-- Sidebar Top Brand Box (与右侧顶部栏等高 h-14，底部有横向分割线 border-b) -->
 				<div
-					class="h-14 shrink-0 border-b border-zinc-200 flex items-center {isCollapsed
+					class="h-14 shrink-0 border-b border-zinc-200 flex items-center {effectiveCollapsed
 						? 'lg:justify-center px-2'
 						: 'px-4'} transition-all"
 				>
 					<a
 						href="/admin"
-						class="flex items-center {isCollapsed ? 'justify-center w-full' : 'gap-3'} min-w-0 group hover:opacity-85 transition-opacity"
+						class="flex items-center {effectiveCollapsed ? 'lg:justify-center lg:w-full gap-3' : 'gap-3'} min-w-0 group hover:opacity-85 transition-opacity"
 						title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
 					>
 						<AdminLogo
@@ -111,7 +124,7 @@
 							iconSize={16}
 						/>
 						<span
-							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate {isCollapsed
+							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate {effectiveCollapsed
 								? 'lg:hidden'
 								: ''}"
 						>
@@ -127,9 +140,12 @@
 						{@const NavIcon = item.icon}
 						<a
 							href={item.href}
-							onclick={() => (drawerOpen = false)}
-							title={isCollapsed ? item.label : undefined}
-							class="flex items-center rounded-xl text-xs font-normal tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {isCollapsed
+							onclick={() => {
+								drawerOpen = false;
+								isHovered = false;
+							}}
+							title={effectiveCollapsed ? item.label : undefined}
+							class="flex items-center rounded-xl text-xs font-normal tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {effectiveCollapsed
 								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
 								: 'gap-3 px-3 py-2.5'} {active
 								? 'bg-zinc-100'
@@ -141,7 +157,7 @@
 								strokeWidth={ICONS.strokeWidth}
 								class={ICONS.navClass}
 							/>
-							<span class="text-zinc-900 {isCollapsed ? 'lg:hidden' : ''}">{item.label}</span>
+							<span class="text-zinc-900 {effectiveCollapsed ? 'lg:hidden' : ''}">{item.label}</span>
 						</a>
 					{/each}
 				</nav>
@@ -149,7 +165,7 @@
 
 			<!-- Sidebar Footer: Collapse Toggle -->
 			<div
-				class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center {isCollapsed
+				class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center {effectiveCollapsed
 					? 'justify-center'
 					: 'px-2'}"
 			>
@@ -157,8 +173,8 @@
 					type="button"
 					onclick={toggleCollapsed}
 					class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-[background-color] duration-150 cursor-pointer"
-					aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
-					title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+					aria-label={isCollapsed ? '展开并固定侧边栏' : '折叠侧边栏'}
+					title={isCollapsed ? '展开并固定侧边栏' : '折叠侧边栏'}
 				>
 					<UiIcon
 						icon={isCollapsed ? PanelLeftOpen : PanelLeftClose}
