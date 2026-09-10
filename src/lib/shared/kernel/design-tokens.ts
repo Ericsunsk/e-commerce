@@ -79,9 +79,9 @@ export const ICONS = {
 	sizeMd: 20,
 	sizeLg: 24,
 	sizeXl: 32,
-	strokeWidthThin: 1.2,
-	strokeWidth: 1.5,
-	strokeWidthBold: 2.0,
+	strokeWidthThin: 1.0,
+	strokeWidth: 1.25,
+	strokeWidthBold: 1.75,
 	navClass: 'text-zinc-900 opacity-80 shrink-0'
 } as const;
 
