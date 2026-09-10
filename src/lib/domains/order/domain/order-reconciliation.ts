@@ -10,6 +10,8 @@
  * under a per-payment-intent lock (`order:<paymentIntentId>`).
  */
 
+import type { OrderStatus } from './models';
+
 export interface ReconciledOrderItem {
 	id: string;
 	productId: string;
@@ -86,6 +88,15 @@ export interface ReconciliationPorts {
 	inventory: {
 		deduct(orderId: string, items: ReconciledOrderItem[]): Promise<{ success: boolean }>;
 	};
+	/**
+	 * Optional status transition seam. When present, the order is created in a
+	 * transient state and promoted to `paid` only after inventory succeeds;
+	 * a failed deduction cancels the order. When absent (legacy callers),
+	 * the old `createOrder`-writes-`paid` behavior is preserved.
+	 */
+	orderStatus?: {
+		update(orderId: string, status: OrderStatus): Promise<void>;
+	};
 	lock: <T>(key: string, task: () => Promise<T>) => Promise<T>;
 }
 
@@ -123,7 +134,21 @@ export async function reconcileOrder(
 		if (!orderData) return { outcome: 'missing-order-data', orderId: null };
 
 		const orderId = await ports.orders.createOrder(orderData, paymentIntentId);
-		const deduction = await ports.inventory.deduct(orderId, orderData.items);
+
+		let deduction: { success: boolean };
+		try {
+			deduction = await ports.inventory.deduct(orderId, orderData.items);
+		} catch (err) {
+			await ports.orderStatus?.update(orderId, 'cancelled');
+			throw err;
+		}
+
+		if (deduction.success) {
+			await ports.orderStatus?.update(orderId, 'paid');
+		} else {
+			await ports.orderStatus?.update(orderId, 'cancelled');
+		}
+
 		return { outcome: 'created', orderId, inventoryDeducted: deduction.success };
 	});
 }

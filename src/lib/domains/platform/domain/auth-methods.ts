@@ -6,6 +6,8 @@
  * masked client IDs.
  */
 
+import { maskIdentifier } from '$shared/kernel';
+
 export interface OAuthProviderView {
 	name: string;
 	displayName: string;
@@ -19,12 +21,6 @@ export interface AuthMethodsView {
 	otpEnabled: boolean;
 	oauthEnabled: boolean;
 	providers: OAuthProviderView[];
-}
-
-function maskClientId(clientId: string): string {
-	if (!clientId) return '未配置';
-	if (clientId.length <= 12) return '...';
-	return `${clientId.slice(0, 8)}...${clientId.slice(-4)}`;
 }
 
 /** Pure projection of the raw `users` collection auth config. */
@@ -41,7 +37,7 @@ export function toAuthMethodsView(raw: {
 		name: provider.name || 'unknown',
 		displayName: provider.displayName || provider.name || 'unknown',
 		enabled: (raw.oauth2?.enabled === true) && Boolean(provider.clientId),
-		clientIdMasked: maskClientId(provider.clientId || '')
+		clientIdMasked: maskIdentifier(provider.clientId) || '未配置'
 	}));
 	return {
 		passwordEnabled: raw.passwordAuth?.enabled === true,

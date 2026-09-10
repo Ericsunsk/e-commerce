@@ -7,6 +7,8 @@
  * clients only receive masked previews.
  */
 
+import { maskIdentifier } from '$shared/kernel';
+
 export interface PaymentSettingsRecord {
 	publishableKey: string;
 	secretKey: string;
@@ -27,9 +29,7 @@ export interface EnvPaymentConfig {
 
 /** Mask a secret for display (`sk_test_51...x9q2`); empty stays empty. */
 export function maskSecret(secret: string | null | undefined): string {
-	if (!secret) return '';
-	if (secret.length <= 12) return '...';
-	return `${secret.slice(0, 8)}...${secret.slice(-4)}`;
+	return maskIdentifier(secret);
 }
 
 function throwPaymentIssue(message: string): never {
@@ -112,6 +112,19 @@ export interface MaskedPaymentSettings {
 	hasWebhookSecret: boolean;
 	enabled: boolean;
 	source: 'database' | 'env';
+}
+
+/**
+ * Whether the effective secret is a live key (`sk_live_...`).
+ * Test keys (`sk_test_...`) and placeholders are treated as non-live so
+ * single-price lookups fall back to test pricing consistently.
+ */
+export function isTestMode(config: EffectivePaymentConfig): boolean {
+	return (
+		!config.secretKey ||
+		config.secretKey.startsWith('sk_test') ||
+		config.secretKey.includes('placeholder')
+	);
 }
 
 /** Client-safe projection (masked secrets only). */

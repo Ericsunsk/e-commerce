@@ -55,6 +55,31 @@ async function authenticateAdmin() {
  */
 const adminTokenCache = new AdminTokenCache({ authenticate: authenticateAdmin });
 
+/**
+ * Render a PocketBase filter string using `pb.filter()` when available,
+ * falling back to a safe JSON-string interpolation of `{:{key}}` placeholders.
+ */
+export function buildPocketBaseFilter(
+	pb: TypedPocketBase,
+	template: string,
+	params?: Record<string, unknown>
+): string {
+	const pbAny = pb as unknown as {
+		filter?: (query: string, params: Record<string, unknown>) => string;
+	};
+	if (typeof pbAny.filter === 'function' && params) {
+		return pbAny.filter(template, params);
+	}
+	if (params) {
+		let out = template;
+		for (const [key, value] of Object.entries(params)) {
+			out = out.split(`{:${key}}`).join(JSON.stringify(String(value)));
+		}
+		return out;
+	}
+	return template;
+}
+
 /** Drop the cached admin token so the next call re-authenticates (e.g. after a 401). */
 export function invalidateAdminTokenCache(): void {
 	adminTokenCache.invalidate();

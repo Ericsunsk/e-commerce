@@ -1,5 +1,5 @@
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
-import { withAdmin, getErrorStatus, withKeyedLock } from '$shared/infrastructure/server';
+import { withAdmin, getErrorStatus, withKeyedLock, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import {
 	normalizeCouponCode,
 	getCouponStateIssue,
@@ -21,13 +21,7 @@ export async function validateAndApplyCouponWithClient(
 
 	let coupon: Coupon;
 	try {
-		const pbAny = pb as unknown as {
-			filter?: (query: string, params: Record<string, unknown>) => string;
-		};
-		const filter =
-			typeof pbAny.filter === 'function'
-				? pbAny.filter('code = {:code}', { code: normalizedCode })
-				: `code="${normalizedCode}"`;
+		const filter = buildPocketBaseFilter(pb, 'code = {:code}', { code: normalizedCode });
 
 		coupon = await pb.collection(Collections.Coupons).getFirstListItem<Coupon>(filter);
 	} catch (err: unknown) {
@@ -115,19 +109,22 @@ export async function incrementCouponUsageByCodeWithClient(
 	await withKeyedLock(`coupon:${normalizedCode}`, async () => {
 		let coupon: Coupon;
 		try {
-			const pbAny = pb as unknown as {
-				filter?: (query: string, params: Record<string, unknown>) => string;
-			};
-			const filter =
-				typeof pbAny.filter === 'function'
-					? pbAny.filter('code = {:code}', { code: normalizedCode })
-					: `code="${normalizedCode}"`;
+			const filter = buildPocketBaseFilter(pb, 'code = {:code}', { code: normalizedCode });
 			coupon = await pb.collection(Collections.Coupons).getFirstListItem<Coupon>(filter);
 		} catch (err: unknown) {
 			if (getErrorStatus(err) === 404) return;
 			throw err;
 		}
 
+		const stateIssue = getCouponStateIssue(coupon);
+		if (stateIssue === 'inactive') {
+			console.warn(`⚠️ Coupon ${normalizedCode} is inactive; usage not incremented.`);
+			return;
+		}
+		if (stateIssue === 'expired') {
+			console.warn(`⚠️ Coupon ${normalizedCode} has expired; usage not incremented.`);
+			return;
+		}
 		if (coupon.usage_limit && (coupon.usage_count ?? 0) >= coupon.usage_limit) {
 			console.warn(`⚠️ Coupon ${normalizedCode} usage limit exceeded during increment.`);
 			return;

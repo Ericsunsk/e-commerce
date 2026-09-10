@@ -6,6 +6,7 @@
  * clearing) under a per-payment-intent lock. All I/O crosses seams so the
  * whole flow is unit-testable without Stripe or PocketBase.
  */
+import type { OrderStatus } from './models';
 import {
 	reassembleOrderData,
 	type ReconciledOrderData,
@@ -63,6 +64,9 @@ export interface SucceededPorts {
 	carts: {
 		clearCartRecord(cartRecordId: string): Promise<void>;
 	};
+	orderStatus: {
+		update(orderId: string, status: OrderStatus): Promise<void>;
+	};
 	lock: <T>(key: string, task: () => Promise<T>) => Promise<T>;
 }
 
@@ -88,14 +92,30 @@ export async function fulfillSucceededPayment(
 		if (!orderData) return { outcome: 'missing-order-data', orderId: null };
 
 		const orderId = await ports.orders.createOrder(orderData, paymentIntentId);
-		const deduction = await ports.inventory.deduct(orderId, orderData.items);
 
-		if (orderData.coupon_code) {
-			await ports.coupons.incrementUsage(orderData.coupon_code);
+		let deduction: { success: boolean };
+		try {
+			deduction = await ports.inventory.deduct(orderId, orderData.items);
+		} catch (err) {
+			// Inventory deduction failed infra-wise; the order cannot proceed to paid.
+			await ports.orderStatus.update(orderId, 'cancelled');
+			throw err;
 		}
-		if (orderData.cart_record_id) {
-			await ports.carts.clearCartRecord(orderData.cart_record_id);
+
+		if (deduction.success) {
+			await ports.orderStatus.update(orderId, 'paid');
+
+			if (orderData.coupon_code) {
+				await ports.coupons.incrementUsage(orderData.coupon_code);
+			}
+			if (orderData.cart_record_id) {
+				await ports.carts.clearCartRecord(orderData.cart_record_id);
+			}
+		} else {
+			// Stock was insufficient; do not mark paid or touch coupon/cart side effects.
+			await ports.orderStatus.update(orderId, 'cancelled');
 		}
+
 		return { outcome: 'created', orderId, inventoryDeducted: deduction.success };
 	});
 }

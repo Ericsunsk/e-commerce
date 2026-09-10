@@ -1,17 +1,12 @@
 import type { TypedPocketBase, UserListsResponse } from '../pocketbase-types';
 import { Collections } from '../pocketbase-types';
 import { getErrorStatus, sanitizePocketBaseJson } from './pocketbase-json.server';
+import { buildPocketBaseFilter } from './pocketbase.server';
 
 export type UserListType = 'cart' | 'wishlist';
 
 function buildUserListFilter(pb: TypedPocketBase, userId: string, type: UserListType): string {
-	const pbAny = pb as unknown as {
-		filter?: (query: string, params: Record<string, unknown>) => string;
-	};
-	if (typeof pbAny.filter === 'function') {
-		return pbAny.filter('user = {:userId} && type = {:type}', { userId, type });
-	}
-	return `user="${userId}" && type="${type}"`;
+	return buildPocketBaseFilter(pb, 'user = {:userId} && type = {:type}', { userId, type });
 }
 
 async function deleteUserListRecordIfExists(pb: TypedPocketBase, recordId: string): Promise<void> {

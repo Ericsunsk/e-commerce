@@ -1,13 +1,6 @@
 <script lang="ts">
 	import { COLORS } from '$shared/kernel';
-
-	export interface ShippingOptionData {
-		id: string;
-		name: string;
-		description: string;
-		price: string;
-		disabled?: boolean;
-	}
+	import type { ShippingOptionData } from './ShippingOptionData';
 
 	let {
 		option,
@@ -26,7 +19,7 @@
 	class="flex items-center justify-between p-4 border transition-all duration-300 cursor-pointer
     {selected
 		? 'border-primary dark:border-white bg-primary/5'
-		: 'border-primary/10 dark:border-white/10 hover:bg-primary/5'} 
+		: 'border-primary/10 dark:border-white/10 hover:bg-primary/5'}
     {option.disabled ? 'opacity-40 cursor-not-allowed' : 'active:scale-[0.99]'}"
 >
 	<div class="flex items-center gap-4">

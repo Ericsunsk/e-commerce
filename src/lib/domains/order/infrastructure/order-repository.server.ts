@@ -4,7 +4,6 @@ import { formatRefundNote } from '../domain/order-refunds';
 import {
 	buildOrderByIdFilter,
 	buildUserOrdersFilter,
-	renderFilter,
 	type OrderFilterQuery
 } from '../domain/order-filters';
 import {
@@ -13,7 +12,7 @@ import {
 	type OrderItemsResponse,
 	type TypedPocketBase
 } from '$shared/infrastructure';
-import { withAdmin } from '$shared/infrastructure/server';
+import { withAdmin, buildPocketBaseFilter } from '$shared/infrastructure/server';
 
 export async function getOrdersByUserWithClient(
 	pb: TypedPocketBase,
@@ -178,15 +177,18 @@ export async function recordRefundWithClient(
 	return mapOrderRecordWithResolvedItems(updated as OrdersResponse, items as OrderItemsResponse[]);
 }
 
+/** Update an order's status (used by reconciliation/webhook flows). */
+export async function updateOrderStatusWithClient(
+	pb: TypedPocketBase,
+	orderId: string,
+	status: OrderStatus
+): Promise<void> {
+	await pb.collection(Collections.Orders).update(orderId, { status });
+}
+
 /** Render a pure filter query via `pb.filter()` when available, else escaped fallback. */
 function resolveOrderFilter(pb: TypedPocketBase, query: OrderFilterQuery): string {
-	const pbAny = pb as unknown as {
-		filter?: (query: string, params: Record<string, unknown>) => string;
-	};
-	if (typeof pbAny.filter === 'function') {
-		return pbAny.filter(query.template, query.params);
-	}
-	return renderFilter(query);
+	return buildPocketBaseFilter(pb, query.template, query.params);
 }
 
 function mapOrderRecordWithResolvedItems(

@@ -4,7 +4,8 @@ import {
 	normalizePaymentSettings,
 	resolveEffectiveConfig,
 	toMaskedSettings,
-	createConfigCache
+	createConfigCache,
+	isTestMode
 } from './payment-settings';
 
 describe('payment settings', () => {
@@ -51,6 +52,13 @@ describe('payment settings', () => {
 				env
 			)
 		).toMatchObject({ publishableKey: 'pk_env', secretKey: 'sk_db', enabled: false, source: 'database' });
+	});
+
+	it('detects test mode consistently', () => {
+		expect(isTestMode({ publishableKey: '', secretKey: 'sk_test_1', webhookSecret: '', enabled: true, source: 'database' })).toBe(true);
+		expect(isTestMode({ publishableKey: '', secretKey: 'sk_live_1', webhookSecret: '', enabled: true, source: 'database' })).toBe(false);
+		expect(isTestMode({ publishableKey: '', secretKey: '', webhookSecret: '', enabled: true, source: 'env' })).toBe(true);
+		expect(isTestMode({ publishableKey: '', secretKey: 'placeholder', webhookSecret: '', enabled: true, source: 'database' })).toBe(true);
 	});
 
 	it('projects masked client-safe settings', () => {

@@ -90,6 +90,30 @@ describe('order reconciliation', () => {
 		expect(p.inventory.deduct).toHaveBeenCalledWith('order_1', expect.any(Array));
 	});
 
+	it('promotes status to paid only after inventory succeeds', async () => {
+		const update = vi.fn().mockResolvedValue(undefined);
+		const p = ports({
+			orderStatus: { update }
+		});
+		const result = await reconcileOrder(p, 'pi_1');
+		expect(result).toEqual({ outcome: 'created', orderId: 'order_1', inventoryDeducted: true });
+		expect(update).toHaveBeenCalledWith('order_1', 'paid');
+	});
+
+	it('cancels the order when inventory deduction fails', async () => {
+		const update = vi.fn().mockResolvedValue(undefined);
+		const p = ports({
+			inventory: {
+				deduct: vi.fn().mockResolvedValue({ success: false })
+			},
+			orderStatus: { update }
+		});
+		const result = await reconcileOrder(p, 'pi_1');
+		expect(result).toEqual({ outcome: 'created', orderId: 'order_1', inventoryDeducted: false });
+		expect(update).toHaveBeenCalledWith('order_1', 'cancelled');
+	});
+
+
 	it('waits for payment when the intent has not succeeded', async () => {
 		const p = ports({
 			payments: {

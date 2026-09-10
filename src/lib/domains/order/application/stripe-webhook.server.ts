@@ -15,7 +15,10 @@ import {
 	findOrderByPaymentIntentId,
 	createOrderRecord
 } from '../infrastructure/order-reconciliation.server';
-import { recordRefundWithClient } from '../infrastructure/order-repository.server';
+import {
+	recordRefundWithClient,
+	updateOrderStatusWithClient
+} from '../infrastructure/order-repository.server';
 import {
 	classifyStripeEvent,
 	fulfillSucceededPayment,
@@ -99,6 +102,9 @@ export async function handleStripeWebhookEvent(
 						},
 						coupons: {
 							incrementUsage: (code) => incrementCouponUsageByCodeWithClient(pb, code)
+						},
+						orderStatus: {
+							update: (orderId, status) => updateOrderStatusWithClient(pb, orderId, status)
 						},
 						carts: {
 							clearCartRecord: (cartRecordId) => clearCartRecordWithClient(pb, cartRecordId)

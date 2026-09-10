@@ -1,6 +1,6 @@
 import type Stripe from 'stripe';
 import { DEFAULTS, formatCurrency } from '$shared/kernel';
-import { getStripeClient, getPaymentConfig } from '$domains/payment/server';
+import { getStripeClient, getPaymentConfig, isTestMode } from '$domains/payment/server';
 import type { Product } from '../domain/models';
 
 /** Resolve the dynamic client, or null when no secret is configured (dev fallback). */
@@ -15,8 +15,8 @@ async function stripeClient(): Promise<Stripe | null> {
 /** True when the effective config carries a real (non-placeholder) secret. */
 async function hasLiveSecret(): Promise<boolean> {
 	try {
-		const { secretKey } = await getPaymentConfig();
-		return !!secretKey && !secretKey.includes('placeholder');
+		const config = await getPaymentConfig();
+		return !isTestMode(config);
 	} catch {
 		return false;
 	}
@@ -224,10 +224,9 @@ export async function enrichProductsBulk(products: Product[]): Promise<Product[]
 	const stripeIds = products.map((p) => p.stripePriceId).filter((id): id is string => !!id);
 	const priceMap = await fetchStripePricesBulk(stripeIds);
 	// Test mode = no live secret (fallback pricing stays visible, zero-price rows drop).
-	let isTestMode = true;
+	let testMode = true;
 	try {
-		const { secretKey } = await getPaymentConfig();
-		isTestMode = !secretKey || secretKey.startsWith('sk_test') || secretKey.includes('placeholder');
+		testMode = isTestMode(await getPaymentConfig());
 	} catch {
 		// Unreachable config → keep fallback behavior.
 	}
@@ -239,7 +238,7 @@ export async function enrichProductsBulk(products: Product[]): Promise<Product[]
 				if (value > 0) {
 					return { ...p, price: formatted, priceValue: value };
 				}
-				if (isTestMode && value === 0) {
+				if (testMode && value === 0) {
 					return null;
 				}
 			}

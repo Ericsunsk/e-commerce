@@ -43,13 +43,3 @@ export function buildOrderByIdFilter(
 		params: { orderId, userId }
 	};
 }
-
-/** Fallback renderer for clients without `pb.filter()`: quote-escaped interpolation. */
-export function renderFilter(query: OrderFilterQuery): string {
-	let out = query.template;
-	for (const [key, value] of Object.entries(query.params)) {
-		const escaped = String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-		out = out.split(`{:${key}}`).join(`"${escaped}"`);
-	}
-	return out;
-}

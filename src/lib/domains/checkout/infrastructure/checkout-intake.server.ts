@@ -7,7 +7,7 @@
  */
 
 import { Collections } from '$shared/infrastructure';
-import { parseAndNormalizeJsonBody, withAdmin } from '$shared/infrastructure/server';
+import { parseAndNormalizeJsonBody, withAdmin, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import {
 	resolveCheckoutProductWithClient,
 	STRIPE_TEST_FALLBACK_PRICE_VALUE
@@ -114,15 +114,10 @@ export async function handlePaymentIntentRequest(request: Request) {
 				},
 				findCartRecordId: async (userId: string) => {
 					try {
-						const pbAny = pb as unknown as {
-							filter?: (query: string, params: Record<string, unknown>) => string;
-						};
-						const filter = pbAny.filter
-							? pbAny.filter('user = {:userId} && type = {:type}', {
-									userId,
-									type: 'cart'
-								})
-							: `user="${userId}" && type="cart"`;
+						const filter = buildPocketBaseFilter(pb, 'user = {:userId} && type = {:type}', {
+							userId,
+							type: 'cart'
+						});
 						const cart = await pb.collection(Collections.UserLists).getFirstListItem(filter, {
 							fields: 'id'
 						});

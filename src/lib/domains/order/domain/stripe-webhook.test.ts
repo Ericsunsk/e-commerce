@@ -60,6 +60,9 @@ function ports(overrides: Partial<SucceededPorts> = {}): SucceededPorts {
 		carts: {
 			clearCartRecord: vi.fn().mockResolvedValue(undefined)
 		},
+		orderStatus: {
+			update: vi.fn().mockResolvedValue(undefined)
+		},
 		lock: ((_key: string, task: () => Promise<unknown>) => task()) as SucceededPorts['lock'],
 		...overrides
 	};
@@ -99,6 +102,41 @@ describe('succeeded fulfillment', () => {
 		expect(p.coupons.incrementUsage).toHaveBeenCalledWith('SAVE10');
 		expect(p.carts.clearCartRecord).toHaveBeenCalledWith('cart_1');
 	});
+
+	it('does not increment coupon or clear cart when inventory deduction fails', async () => {
+		const p = ports({
+			inventory: {
+				deduct: vi.fn().mockResolvedValue({ success: false })
+			}
+		});
+		const result = await fulfillSucceededPayment(p, 'pi_1', metadataFor());
+		expect(result).toEqual({ outcome: 'created', orderId: 'order_1', inventoryDeducted: false });
+		expect(p.orders.createOrder).toHaveBeenCalledTimes(1);
+		expect(p.inventory.deduct).toHaveBeenCalledTimes(1);
+		expect(p.coupons.incrementUsage).not.toHaveBeenCalled();
+		expect(p.carts.clearCartRecord).not.toHaveBeenCalled();
+		expect(p.orderStatus.update).toHaveBeenCalledWith('order_1', 'cancelled');
+	});
+
+	it('does not increment coupon or clear cart when inventory deduction throws', async () => {
+		const p = ports({
+			inventory: {
+				deduct: vi.fn().mockRejectedValue(new Error('Insufficient stock'))
+			}
+		});
+		try {
+			await fulfillSucceededPayment(p, 'pi_1', metadataFor());
+			expect(true).toBe(false); // should not reach here
+		} catch (err: unknown) {
+			expect((err as Error).message).toBe('Insufficient stock');
+		}
+		expect(p.orders.createOrder).toHaveBeenCalledTimes(1);
+		expect(p.inventory.deduct).toHaveBeenCalledTimes(1);
+		expect(p.coupons.incrementUsage).not.toHaveBeenCalled();
+		expect(p.carts.clearCartRecord).not.toHaveBeenCalled();
+		expect(p.orderStatus.update).toHaveBeenCalledWith('order_1', 'cancelled');
+	});
+
 
 	it('skips every side effect on webhook retries', async () => {
 		const p = ports({

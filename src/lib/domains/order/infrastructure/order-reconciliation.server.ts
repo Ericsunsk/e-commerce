@@ -6,7 +6,7 @@
  */
 
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
-import { withAdmin, withKeyedLock, getErrorStatus } from '$shared/infrastructure/server';
+import { withAdmin, withKeyedLock, getErrorStatus, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import { getStripeClient } from '$domains/payment/server';
 import { allocateInventory } from '$domains/catalog/domain/inventory-allocation';
 import { buildPocketBaseInventoryClient } from '$domains/catalog/infrastructure/inventory-deduction.server';
@@ -16,18 +16,17 @@ import {
 	type ReconciliationOutcome
 } from '../domain/order-reconciliation';
 
+import { updateOrderStatusWithClient } from '../infrastructure/order-repository.server';
+
 /** Find an order id by Stripe payment intent (shared with the webhook pipeline). */
 export async function findOrderByPaymentIntentId(
 	pb: TypedPocketBase,
 	paymentIntentId: string
 ): Promise<string | null> {
 	try {
-		const pbAny = pb as unknown as {
-			filter?: (query: string, params: Record<string, unknown>) => string;
-		};
-		const filter = pbAny.filter
-			? pbAny.filter('stripe_payment_intent = {:paymentIntentId}', { paymentIntentId })
-			: `stripe_payment_intent="${paymentIntentId}"`;
+		const filter = buildPocketBaseFilter(pb, 'stripe_payment_intent = {:paymentIntentId}', {
+			paymentIntentId
+		});
 		const record = await pb.collection(Collections.Orders).getFirstListItem(filter, {
 			fields: 'id'
 		});
@@ -56,7 +55,7 @@ export async function createOrderRecord(
 		amount_total: data.amount_total,
 		currency: data.currency,
 		shipping_address: data.shipping_address,
-		status: 'paid',
+		status: 'processing',
 		placed_at_override: data.placed_at_override
 	});
 
@@ -107,6 +106,10 @@ export async function reconcileCheckoutOrder(
 				orders: {
 					findByPaymentIntentId: (id: string) => findOrderByPaymentIntentId(pb, id),
 					createOrder: (data: ReconciledOrderData, id: string) => createOrderRecord(pb, data, id)
+				},
+				orderStatus: {
+					update: (orderId: string, status: 'paid' | 'cancelled') =>
+						updateOrderStatusWithClient(pb, orderId, status)
 				},
 				inventory: {
 					deduct: async (orderId: string, items: ReconciledOrderData['items']) => {
