@@ -1,4 +1,6 @@
 import type { Order, OrderItem, ShippingAddress, OrderStatus } from '../domain/models';
+import { canMarkShipped, type FulfillPayload } from '../domain/order-fulfillment';
+import { formatRefundNote } from '../domain/order-refunds';
 import {
 	buildOrderByIdFilter,
 	buildUserOrdersFilter,
@@ -69,6 +71,112 @@ export async function getOrderById(
 }
 
 type OrderRecordWithItems = OrdersResponse & { items?: unknown };
+
+export type AdminOrderStatusFilter = 'all' | 'unfulfilled' | OrderStatus;
+
+function adminStatusFilter(status: AdminOrderStatusFilter): string | undefined {
+	if (status === 'all') return undefined;
+	if (status === 'unfulfilled') return 'status = "paid" || status = "processing"';
+	return `status = "${status}"`;
+}
+
+/** Admin: list store orders (optionally by status tab) with items batched in one query. */
+export async function listAllOrdersWithClient(
+	pb: TypedPocketBase,
+	status: AdminOrderStatusFilter = 'all'
+): Promise<Order[]> {
+	const filter = adminStatusFilter(status);
+	const orders = (await pb.collection(Collections.Orders).getFullList({
+		...(filter ? { filter } : {}),
+		sort: '-placed_at_override,-placed_at'
+	})) as OrdersResponse[];
+
+	if (orders.length === 0) return [];
+
+	const orderIds = orders.map((o) => o.id);
+	const filterExpr = orderIds.map((id: string) => `order_id="${id}"`).join('||');
+
+	const allItems = (await pb.collection(Collections.OrderItems).getFullList({
+		filter: filterExpr
+	})) as OrderItemsResponse[];
+
+	return orders.map((orderRecord) => {
+		const relatedItems = allItems.filter(
+			(item: OrderItemsResponse) => item.order_id === orderRecord.id
+		);
+		return mapOrderRecordWithResolvedItems(orderRecord, relatedItems);
+	});
+}
+
+/** Admin: fetch one order by id (no customer scoping). */
+export async function getAdminOrderByIdWithClient(
+	pb: TypedPocketBase,
+	orderId: string
+): Promise<Order | null> {
+	try {
+		const orderRecord = await pb.collection(Collections.Orders).getOne(orderId);
+		const items = await pb.collection(Collections.OrderItems).getFullList({
+			filter: `order_id="${orderId}"`
+		});
+		return mapOrderRecordWithResolvedItems(orderRecord, items as OrderItemsResponse[]);
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Admin: mark an order shipped with carrier + tracking. Rejects orders
+ * outside the paid/processing window with `{ status: 409 }`.
+ */
+export async function fulfillOrderWithClient(
+	pb: TypedPocketBase,
+	orderId: string,
+	payload: FulfillPayload
+): Promise<Order> {
+	const current = await pb.collection(Collections.Orders).getOne(orderId);
+	if (!canMarkShipped((current as OrdersResponse).status as OrderStatus)) {
+		throw {
+			status: 409,
+			message: `Order cannot transition to shipped from status "${(current as OrdersResponse).status}"`
+		};
+	}
+
+	const updated = await pb.collection(Collections.Orders).update(orderId, {
+		tracking_carrier: payload.carrier,
+		tracking_number: payload.trackingNumber,
+		status: 'shipped'
+	});
+	const items = await pb.collection(Collections.OrderItems).getFullList({
+		filter: `order_id="${orderId}"`
+	});
+	return mapOrderRecordWithResolvedItems(updated as OrdersResponse, items as OrderItemsResponse[]);
+}
+
+export interface RefundRecord {
+	refundId: string;
+	status: 'refunded' | 'partially_refunded';
+	amountCents: number | null;
+	reason?: string;
+}
+
+/** Admin: persist a Stripe refund outcome (status + audit note). */
+export async function recordRefundWithClient(
+	pb: TypedPocketBase,
+	orderId: string,
+	refund: RefundRecord
+): Promise<Order> {
+	const current = (await pb.collection(Collections.Orders).getOne(orderId)) as OrdersResponse;
+	const existingNotes = typeof current.notes === 'string' ? current.notes : '';
+	const note = formatRefundNote(refund.refundId, refund.status, refund.amountCents, refund.reason);
+	const updated = await pb.collection(Collections.Orders).update(orderId, {
+		status: refund.status,
+		notes: existingNotes ? `${existingNotes}\n${note}` : note
+	});
+	const items = await pb.collection(Collections.OrderItems).getFullList({
+		filter: `order_id="${orderId}"`
+	});
+	return mapOrderRecordWithResolvedItems(updated as OrdersResponse, items as OrderItemsResponse[]);
+}
 
 /** Render a pure filter query via `pb.filter()` when available, else escaped fallback. */
 function resolveOrderFilter(pb: TypedPocketBase, query: OrderFilterQuery): string {

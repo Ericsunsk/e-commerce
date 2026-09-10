@@ -39,6 +39,22 @@
 		<OrderSummary order={data.order} />
 	</div>
 
+	{#if data.order.tracking}
+		<div
+			class="mt-6 flex flex-wrap items-center gap-3 border border-primary/15 dark:border-white/15 px-5 py-4"
+			in:fade={{ delay: 100, duration: 500 }}
+		>
+			<span
+				class="px-2 py-1 text-[10px] font-bold uppercase tracking-widest bg-primary text-white dark:bg-white dark:text-black"
+			>
+				{data.order.tracking.carrier || 'Shipped'}
+			</span>
+			<span class="text-xs font-mono uppercase tracking-wider opacity-70">
+				Tracking: {data.order.tracking.number}
+			</span>
+		</div>
+	{/if}
+
 	<!-- Items List -->
 	<div class="space-y-12" in:fade={{ delay: 200, duration: 500 }}>
 		<h2 class="font-display text-2xl text-text-main dark:text-white uppercase tracking-[0.05em]">

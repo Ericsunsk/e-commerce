@@ -3,6 +3,7 @@ import { withAdmin } from '$shared/infrastructure/server';
 import type { TypedPocketBase, CategoriesResponse, ProductsResponse } from '$shared/infrastructure';
 import { Collections } from '$shared/infrastructure';
 import type { Product, Category } from '../domain/models';
+import { filterVisibleProducts, isStorefrontVisible } from '../domain/product-visibility';
 import {
 	mapRecordToProduct,
 	mapRecordToCategory,
@@ -100,7 +101,7 @@ export async function getProducts(options?: ProductFilterOptions): Promise<Produ
 			expand: PRODUCT_EXPAND
 		});
 
-		return mapAndEnrichProducts(records);
+		return mapAndEnrichProducts(filterVisibleProducts(records));
 	}, []);
 }
 
@@ -115,6 +116,7 @@ export async function getProductById(slug: string): Promise<Product | undefined>
 			expand: PRODUCT_EXPAND
 		});
 
+		if (!isStorefrontVisible(record)) return undefined;
 		return mapAndEnrichProduct(record);
 	}, undefined);
 }
@@ -167,7 +169,7 @@ export async function getProductsByCategory(categorySlug: string): Promise<Produ
 			expand: PRODUCT_EXPAND
 		});
 
-		return mapAndEnrichProducts(records);
+		return mapAndEnrichProducts(filterVisibleProducts(records));
 	}, []);
 }
 
@@ -182,10 +184,10 @@ export async function getFeaturedProducts(): Promise<Product[]> {
 			const fallbackRecords = await pb.collection(Collections.Products).getList(1, 6, {
 				expand: PRODUCT_EXPAND
 			});
-			return mapAndEnrichProducts(fallbackRecords.items);
+			return mapAndEnrichProducts(filterVisibleProducts(fallbackRecords.items));
 		}
 
-		return mapAndEnrichProducts(records);
+		return mapAndEnrichProducts(filterVisibleProducts(records));
 	}, []);
 }
 
@@ -195,7 +197,9 @@ export async function getRelatedProducts(currentId: string, limit = 4): Promise<
 			expand: PRODUCT_EXPAND
 		});
 
-		const filtered = records.items.filter((r) => r.slug !== currentId).slice(0, limit);
+		const filtered = filterVisibleProducts(records.items)
+			.filter((r) => r.slug !== currentId)
+			.slice(0, limit);
 
 		return mapAndEnrichProducts(filtered);
 	}, []);

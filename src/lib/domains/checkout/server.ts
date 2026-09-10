@@ -8,3 +8,4 @@ export * from './infrastructure/stripe.server';
 export * from './infrastructure/coupon-repository.server';
 export * from './application/coupon-service.server';
 export * from './infrastructure/checkout-intake.server';
+export * from './application/coupon-admin.server';

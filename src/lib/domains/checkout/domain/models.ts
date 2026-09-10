@@ -67,3 +67,113 @@ export interface PaymentIntentCustomerInfo {
 	name?: string;
 	currency?: string;
 }
+
+export interface CouponCreateInput {
+	code: string;
+	type: 'percentage' | 'fixed_amount';
+	/** Percentage 1–100, or fixed dollars > 0. */
+	value: number;
+	min_order_amount?: number;
+	usage_limit?: number;
+	expire_date?: string;
+	is_active?: boolean;
+}
+
+export interface NormalizedCouponCreate {
+	code: string;
+	type: 'percentage' | 'fixed_amount';
+	value: number;
+	min_order_amount?: number;
+	usage_limit?: number;
+	expire_date?: string;
+	is_active: boolean;
+}
+
+function throwCouponIssue(message: string): never {
+	throw { status: 400, message };
+}
+
+/** Validate admin coupon creation input; normalizes code and bounds. */
+export function normalizeCouponCreate(input: unknown): NormalizedCouponCreate {
+	if (!input || typeof input !== 'object') throwCouponIssue('Invalid coupon payload');
+	const data = input as Record<string, unknown>;
+
+	const code = typeof data.code === 'string' ? data.code.trim().toUpperCase() : '';
+	if (!/^[A-Z0-9_-]{3,24}$/.test(code)) {
+		throwCouponIssue('Code must be 3–24 characters (letters, digits, _ or -)');
+	}
+
+	const type = data.type;
+	if (type !== 'percentage' && type !== 'fixed_amount') {
+		throwCouponIssue('Type must be percentage or fixed_amount');
+	}
+
+	const value = Number(data.value);
+	if (!Number.isFinite(value) || value <= 0) throwCouponIssue('Value must be positive');
+	if (type === 'percentage' && value > 100) {
+		throwCouponIssue('Percentage value cannot exceed 100');
+	}
+
+	const normalized: NormalizedCouponCreate = {
+		code,
+		type,
+		value,
+		is_active: data.is_active === undefined ? true : data.is_active === true
+	};
+
+	if (
+		data.min_order_amount !== undefined &&
+		data.min_order_amount !== null &&
+		data.min_order_amount !== ''
+	) {
+		const minOrder = Number(data.min_order_amount);
+		if (!Number.isFinite(minOrder) || minOrder < 0) {
+			throwCouponIssue('Minimum order amount must be >= 0');
+		}
+		normalized.min_order_amount = minOrder;
+	}
+
+	if (data.usage_limit !== undefined && data.usage_limit !== null && data.usage_limit !== '') {
+		const limit = Number(data.usage_limit);
+		if (!Number.isInteger(limit) || limit < 1) {
+			throwCouponIssue('Usage limit must be an integer >= 1');
+		}
+		normalized.usage_limit = limit;
+	}
+
+	if (typeof data.expire_date === 'string' && data.expire_date.trim()) {
+		const expiry = new Date(data.expire_date);
+		if (Number.isNaN(expiry.getTime())) throwCouponIssue('Expiry date is invalid');
+		if (expiry <= new Date()) throwCouponIssue('Expiry date must be in the future');
+		normalized.expire_date = expiry.toISOString();
+	}
+
+	return normalized;
+}
+
+export interface AdminCouponRow {
+	id: string;
+	code: string;
+	type: 'percentage' | 'fixed_amount';
+	value: number;
+	isActive: boolean;
+	usageCount: number;
+	usageLimit: number | null;
+	minOrderAmount: number | null;
+	expireDate: string | null;
+}
+
+/** Pure admin table projection (unit-testable without PocketBase). */
+export function toAdminCouponRow(record: Coupon & { id: string }): AdminCouponRow {
+	return {
+		id: record.id,
+		code: record.code,
+		type: record.type,
+		value: record.value,
+		isActive: record.is_active !== false,
+		usageCount: record.usage_count ?? 0,
+		usageLimit: record.usage_limit ?? null,
+		minOrderAmount: record.min_order_amount ?? null,
+		expireDate: record.expire_date ?? null
+	};
+}

@@ -10,6 +10,7 @@ declare global {
 		interface Locals {
 			pb: TypedPocketBase;
 			user: UsersResponse | null;
+			admin: { email: string } | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -1,5 +1,12 @@
-import { type Handle, type HandleServerError } from '@sveltejs/kit';
+import { type Handle, type HandleServerError, json, redirect } from '@sveltejs/kit';
 import { checkoutLimiter, apiLimiter } from '$shared/infrastructure/server';
+import {
+	adminLoginRedirect,
+	extractAdminToken,
+	isAdminLoginPath,
+	isAdminPath,
+	validateAdminSessionToken
+} from '$domains/admin/server';
 import {
 	applySecurityHeaders,
 	createErrorId,
@@ -25,6 +32,7 @@ function resolveCspOrigins(): CspOrigins {
 function isPrivatePath(pathname: string): boolean {
 	if (pathname.startsWith('/api/')) return true;
 	if (pathname.startsWith('/account')) return true;
+	if (pathname.startsWith('/admin')) return true;
 	if (pathname.startsWith('/checkout')) return true;
 	if (pathname.startsWith('/wishlist')) return true;
 	if (pathname.startsWith('/cart')) return true;
@@ -108,6 +116,25 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// Expose the user model to the client-side via event.locals
 	const record = event.locals.pb.authStore.record;
 	event.locals.user = record ? (record as unknown as UsersResponse) : null;
+
+	// =========================================================================
+	// 1b. Admin Portal Guard (server-side, superuser session cookie)
+	// =========================================================================
+
+	event.locals.admin = null;
+	if (isAdminPath(url.pathname) && !isAdminLoginPath(url.pathname)) {
+		const adminEmail = await validateAdminSessionToken(extractAdminToken(cookieHeader) ?? '');
+		if (!adminEmail) {
+			// API clients get JSON (a redirect would surface as opaque HTML).
+			if (url.pathname.startsWith('/api/')) {
+				const unauthorized = json({ error: 'Admin authentication required' }, { status: 401 });
+				applySecurityHeaders(unauthorized, url, cspOrigins);
+				return unauthorized;
+			}
+			throw redirect(303, adminLoginRedirect(url.pathname, url.search));
+		}
+		event.locals.admin = { email: adminEmail };
+	}
 
 	// =========================================================================
 	// 2. Rate Limiting

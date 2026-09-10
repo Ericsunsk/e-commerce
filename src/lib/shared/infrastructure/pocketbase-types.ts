@@ -190,7 +190,9 @@ export enum OrdersStatusOptions {
 	'processing' = 'processing',
 	'shipped' = 'shipped',
 	'delivered' = 'delivered',
-	'cancelled' = 'cancelled'
+	'cancelled' = 'cancelled',
+	// Hand-added: admin refunds write this value; add it to the PB schema options.
+	'partially_refunded' = 'partially_refunded'
 }
 export type OrdersRecord<Titems = unknown, Tshipping_address = unknown> = {
 	amount_shipping?: number;
@@ -239,6 +241,8 @@ export type ProductsRecord<Tattributes = unknown> = {
 	category?: RecordIdString[];
 	description?: HTMLString;
 	id: string;
+	/** Storefront visibility; PB schema defaults to `true` for new rows. */
+	is_active?: boolean;
 	is_featured?: boolean;
 	main_image?: FileNameString;
 	slug: string;

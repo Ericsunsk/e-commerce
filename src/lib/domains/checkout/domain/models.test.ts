@@ -3,6 +3,8 @@ import {
 	normalizeCouponCode,
 	getCouponStateIssue,
 	calculateCouponDiscount,
+	normalizeCouponCreate,
+	toAdminCouponRow,
 	type Coupon
 } from './models';
 import { shippingAddressSchema } from './schemas';
@@ -89,5 +91,64 @@ describe('Checkout Domain Models and Rules', () => {
 			country: 'US'
 		});
 		expect(invalidZip.success).toBe(false);
+	});
+
+	it('validates admin coupon creation bounds', () => {
+		expect(
+			normalizeCouponCreate({ code: ' save10 ', type: 'percentage', value: 15 })
+		).toMatchObject({ code: 'SAVE10', type: 'percentage', value: 15, is_active: true });
+
+		expect(
+			normalizeCouponCreate({
+				code: 'FLAT20',
+				type: 'fixed_amount',
+				value: 20,
+				min_order_amount: 50,
+				usage_limit: 100,
+				expire_date: new Date(Date.now() + 86400000).toISOString()
+			})
+		).toMatchObject({ code: 'FLAT20', usage_limit: 100 });
+
+		for (const bad of [
+			{ code: 'AB', type: 'percentage', value: 10 },
+			{ code: 'BAD CODE!', type: 'percentage', value: 10 },
+			{ code: 'OK10', type: 'bogus', value: 10 },
+			{ code: 'OK10', type: 'percentage', value: 0 },
+			{ code: 'OK10', type: 'percentage', value: 101 },
+			{ code: 'OK10', type: 'fixed_amount', value: -5 },
+			{ code: 'OK10', type: 'percentage', value: 10, usage_limit: 0 },
+			{ code: 'OK10', type: 'percentage', value: 10, min_order_amount: -1 },
+			{ code: 'OK10', type: 'percentage', value: 10, expire_date: '2020-01-01' }
+		]) {
+			try {
+				normalizeCouponCreate(bad);
+				expect.unreachable();
+			} catch (err) {
+				expect(err).toMatchObject({ status: 400 });
+			}
+		}
+	});
+
+	it('projects admin coupon rows with redemption stats', () => {
+		expect(
+			toAdminCouponRow({
+				id: 'c1',
+				code: 'SAVE10',
+				type: 'percentage',
+				value: 10,
+				is_active: true,
+				usage_count: 3,
+				usage_limit: 100,
+				min_order_amount: 50,
+				expire_date: '2027-01-01T00:00:00Z'
+			})
+		).toMatchObject({
+			id: 'c1',
+			code: 'SAVE10',
+			isActive: true,
+			usageCount: 3,
+			usageLimit: 100,
+			minOrderAmount: 50
+		});
 	});
 });

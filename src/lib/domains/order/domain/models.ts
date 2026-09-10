@@ -6,6 +6,7 @@ export type OrderStatus =
 	| 'delivered'
 	| 'cancelled'
 	| 'refunded'
+	| 'partially_refunded'
 	| 'returned';
 
 export interface OrderItem {
