@@ -23,8 +23,8 @@ JEVARIE 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能�
 - **状态管理**: TanStack Query v6 (Server Sync) + Svelte 5 Runes
 - **表单**: Superforms + Zod (Type-safe Validation)
 - **后端**: PocketBase (SQLite / Go) + Rate Limiting
-- **支付**: Stripe Connect / Elements / Tax (Automatic VAT/Sales Tax)
-- **工作流**: n8n（以实例内工作流为准：`Jevarie Stripe Order`、`Jevarie-Stripe to PocketBase Sync`）
+- **支付**: Stripe Elements / Tax (Automatic VAT/Sales Tax) + 原生 Webhook 自闭环履约
+- **工作流**: 原生 Stripe Webhook（`/api/webhooks/stripe`：签名校验 → 幂等建单 → 库存扣减 → 优惠券计数 → 购物车清理）
 - **测试**: Playwright (E2E) + Vitest (Unit)
 - **代码质量**: ESLint 9 + Prettier 3 + Husky + lint-staged
 - **开发工具**: OpenCode / Antigravity + GitHub Spec Kit
@@ -145,7 +145,7 @@ npm run test:e2e
 - [x] **Type Safety**: 核心业务逻辑实现 95%+ 的严格类型覆盖（Stripe, Orders, Cart）。
 
 ### 🔄 Phase 15: 体验与自动化进化 (In Progress)
-- [ ] **002-Cart Recovery**: 建立基于 Stripe Webhook + n8n 的废弃购物车召回系统。
+- [ ] **002-Cart Recovery**: 建立基于原生 Stripe Webhook 的废弃购物车召回系统。
 
 ---
 

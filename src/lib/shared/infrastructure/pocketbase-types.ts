@@ -19,6 +19,8 @@ export enum Collections {
 	OrderItems = 'order_items',
 	Orders = 'orders',
 	Pages = 'pages',
+	// Hand-added: private Stripe gateway config (API rules null, superuser-only).
+	PaymentSettings = 'payment_settings',
 	ProductVariants = 'product_variants',
 	Products = 'products',
 	UiAssets = 'ui_assets',

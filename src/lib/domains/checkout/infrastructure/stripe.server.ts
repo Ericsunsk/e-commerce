@@ -1,5 +1,5 @@
-import Stripe from 'stripe';
-import { env } from '$env/dynamic/private';
+import type Stripe from 'stripe';
+import { getStripeClient } from '$domains/payment/server';
 
 export interface ShippingAddressData {
 	name?: string;
@@ -11,22 +11,19 @@ export interface ShippingAddressData {
 	country: string;
 }
 
-const secretKey = env.STRIPE_SECRET_KEY || 'sk_test_placeholder_for_dev_mode';
-
-export const stripe = new Stripe(secretKey, {
-	apiVersion: '2025-02-24.acacia',
-	typescript: true
-});
-
-export const isStripeConfigured =
-	!!env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.includes('placeholder');
+/** Resolve the dynamic client (database secret first, env fallback). */
+async function stripeClient(): Promise<Stripe> {
+	return getStripeClient();
+}
 
 export async function getOrCreateStripeCustomer(
 	email: string,
 	name: string,
-	address: ShippingAddressData
+	address: ShippingAddressData,
+	client?: Stripe
 ): Promise<string | null> {
 	if (!email) return null;
+	const stripe = client ?? (await stripeClient());
 
 	try {
 		const existingCustomers = await stripe.customers.search({
@@ -81,11 +78,13 @@ export async function getOrCreateStripeCustomer(
 export async function calculateStripeTax(
 	items: Array<{ id: string; title: string; quantity: number; priceCents: number }>,
 	shippingAddress: ShippingAddressData,
-	currency: string
+	currency: string,
+	client?: Stripe
 ): Promise<{ taxAmountCents: number; calculationId: string | null }> {
 	if (!shippingAddress || !shippingAddress.country) {
 		return { taxAmountCents: 0, calculationId: null };
 	}
+	const stripe = client ?? (await stripeClient());
 
 	try {
 		const lineItems = items.map((item) => ({

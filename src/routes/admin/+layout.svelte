@@ -5,6 +5,10 @@
 		Boxes,
 		ReceiptText,
 		Tag,
+		KeyRound,
+		DatabaseBackup,
+		ScrollText,
+		Newspaper,
 		Settings,
 		X,
 		Menu,
@@ -21,6 +25,10 @@
 		{ href: '/admin/products', label: '商品', icon: Boxes },
 		{ href: '/admin/orders', label: '订单', icon: ReceiptText },
 		{ href: '/admin/coupons', label: '优惠券', icon: Tag },
+		{ href: '/admin/content', label: '内容', icon: Newspaper },
+		{ href: '/admin/auth', label: '认证', icon: KeyRound },
+		{ href: '/admin/backups', label: '备份', icon: DatabaseBackup },
+		{ href: '/admin/logs', label: '日志', icon: ScrollText },
 		{ href: '/admin/settings', label: '设置', icon: Settings }
 	];
 

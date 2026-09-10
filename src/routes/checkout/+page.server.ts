@@ -1,8 +1,8 @@
-import { env } from '$env/dynamic/public';
 import type { PageServerLoad, Actions } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { shippingAddressSchema } from '$domains/checkout';
+import { getPublishableKey } from '$domains/payment/server';
 import { fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
@@ -12,8 +12,16 @@ export const load: PageServerLoad = async () => {
 	// Set default country to US (2-letter code)
 	form.data.country = 'US';
 
+	// Publishable key resolves dynamically (database first, env fallback).
+	let stripeKey = '';
+	try {
+		stripeKey = await getPublishableKey();
+	} catch {
+		// Checkout renders anyway; Elements init surfaces the problem.
+	}
+
 	return {
-		stripeKey: env.PUBLIC_STRIPE_KEY,
+		stripeKey,
 		form
 	};
 };

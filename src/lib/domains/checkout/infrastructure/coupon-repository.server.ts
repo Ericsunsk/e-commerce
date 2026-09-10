@@ -1,5 +1,5 @@
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
-import { withAdmin, getErrorStatus } from '$shared/infrastructure/server';
+import { withAdmin, getErrorStatus, withKeyedLock } from '$shared/infrastructure/server';
 import {
 	normalizeCouponCode,
 	getCouponStateIssue,
@@ -100,4 +100,40 @@ export async function incrementCouponUsage(couponId: string): Promise<void> {
 	} catch (err) {
 		console.error('Failed to increment coupon usage:', err);
 	}
+}
+
+/**
+ * Atomically increment coupon usage by code (webhook pipeline). Resolves
+ * the coupon under a per-code lock so concurrent fulfillments never
+ * double-count; missing coupons are a no-op.
+ */
+export async function incrementCouponUsageByCodeWithClient(
+	pb: TypedPocketBase,
+	couponCode: string
+): Promise<void> {
+	const normalizedCode = normalizeCouponCode(couponCode);
+	await withKeyedLock(`coupon:${normalizedCode}`, async () => {
+		let coupon: Coupon;
+		try {
+			const pbAny = pb as unknown as {
+				filter?: (query: string, params: Record<string, unknown>) => string;
+			};
+			const filter =
+				typeof pbAny.filter === 'function'
+					? pbAny.filter('code = {:code}', { code: normalizedCode })
+					: `code="${normalizedCode}"`;
+			coupon = await pb.collection(Collections.Coupons).getFirstListItem<Coupon>(filter);
+		} catch (err: unknown) {
+			if (getErrorStatus(err) === 404) return;
+			throw err;
+		}
+
+		if (coupon.usage_limit && (coupon.usage_count ?? 0) >= coupon.usage_limit) {
+			console.warn(`⚠️ Coupon ${normalizedCode} usage limit exceeded during increment.`);
+			return;
+		}
+		await pb.collection(Collections.Coupons).update(coupon.id, {
+			usage_count: (coupon.usage_count ?? 0) + 1
+		});
+	});
 }

@@ -14,7 +14,7 @@ import {
 	rollProductPrice,
 	type StripeProvisioningClient
 } from '../infrastructure/stripe-sync.server';
-import { stripe } from '$domains/checkout/server';
+import { getStripeClient } from '$domains/payment/server';
 import {
 	normalizeProductCreate,
 	normalizeProductEdit,
@@ -67,7 +67,8 @@ export async function listVariantStockWithClient(
 }
 
 /** Live Stripe adapter for provisioning (production wiring of the injected seam). */
-function liveProvisioningClient(): StripeProvisioningClient {
+async function liveProvisioningClient(): Promise<StripeProvisioningClient> {
+	const stripe = await getStripeClient();
 	return {
 		products: {
 			create: (params) => stripe.products.create(params as never) as Promise<{ id: string }>,
@@ -127,7 +128,7 @@ async function syncVariantsWithClient(
  */
 export async function createCatalogProduct(input: unknown): Promise<{ id: string; slug: string }> {
 	const data: NormalizedProductCreate = normalizeProductCreate(input);
-	const client = liveProvisioningClient();
+	const client = await liveProvisioningClient();
 
 	const { productId: stripeProductId, priceId: stripePriceId } = await createProductWithStripe(
 		client,
@@ -198,7 +199,7 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 			const stripePriceId = record.stripe_price_id || undefined;
 			if (stripePriceId) {
 				try {
-					const price = await liveProvisioningClient().prices.retrieve(stripePriceId);
+					const price = await (await liveProvisioningClient()).prices.retrieve(stripePriceId);
 					priceDollars = (price.unit_amount ?? 0) / 100;
 					currency = price.currency || 'usd';
 				} catch {
@@ -239,7 +240,7 @@ export async function updateCatalogProduct(
 	input: unknown
 ): Promise<{ id: string; slug: string; priceRolled: boolean }> {
 	const edit: NormalizedProductEdit = normalizeProductEdit(input);
-	const client = liveProvisioningClient();
+	const client = await liveProvisioningClient();
 
 	return withAdmin(async (pb) => {
 		const record = (await pb

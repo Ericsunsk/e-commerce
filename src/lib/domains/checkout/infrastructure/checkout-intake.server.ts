@@ -13,11 +13,8 @@ import {
 	STRIPE_TEST_FALLBACK_PRICE_VALUE
 } from '$domains/catalog/server';
 import { validateAndApplyCouponWithClient } from './coupon-repository.server';
-import {
-	stripe,
-	getOrCreateStripeCustomer,
-	calculateStripeTax
-} from './stripe.server';
+import { getOrCreateStripeCustomer, calculateStripeTax } from './stripe.server';
+import { getStripeClient } from '$domains/payment/server';
 import {
 	createCheckoutSession,
 	normalizeIntakeRequest,
@@ -84,6 +81,7 @@ export async function handlePaymentIntentRequest(request: Request) {
 						currency
 					),
 				createPaymentIntent: async ({ amount, currency, customerId, metadata }) => {
+					const stripe = await getStripeClient();
 					const paymentIntent = await stripe.paymentIntents.create({
 						amount,
 						currency,

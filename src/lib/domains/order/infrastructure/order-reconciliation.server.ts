@@ -7,7 +7,7 @@
 
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
 import { withAdmin, withKeyedLock, getErrorStatus } from '$shared/infrastructure/server';
-import { stripe } from '$domains/checkout/server';
+import { getStripeClient } from '$domains/payment/server';
 import { allocateInventory } from '$domains/catalog/domain/inventory-allocation';
 import { buildPocketBaseInventoryClient } from '$domains/catalog/infrastructure/inventory-deduction.server';
 import {
@@ -16,7 +16,8 @@ import {
 	type ReconciliationOutcome
 } from '../domain/order-reconciliation';
 
-async function findOrderByPaymentIntentId(
+/** Find an order id by Stripe payment intent (shared with the webhook pipeline). */
+export async function findOrderByPaymentIntentId(
 	pb: TypedPocketBase,
 	paymentIntentId: string
 ): Promise<string | null> {
@@ -37,7 +38,8 @@ async function findOrderByPaymentIntentId(
 	}
 }
 
-async function createOrderRecord(
+/** Persist an order + item rows from intake metadata (shared with webhooks). */
+export async function createOrderRecord(
 	pb: TypedPocketBase,
 	data: ReconciledOrderData,
 	paymentIntentId: string
@@ -93,6 +95,7 @@ export async function reconcileCheckoutOrder(
 			{
 				payments: {
 					retrievePaymentIntent: async (id: string) => {
+						const stripe = await getStripeClient();
 						const intent = await stripe.paymentIntents.retrieve(id);
 						return {
 							id: intent.id,

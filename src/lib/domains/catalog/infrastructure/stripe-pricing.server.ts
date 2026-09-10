@@ -1,17 +1,26 @@
-import Stripe from 'stripe';
-import { env } from '$env/dynamic/private';
+import type Stripe from 'stripe';
 import { DEFAULTS, formatCurrency } from '$shared/kernel';
+import { getStripeClient, getPaymentConfig } from '$domains/payment/server';
 import type { Product } from '../domain/models';
 
-const secretKey = env.STRIPE_SECRET_KEY || 'sk_test_placeholder_for_dev_mode';
+/** Resolve the dynamic client, or null when no secret is configured (dev fallback). */
+async function stripeClient(): Promise<Stripe | null> {
+	try {
+		return await getStripeClient();
+	} catch {
+		return null;
+	}
+}
 
-export const stripe = new Stripe(secretKey, {
-	apiVersion: '2025-02-24.acacia',
-	typescript: true
-});
-
-export const isStripeConfigured =
-	!!env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.includes('placeholder');
+/** True when the effective config carries a real (non-placeholder) secret. */
+async function hasLiveSecret(): Promise<boolean> {
+	try {
+		const { secretKey } = await getPaymentConfig();
+		return !!secretKey && !secretKey.includes('placeholder');
+	} catch {
+		return false;
+	}
+}
 
 type StripeResolvedPrice = {
 	formatted: string;
@@ -43,13 +52,12 @@ export async function fetchStripePrice(stripeId?: string): Promise<StripeResolve
 		return cached.data;
 	}
 
-	if (
-		!secretKey ||
-		secretKey.startsWith('sk_test_placeholder') ||
-		stripeId.includes('TEST') ||
-		stripeId.includes('placeholder') ||
-		stripeId.includes('mock')
-	) {
+	if (stripeId.includes('TEST') || stripeId.includes('placeholder') || stripeId.includes('mock')) {
+		return getStripeTestFallbackPrice();
+	}
+
+	const stripe = await stripeClient();
+	if (!stripe || !(await hasLiveSecret())) {
 		return getStripeTestFallbackPrice();
 	}
 
@@ -63,14 +71,13 @@ export async function fetchStripePrice(stripeId?: string): Promise<StripeResolve
 				priceValue = price.unit_amount || 0;
 				currency = price.currency;
 			} catch (e: unknown) {
-				const isTestMode = env.STRIPE_SECRET_KEY?.startsWith('sk_test');
 				const message = e instanceof Error ? e.message : String(e);
-				if (!isTestMode || !message.includes('No such price')) {
+				if (!message.includes('No such price')) {
 					console.warn(
 						`⚠️ Stripe price lookup failed for ${stripeId}: ${message}. Using fallback.`
 					);
 				}
-				if (isTestMode && message.includes('No such price')) {
+				if (message.includes('No such price')) {
 					return getStripeTestFallbackPrice();
 				}
 				return { formatted: 'N/A', value: 0 };
@@ -127,7 +134,8 @@ export async function fetchStripePricesBulk(
 
 	if (idsToFetch.length === 0) return result;
 
-	if (!secretKey || secretKey.startsWith('sk_test_placeholder')) {
+	const stripe = await stripeClient();
+	if (!stripe || !(await hasLiveSecret())) {
 		idsToFetch.forEach((id) => {
 			const mock = getStripeTestFallbackPrice();
 			result.set(id, mock);
@@ -215,7 +223,14 @@ export async function enrichProductWithStripe(product: Product): Promise<Product
 export async function enrichProductsBulk(products: Product[]): Promise<Product[]> {
 	const stripeIds = products.map((p) => p.stripePriceId).filter((id): id is string => !!id);
 	const priceMap = await fetchStripePricesBulk(stripeIds);
-	const isTestMode = env.STRIPE_SECRET_KEY?.startsWith('sk_test');
+	// Test mode = no live secret (fallback pricing stays visible, zero-price rows drop).
+	let isTestMode = true;
+	try {
+		const { secretKey } = await getPaymentConfig();
+		isTestMode = !secretKey || secretKey.startsWith('sk_test') || secretKey.includes('placeholder');
+	} catch {
+		// Unreachable config → keep fallback behavior.
+	}
 
 	return products
 		.map((p) => {

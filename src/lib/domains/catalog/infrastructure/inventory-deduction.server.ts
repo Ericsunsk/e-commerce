@@ -1,44 +1,7 @@
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
-import {
-	createAdminClient,
-	parseAndNormalizeJsonBody,
-	readOptionalTrimmedString,
-	readRequiredTrimmedString,
-	requireObjectBody,
-	throwBadRequest,
-	withKeyedLock
-} from '$shared/infrastructure/server';
-import { assertN8nWebhookAuthorized } from '$domains/order/infrastructure/webhook-auth.server';
-import {
-	allocateInventory,
-	type DeductRequest,
-	type InventoryClient
-} from '../domain/inventory-allocation';
+import type { InventoryClient } from '../domain/inventory-allocation';
 
-export function normalizeDeductRequest(input: unknown): DeductRequest {
-	const data = requireObjectBody(input) as Partial<DeductRequest>;
-	const orderId = readRequiredTrimmedString(data.orderId, 'Missing orderId');
-
-	if (!Array.isArray(data.items) || data.items.length === 0) {
-		throwBadRequest('Missing items');
-	}
-
-	const items = data.items.map((item) => {
-		const productId = readRequiredTrimmedString(item?.productId, 'Invalid item payload');
-		const quantity = Number(item?.quantity);
-		const variantIdRaw = readOptionalTrimmedString(item?.variantId) ?? '';
-
-		if (!Number.isFinite(quantity) || quantity <= 0) {
-			throwBadRequest('Invalid item payload');
-		}
-
-		return { productId, quantity, variantId: variantIdRaw || null };
-	});
-
-	return { orderId, items };
-}
-
-/** PocketBase-backed inventory client (shared by the deduct route and order reconciliation). */
+/** PocketBase-backed inventory client (shared by order reconciliation and webhooks). */
 export function buildPocketBaseInventoryClient(pb: TypedPocketBase): InventoryClient {
 	return {
 		async getVariant(variantId: string) {
@@ -61,13 +24,4 @@ export function buildPocketBaseInventoryClient(pb: TypedPocketBase): InventoryCl
 			});
 		}
 	};
-}
-
-/** Thin-adapter seam: parse, authorize, then delegate to the deep domain module. */
-export async function deductInventory(request: Request) {
-	assertN8nWebhookAuthorized(request);
-	const payload = await parseAndNormalizeJsonBody(request, normalizeDeductRequest);
-
-	const pb = await createAdminClient();
-	return allocateInventory(buildPocketBaseInventoryClient(pb), withKeyedLock, payload);
 }

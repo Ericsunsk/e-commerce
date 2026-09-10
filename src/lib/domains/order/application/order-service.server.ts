@@ -15,7 +15,7 @@ import {
 	resolveRefundStatus,
 	type RefundRequest
 } from '../domain/order-refunds';
-import { stripe } from '$domains/checkout/server';
+import { getStripeClient } from '$domains/payment/server';
 import type { Order, OrderSummary } from '../domain/models';
 
 export async function getUserOrders(
@@ -91,6 +91,7 @@ export async function refundAdminOrder(orderId: string, body: unknown): Promise<
 		}
 
 		const request: RefundRequest = normalizeRefundBody(body, current.amountTotal);
+		const stripe = await getStripeClient();
 		const refund = await stripe.refunds.create({
 			payment_intent: current.stripePaymentIntent,
 			...(request.amountCents != null ? { amount: request.amountCents } : {}),
