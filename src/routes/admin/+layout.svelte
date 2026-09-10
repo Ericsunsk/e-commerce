@@ -15,14 +15,12 @@
 		X,
 		Menu,
 		ExternalLink,
-		LogOut,
 		PanelLeftClose,
 		PanelLeftOpen
 	} from 'lucide-svelte';
 	import { AdminLogo, UiIcon } from '$shared/ui';
-	import type { LayoutData } from './$types';
 
-	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
+	let { children }: { children: import('svelte').Snippet } = $props();
 
 	const nav = [
 		{ href: '/admin', label: '仪表盘', icon: LayoutDashboard },
@@ -65,8 +63,6 @@
 		const pathname = $page.url.pathname;
 		return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 	}
-
-	const logoutTooltip = $derived(data.adminEmail ? `退出登录 (${data.adminEmail})` : '退出登录');
 </script>
 
 <svelte:head>
@@ -174,10 +170,10 @@
 					</nav>
 				</div>
 
-				<!-- Sidebar Footer: Collapse Toggle & Logout -->
-				<div class="pt-3 border-t border-zinc-200/80 shrink-0">
+				<!-- Sidebar Footer: Collapse Toggle -->
+				<div class="pt-3 border-t border-zinc-200/80 shrink-0 hidden lg:block">
 					{#if isCollapsed}
-						<div class="hidden lg:flex flex-col items-center gap-1.5">
+						<div class="flex justify-center">
 							<button
 								type="button"
 								onclick={toggleCollapsed}
@@ -187,54 +183,19 @@
 							>
 								<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
 							</button>
-							<form method="POST" action="/admin/logout">
-								<button
-									type="submit"
-									class="p-2.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-									aria-label="退出登录"
-									title={logoutTooltip}
-								>
-									<UiIcon icon={LogOut} size={16} />
-								</button>
-							</form>
 						</div>
 					{:else}
-						<div class="hidden lg:flex items-center justify-between gap-1">
-							<button
-								type="button"
-								onclick={toggleCollapsed}
-								class="flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
-								aria-label="折叠侧边栏"
-								title="折叠侧边栏"
-							>
-								<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
-								<span>折叠侧边栏</span>
-							</button>
-							<form method="POST" action="/admin/logout">
-								<button
-									type="submit"
-									class="p-2 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-									aria-label="退出登录"
-									title={logoutTooltip}
-								>
-									<UiIcon icon={LogOut} size={16} />
-								</button>
-							</form>
-						</div>
+						<button
+							type="button"
+							onclick={toggleCollapsed}
+							class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+							aria-label="折叠侧边栏"
+							title="折叠侧边栏"
+						>
+							<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
+							<span>折叠侧边栏</span>
+						</button>
 					{/if}
-
-					<!-- Mobile Drawer Logout -->
-					<div class="lg:hidden">
-						<form method="POST" action="/admin/logout">
-							<button
-								type="submit"
-								class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-							>
-								<UiIcon icon={LogOut} size={16} />
-								退出登录
-							</button>
-						</form>
-					</div>
 				</div>
 			</aside>
 
