@@ -22,6 +22,12 @@ import {
 	type MaskedS3
 } from '../domain/storage-settings';
 import { toAuthMethodsView, type AuthMethodsView } from '../domain/auth-methods';
+import {
+	normalizeEmailTemplate,
+	toTemplateContent,
+	type EmailTemplateContent,
+	type EmailTemplateKey
+} from '../domain/email-templates';
 import { toBackupRows, type BackupRow } from '../domain/backups';
 import {
 	normalizeLogsQuery,
@@ -42,7 +48,10 @@ interface PbSmtp {
 	localName?: string;
 }
 
-function toSmtpSettings(all: { smtp?: PbSmtp; meta?: { senderAddress?: string; senderName?: string } }): SmtpSettings {
+function toSmtpSettings(all: {
+	smtp?: PbSmtp;
+	meta?: { senderAddress?: string; senderName?: string };
+}): SmtpSettings {
 	const smtp = all.smtp ?? {};
 	return {
 		host: smtp.host || '',
@@ -59,7 +68,10 @@ function toSmtpSettings(all: { smtp?: PbSmtp; meta?: { senderAddress?: string; s
 
 /** Read SMTP + sender identity (testable seam). */
 export async function getSmtpSettingsWithClient(pb: TypedPocketBase): Promise<SmtpSettings> {
-	const all = (await pb.settings.getAll()) as { smtp?: PbSmtp; meta?: { senderAddress?: string; senderName?: string } };
+	const all = (await pb.settings.getAll()) as {
+		smtp?: PbSmtp;
+		meta?: { senderAddress?: string; senderName?: string };
+	};
 	return toSmtpSettings(all);
 }
 
@@ -119,9 +131,7 @@ export async function saveSmtpSettings(input: unknown): Promise<MaskedSmtpSettin
 	return withAdmin(async (pb) => toMaskedSmtp(await saveSmtpSettingsWithClient(pb, input)));
 }
 
-export async function sendSmtpTestEmail(
-	input: unknown
-): Promise<{ ok: boolean; message: string }> {
+export async function sendSmtpTestEmail(input: unknown): Promise<{ ok: boolean; message: string }> {
 	return withAdmin((pb) => sendSmtpTestEmailWithClient(pb, input));
 }
 
@@ -141,6 +151,43 @@ export async function getAuthMethodsView(): Promise<AuthMethodsView> {
 	});
 }
 
+const TEMPLATE_FIELDS = {
+	verification: 'verificationTemplate',
+	'password-reset': 'resetPasswordTemplate',
+	'email-change': 'confirmEmailChangeTemplate'
+} as const;
+
+/** Read the three transactional email templates. */
+export async function getEmailTemplates(): Promise<Record<EmailTemplateKey, EmailTemplateContent>> {
+	return withAdmin(async (pb) => {
+		const collection = (await pb.collections.getOne('users')) as Record<string, unknown>;
+		return {
+			verification: toTemplateContent(
+				collection[TEMPLATE_FIELDS.verification] as EmailTemplateContent | undefined
+			),
+			'password-reset': toTemplateContent(
+				collection[TEMPLATE_FIELDS['password-reset']] as EmailTemplateContent | undefined
+			),
+			'email-change': toTemplateContent(
+				collection[TEMPLATE_FIELDS['email-change']] as EmailTemplateContent | undefined
+			)
+		};
+	});
+}
+
+/** Persist one transactional email template. */
+export async function saveEmailTemplate(
+	key: EmailTemplateKey,
+	input: unknown
+): Promise<EmailTemplateContent> {
+	if (!(key in TEMPLATE_FIELDS)) {
+		throw { status: 400, message: '仅支持 verification / password-reset / email-change' };
+	}
+	const content = normalizeEmailTemplate(input);
+	await withAdmin((pb) => pb.collections.update('users', { [TEMPLATE_FIELDS[key]]: content }));
+	return content;
+}
+
 /** List backup archives, newest first. */
 export async function listBackupRows(): Promise<BackupRow[]> {
 	return withAdmin(async (pb) => {
@@ -151,7 +198,11 @@ export async function listBackupRows(): Promise<BackupRow[]> {
 
 /** Trigger a manual backup (`basename` without extension). */
 export async function createBackup(basename: string): Promise<void> {
-	const name = basename.trim().replace(/[^\w-]+/g, '-').slice(0, 60) || 'manual';
+	const name =
+		basename
+			.trim()
+			.replace(/[^\w-]+/g, '-')
+			.slice(0, 60) || 'manual';
 	await withAdmin((pb) => pb.backups.create(name));
 }
 

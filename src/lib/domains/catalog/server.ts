@@ -9,3 +9,4 @@ export * from './infrastructure/product-mapper.server';
 export * from './infrastructure/stripe-pricing.server';
 export * from './infrastructure/inventory-deduction.server';
 export * from './application/admin-products.server';
+export * from './application/category-admin.server';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import { CircleAlert, Image as ImageIcon, Plus, Search, SearchX } from 'lucide-svelte';
+	import { CircleAlert, Image as ImageIcon, Plus, Search, SearchX, Tags } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import type { PageData } from './$types';
 
@@ -60,6 +60,13 @@
 			<p class="text-xs text-zinc-500 mt-1">管理店铺商品、价格、规格与上架状态</p>
 		</div>
 		<div class="flex items-center gap-3">
+			<a
+				href="/admin/products/categories"
+				class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors"
+			>
+				<UiIcon icon={Tags} size={16} />
+				分类管理
+			</a>
 			<a
 				href="/admin/products/new"
 				class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 shadow-xs transition-colors"
