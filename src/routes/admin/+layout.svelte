@@ -97,10 +97,10 @@
 		<aside
 			onmouseenter={() => (isHovered = true)}
 			onmouseleave={() => (isHovered = false)}
-			class="fixed top-0 left-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between overflow-hidden transition-[width,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] {effectiveCollapsed
+			class="fixed top-0 left-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between overflow-hidden transition-[width,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] {effectiveCollapsed
 				? 'w-52 lg:w-14'
 				: 'w-52'} {isCollapsed && isHovered
-				? 'lg:shadow-xl lg:z-40'
+				? 'lg:z-40'
 				: ''} {drawerOpen
 				? 'translate-x-0 shadow-xl'
 				: '-translate-x-full lg:translate-x-0'}"
