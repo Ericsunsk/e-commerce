@@ -15,7 +15,6 @@
 		Settings,
 		X,
 		Menu,
-		ExternalLink,
 		PanelLeftClose,
 		PanelLeftOpen
 	} from 'lucide-svelte';
@@ -64,10 +63,6 @@
 		const pathname = $page.url.pathname;
 		return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 	}
-
-	const userInitials = $derived(
-		data.adminEmail ? data.adminEmail.slice(0, 2).toUpperCase() : 'AD'
-	);
 </script>
 
 <svelte:head>
@@ -215,33 +210,17 @@
 					</div>
 				</div>
 
-				<!-- Right tools / profile -->
-				<div class="flex items-center gap-3 shrink-0">
-					<a
-						href="/"
-						target="_blank"
-						title="查看线上店铺"
-						class="text-zinc-400 hover:text-zinc-700 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors flex items-center"
-						aria-label="查看线上店铺"
-					>
-						<UiIcon icon={ExternalLink} size={16} />
-					</a>
-					{#if data.adminEmail}
-						<div class="h-4 w-px bg-zinc-200"></div>
-						<div class="flex items-center gap-2" title={data.adminEmail}>
-							<div
-								class="w-7 h-7 rounded-full bg-zinc-900 text-white text-[11px] font-bold flex items-center justify-center font-mono shrink-0"
-							>
-								{userInitials}
-							</div>
-							<span
-								class="text-xs font-mono font-medium text-zinc-600 hidden md:inline-block truncate max-w-[200px]"
-							>
-								{data.adminEmail}
-							</span>
-						</div>
-					{/if}
-				</div>
+				<!-- Right profile -->
+				{#if data.adminEmail}
+					<div class="flex items-center shrink-0">
+						<span
+							class="text-xs font-mono font-medium text-zinc-600 truncate max-w-[240px]"
+							title={data.adminEmail}
+						>
+							{data.adminEmail}
+						</span>
+					</div>
+				{/if}
 			</header>
 
 			<!-- Main Content -->
