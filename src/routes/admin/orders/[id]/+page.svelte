@@ -154,7 +154,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left: Purchased items -->
 		<section
-			class="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between"
+			class="lg:col-span-2 bg-white border border-zinc-200 rounded-card p-6 shadow-xs flex flex-col justify-between"
 		>
 			<div>
 				<h2
@@ -221,7 +221,7 @@
 		<!-- Right: Customer & Shipping info -->
 		<div class="space-y-6">
 			<!-- Customer details -->
-			<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-3">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-3">
 				<h2
 					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
 				>
@@ -246,7 +246,7 @@
 			</section>
 
 			<!-- Fulfillment tracking -->
-			<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-3">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-3">
 				<h2
 					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
 				>
@@ -285,7 +285,7 @@
 		aria-label="标记发货"
 	>
 		<div
-			class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5"
+			class="w-full max-w-md bg-white border border-zinc-200 rounded-card shadow-xl p-6 sm:p-8 space-y-5"
 		>
 			<div>
 				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">
@@ -354,7 +354,7 @@
 		aria-label="发起退款"
 	>
 		<div
-			class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5"
+			class="w-full max-w-md bg-white border border-zinc-200 rounded-card shadow-xl p-6 sm:p-8 space-y-5"
 		>
 			<div>
 				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">

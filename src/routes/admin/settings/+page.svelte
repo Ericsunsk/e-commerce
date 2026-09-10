@@ -350,7 +350,7 @@
 
 	<!-- Info Card -->
 	<div
-		class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden divide-y divide-zinc-100"
+		class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden divide-y divide-zinc-100"
 	>
 		{#each rows as row (row.label)}
 			<div
@@ -370,7 +370,7 @@
 	</div>
 
 	<!-- Stripe gateway card -->
-	<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="p-5 border-b border-zinc-100 flex items-center justify-between">
 			<div>
 				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">Stripe 支付网关</h2>
@@ -527,7 +527,7 @@
 	</section>
 
 	<!-- SMTP card -->
-	<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="p-5 border-b border-zinc-100 flex items-center justify-between">
 			<div>
 				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">SMTP 发信配置</h2>
@@ -715,7 +715,7 @@
 	</section>
 
 	<!-- Advanced: S3 + backup schedule -->
-	<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="p-5 border-b border-zinc-100 flex items-center justify-between">
 			<div>
 				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">存储与备份（高级）</h2>

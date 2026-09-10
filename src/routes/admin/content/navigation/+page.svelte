@@ -156,7 +156,7 @@
 	{/if}
 
 	{#each groups as group (group.location)}
-		<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+		<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 			<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800 p-5 border-b border-zinc-100">
 				{group.title}（{group.items.length}）
 			</h2>

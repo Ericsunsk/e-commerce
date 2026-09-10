@@ -85,3 +85,16 @@ export const ICONS = {
 	navClass: 'text-zinc-900 opacity-80 shrink-0'
 } as const;
 
+export const RADIUS = {
+	card: 'rounded-card',
+	cardInner: 'rounded-card-inner',
+	pill: 'rounded-full'
+} as const;
+
+export const ADMIN_CARDS = {
+	base: 'bg-white border border-zinc-200/80 rounded-card shadow-xs',
+	kpi: 'bg-white border border-zinc-200/80 rounded-card p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors',
+	section: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between'
+} as const;
+
+

@@ -74,7 +74,7 @@
 	{/if}
 
 	<!-- Form Card -->
-	<div class="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+	<div class="bg-white border border-zinc-200 rounded-card p-6 sm:p-8 shadow-xs space-y-6">
 		<div>
 			<label
 				for="prod-title"

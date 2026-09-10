@@ -125,7 +125,7 @@
 	{/if}
 
 	<!-- Table Card -->
-	<div class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="overflow-x-auto">
 			<table class="w-full text-left min-w-[720px]">
 				<thead>

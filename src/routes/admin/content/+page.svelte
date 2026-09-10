@@ -77,7 +77,7 @@
 	{/if}
 
 	<section
-		class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden divide-y divide-zinc-100"
+		class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden divide-y divide-zinc-100"
 	>
 		{#each data.fields as field (field.key)}
 			<label class="block p-5">

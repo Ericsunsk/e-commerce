@@ -64,7 +64,7 @@
 		</button>
 	</form>
 
-	<div class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		{#if data.rows.length === 0}
 			<p class="p-8 text-sm text-zinc-400 text-center">没有匹配的客户</p>
 		{:else}

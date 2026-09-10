@@ -21,7 +21,7 @@
 		ShoppingBag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { ICONS } from '$shared/kernel';
+	import { ICONS, ADMIN_CARDS } from '$shared/kernel';
 	import { getOrderStatusBadgeClass, getOrderStatusLabel, type TimeRangeKey } from '$domains/order';
 	import type { PageData } from './$types';
 
@@ -106,13 +106,13 @@
 		</div>
 
 		<!-- Time Range Segmented Pills -->
-		<div class="flex items-center bg-zinc-100 p-1 rounded-lg border border-zinc-200/70 self-start sm:self-auto">
+		<div class="flex items-center bg-zinc-100 p-1 rounded-card border border-zinc-200/70 self-start sm:self-auto">
 			{#each rangeLabels as r (r.key)}
 				{@const active = selectedRange === r.key}
 				<button
 					type="button"
 					onclick={() => (selectedRange = r.key)}
-					class="px-3 py-1.5 rounded-md text-xs tracking-wider transition-all duration-150 cursor-pointer {active
+					class="px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer {active
 						? 'bg-white text-zinc-900 font-semibold shadow-xs'
 						: 'text-zinc-500 hover:text-zinc-900 font-normal'}"
 				>
@@ -125,7 +125,7 @@
 	<!-- 4-Card KPI Row with Sparklines -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
 		<!-- KPI 1: GMV -->
-		<div class="bg-white border border-zinc-200/80 rounded-lg p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+		<div class="{ADMIN_CARDS.kpi}">
 			<div class="flex items-center justify-between">
 				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
 					<UiIcon icon={Wallet} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
@@ -182,7 +182,7 @@
 		</div>
 
 		<!-- KPI 2: Orders Count -->
-		<div class="bg-white border border-zinc-200/80 rounded-lg p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+		<div class="{ADMIN_CARDS.kpi}">
 			<div class="flex items-center justify-between">
 				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
 					<UiIcon icon={ReceiptText} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
@@ -239,7 +239,7 @@
 		</div>
 
 		<!-- KPI 3: AOV (Average Order Value) -->
-		<div class="bg-white border border-zinc-200/80 rounded-lg p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+		<div class="{ADMIN_CARDS.kpi}">
 			<div class="flex items-center justify-between">
 				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
 					<UiIcon icon={TrendingUp} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
@@ -296,7 +296,7 @@
 		</div>
 
 		<!-- KPI 4: Pending Shipments -->
-		<div class="bg-white border border-zinc-200/80 rounded-lg p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+		<div class="{ADMIN_CARDS.kpi}">
 			<div class="flex items-center justify-between">
 				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
 					<UiIcon icon={Truck} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
@@ -330,7 +330,7 @@
 	<!-- Main Analytics Grid: Trends + Pipeline -->
 	<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 		<!-- Left: Core Trend Area Chart (3 cols) -->
-		<section class="lg:col-span-3 bg-white border border-zinc-200/80 rounded-lg p-6 shadow-xs flex flex-col justify-between">
+		<section class="lg:col-span-3 {ADMIN_CARDS.section}">
 			<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-2 gap-3">
 				<div>
 					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">业务走势趋势</h2>
@@ -340,11 +340,11 @@
 				</div>
 
 				<!-- Metric Selector: Revenue vs Orders -->
-				<div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/70 self-start sm:self-auto">
+				<div class="flex items-center bg-zinc-100 p-0.5 rounded-card border border-zinc-200/70 self-start sm:self-auto">
 					<button
 						type="button"
 						onclick={() => (chartMetric = 'revenue')}
-						class="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'revenue'
+						class="px-2.5 py-1 rounded-card-inner text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'revenue'
 							? 'bg-white text-zinc-900 shadow-xs'
 							: 'text-zinc-500 hover:text-zinc-900'}"
 					>
@@ -353,7 +353,7 @@
 					<button
 						type="button"
 						onclick={() => (chartMetric = 'orders')}
-						class="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'orders'
+						class="px-2.5 py-1 rounded-card-inner text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'orders'
 							? 'bg-white text-zinc-900 shadow-xs'
 							: 'text-zinc-500 hover:text-zinc-900'}"
 					>
@@ -394,7 +394,7 @@
 		</section>
 
 		<!-- Right: Modern Fulfillment Pipeline (2 cols) -->
-		<section class="lg:col-span-2 bg-white border border-zinc-200/80 rounded-lg p-6 shadow-xs flex flex-col justify-between">
+		<section class="lg:col-span-2 {ADMIN_CARDS.section}">
 			<div>
 				<div class="flex items-center justify-between pb-3">
 					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">订单履约状态流</h2>
@@ -428,7 +428,7 @@
 							{@const pct = activeRange.ordersCount > 0 ? ((slice.value / activeRange.ordersCount) * 100).toFixed(1) : '0.0'}
 							<a
 								href="/admin/orders?status={slice.key}"
-								class="flex items-center justify-between p-2 rounded-md hover:bg-zinc-50 transition-colors group text-xs"
+								class="flex items-center justify-between p-2 rounded-card-inner hover:bg-zinc-50 transition-colors group text-xs"
 							>
 								<div class="flex items-center gap-2.5 min-w-0">
 									<span
@@ -462,15 +462,15 @@
 	<!-- Bottom Section: Merchandising & Inventory + Customer Insights & Orders -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 		<!-- Left Card: Merchandising & Inventory Health -->
-		<section class="bg-white border border-zinc-200/80 rounded-lg p-6 shadow-xs flex flex-col justify-between">
+		<section class="{ADMIN_CARDS.section}">
 			<div>
 				<!-- Tab Controls & Quick Links -->
 				<div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100 gap-2">
-					<div class="inline-flex p-1 bg-zinc-100 rounded-lg">
+					<div class="inline-flex p-1 bg-zinc-100 rounded-card">
 						<button
 							type="button"
 							onclick={() => (productTab = 'top')}
-							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all {productTab === 'top'
+							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-card-inner transition-all {productTab === 'top'
 								? 'bg-white text-zinc-900 shadow-xs'
 								: 'text-zinc-500 hover:text-zinc-900'}"
 						>
@@ -480,7 +480,7 @@
 						<button
 							type="button"
 							onclick={() => (productTab = 'stock')}
-							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all {productTab === 'stock'
+							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-card-inner transition-all {productTab === 'stock'
 								? 'bg-white text-zinc-900 shadow-xs'
 								: 'text-zinc-500 hover:text-zinc-900'}"
 						>
@@ -574,7 +574,7 @@
 					{:else}
 						<ul class="divide-y divide-zinc-100 -mx-2 max-h-[300px] overflow-y-auto">
 							{#each data.lowStock as row (row.variantId)}
-								<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-md transition-colors">
+								<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-card-inner transition-colors">
 									<div class="min-w-0">
 										<a
 											href="/admin/products/{row.productId}"
@@ -654,15 +654,15 @@
 		</section>
 
 		<!-- Right Card: Live Orders & Customer Insights -->
-		<section class="bg-white border border-zinc-200/80 rounded-lg p-6 shadow-xs flex flex-col justify-between">
+		<section class="{ADMIN_CARDS.section}">
 			<div>
 				<!-- Tab Controls & Quick Links -->
 				<div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100 gap-2">
-					<div class="inline-flex p-1 bg-zinc-100 rounded-lg">
+					<div class="inline-flex p-1 bg-zinc-100 rounded-card">
 						<button
 							type="button"
 							onclick={() => (orderTab = 'orders')}
-							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all {orderTab === 'orders'
+							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-card-inner transition-all {orderTab === 'orders'
 								? 'bg-white text-zinc-900 shadow-xs'
 								: 'text-zinc-500 hover:text-zinc-900'}"
 						>
@@ -673,7 +673,7 @@
 						<button
 							type="button"
 							onclick={() => (orderTab = 'customers')}
-							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all {orderTab === 'customers'
+							class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-card-inner transition-all {orderTab === 'customers'
 								? 'bg-white text-zinc-900 shadow-xs'
 								: 'text-zinc-500 hover:text-zinc-900'}"
 						>
@@ -707,7 +707,7 @@
 					{:else}
 						<ul class="divide-y divide-zinc-100 -mx-2">
 							{#each data.recentOrders as order (order.id)}
-								<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-md transition-colors">
+								<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-card-inner transition-colors">
 									<div class="min-w-0">
 										<a
 											href="/admin/orders/{order.id}"
@@ -738,20 +738,20 @@
 					<div class="space-y-4">
 						<!-- Metric Cards Grid -->
 						<div class="grid grid-cols-3 gap-3">
-							<div class="bg-zinc-50/80 rounded-lg p-3 border border-zinc-100">
+							<div class="bg-zinc-50/80 rounded-card-inner p-3 border border-zinc-100">
 								<p class="text-[11px] text-zinc-400 font-medium">总活跃客户</p>
 								<p class="text-lg font-bold font-mono text-zinc-900 mt-1">
 									{data.customerInsights.totalCustomers}
 									<span class="text-xs font-normal text-zinc-400">人</span>
 								</p>
 							</div>
-							<div class="bg-zinc-50/80 rounded-lg p-3 border border-zinc-100">
+							<div class="bg-zinc-50/80 rounded-card-inner p-3 border border-zinc-100">
 								<p class="text-[11px] text-zinc-400 font-medium">老客复购率</p>
 								<p class="text-lg font-bold font-mono text-violet-600 mt-1">
 									{data.customerInsights.repeatRatePercent}%
 								</p>
 							</div>
-							<div class="bg-zinc-50/80 rounded-lg p-3 border border-zinc-100">
+							<div class="bg-zinc-50/80 rounded-card-inner p-3 border border-zinc-100">
 								<p class="text-[11px] text-zinc-400 font-medium">复购贡献营收</p>
 								<p class="text-base font-bold font-mono text-zinc-900 mt-1 truncate" title={data.customerInsights.repeatRevenueFormatted}>
 									{data.customerInsights.repeatRevenueFormatted}
@@ -760,7 +760,7 @@
 						</div>
 
 						<!-- Cohort Ratio Bar -->
-						<div class="bg-zinc-50/50 rounded-lg p-3.5 border border-zinc-100 space-y-2">
+						<div class="bg-zinc-50/50 rounded-card-inner p-3.5 border border-zinc-100 space-y-2">
 							<div class="flex items-center justify-between text-xs">
 								<span class="font-medium text-zinc-700">新老客户比例结构</span>
 								<span class="font-mono text-[11px] text-zinc-400">
@@ -798,7 +798,7 @@
 						</div>
 
 						<!-- Revenue share insight callout -->
-						<div class="rounded-lg bg-violet-50/60 border border-violet-100/80 px-3.5 py-2.5 flex items-center justify-between">
+						<div class="rounded-card-inner bg-violet-50/60 border border-violet-100/80 px-3.5 py-2.5 flex items-center justify-between">
 							<div class="flex items-center gap-2">
 								<UiIcon icon={RotateCcw} size={14} class="text-violet-600 shrink-0" />
 								<p class="text-xs text-violet-900">

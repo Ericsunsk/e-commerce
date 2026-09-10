@@ -85,7 +85,7 @@
 	</div>
 
 	<div
-		class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden divide-y divide-zinc-100"
+		class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden divide-y divide-zinc-100"
 	>
 		{#each switches as row (row.label)}
 			<div class="flex items-center justify-between gap-3 p-5">
@@ -104,7 +104,7 @@
 		{/each}
 	</div>
 
-	<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="p-5 border-b border-zinc-100 flex items-center gap-2">
 			<UiIcon icon={ShieldCheck} size={16} class="text-zinc-500" />
 			<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">OAuth 提供商</h2>
@@ -132,7 +132,7 @@
 		{/if}
 	</section>
 
-	<section class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
 		<div class="p-5 border-b border-zinc-100 flex items-center gap-2">
 			<UiIcon icon={Mail} size={16} class="text-zinc-500" />
 			<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">事务邮件模板</h2>
