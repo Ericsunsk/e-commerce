@@ -22,7 +22,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const email = String(form.get('email') || '').trim();
 		const password = String(form.get('password') || '');
-		const redirectTo = url.searchParams.get('redirect') || '/admin';
+		const redirectTo = String(form.get('redirect') || url.searchParams.get('redirect') || '/admin');
 
 		if (!email || !password) {
 			return fail(400, { error: 'Email and password are required' });

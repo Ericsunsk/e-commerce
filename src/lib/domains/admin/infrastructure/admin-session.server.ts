@@ -42,23 +42,49 @@ export async function createAdminSession(email: string, password: string): Promi
 	return { token, email: record?.email ?? email.trim() };
 }
 
+// In-memory cache for validated tokens to avoid round-trips on every request
+interface ValidatedSession {
+	email: string;
+	expiresAt: number;
+}
+const sessionCache = new Map<string, ValidatedSession>();
+
 /** Validate a session token; returns the admin email or null. */
 export async function validateAdminSessionToken(token: string): Promise<string | null> {
 	if (!token) return null;
+
+	const now = Date.now();
+	const cached = sessionCache.get(token);
+	if (cached && cached.expiresAt > now) {
+		return cached.email;
+	}
+
 	const pb = new PocketBase(resolvePbUrl());
 	pb.autoCancellation(false);
 
 	try {
 		pb.authStore.save(token);
-		const record = await pb.collection('_superusers').authRefresh();
+		const authData = await pb.collection('_superusers').authRefresh();
+		const record = (authData?.record || pb.authStore.record) as unknown as {
+			email?: string;
+			id?: string;
+		} | null;
+
 		if (!isSuperuserRecord(record)) {
 			pb.authStore.clear();
+			sessionCache.delete(token);
 			return null;
 		}
-		const email = (record as unknown as { email?: string }).email;
-		return typeof email === 'string' ? email : null;
+
+		const email = typeof record?.email === 'string' ? record.email : null;
+		if (email) {
+			// Cache for 5 minutes
+			sessionCache.set(token, { email, expiresAt: now + 5 * 60 * 1000 });
+		}
+		return email;
 	} catch {
 		pb.authStore.clear();
+		sessionCache.delete(token);
 		return null;
 	}
 }
