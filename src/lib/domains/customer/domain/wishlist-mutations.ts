@@ -42,3 +42,23 @@ export function removeWishlistItem(
 	}
 	return current.filter((item) => !isSameWishlistItem(item, payload));
 }
+
+/**
+ * Merge a guest `localStorage` wishlist into the remote account wishlist.
+ * Set union on id+variant identity — no quantities exist to sum.
+ * Pure — the caller persists the result and clears guest storage.
+ */
+export function mergeWishlistLists(remote: WishlistItem[], guest: WishlistItem[]): WishlistItem[] {
+	const merged = [...remote];
+	for (const item of guest) {
+		if (!merged.some((existing) => isSameWishlistItem(existing, item))) {
+			merged.push(item);
+		}
+	}
+	return merged;
+}
+
+/** Items present in `guest` but absent from `remote` — the sync work list. */
+export function diffWishlistLists(remote: WishlistItem[], guest: WishlistItem[]): WishlistItem[] {
+	return guest.filter((item) => !remote.some((existing) => isSameWishlistItem(existing, item)));
+}

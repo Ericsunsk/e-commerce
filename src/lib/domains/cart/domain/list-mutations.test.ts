@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { postCartItem, patchCartItemQuantity, removeCartItem } from './list-mutations';
+import {
+	postCartItem,
+	patchCartItemQuantity,
+	removeCartItem,
+	mergeCartLists
+} from './list-mutations';
 import type { CartItem } from './models';
 
 const line = (overrides: Partial<CartItem> = {}): CartItem => ({
@@ -57,5 +62,29 @@ describe('cart list mutations', () => {
 		const next = removeCartItem(current, { id: 'p1', variantId: 'v1' });
 		expect(next).toHaveLength(2);
 		expect(next.some((i) => i.variantId === 'v1')).toBe(false);
+	});
+
+	it('additively merges a guest cart into the remote cart', () => {
+		const remote = [line({ quantity: 2, variantId: 'v1' }), { ...line({ quantity: 1 }), id: 'p2' }];
+		const guest = [
+			line({ quantity: 3, variantId: 'v1' }),
+			line({ quantity: 1, variantId: 'v2' }),
+			{ ...line({ quantity: 4 }), id: 'p3' }
+		];
+
+		const merged = mergeCartLists(remote, guest);
+		expect(merged).toHaveLength(4);
+		expect(merged.find((i) => i.variantId === 'v1')?.quantity).toBe(5);
+		expect(merged.find((i) => i.variantId === 'v2')?.quantity).toBe(1);
+		expect(merged.find((i) => i.id === 'p3')?.quantity).toBe(4);
+		// Inputs untouched.
+		expect(remote).toHaveLength(2);
+		expect(guest).toHaveLength(3);
+	});
+
+	it('handles empty lists on either side of a merge', () => {
+		expect(mergeCartLists([], [])).toEqual([]);
+		expect(mergeCartLists([], [line({ quantity: 2 })])).toMatchObject([{ quantity: 2 }]);
+		expect(mergeCartLists([line({ quantity: 2 })], [])).toMatchObject([{ quantity: 2 }]);
 	});
 });

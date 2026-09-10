@@ -7,7 +7,6 @@
 	import { Drawer } from '$shared/ui';
 	import FreeShippingProgress from './FreeShippingProgress.svelte';
 	import { TRANSITIONS } from '$shared/kernel';
-	import { auth } from '$domains/customer';
 
 	const cart = useCart();
 
@@ -116,11 +115,8 @@
 			disabled={cart.items.length === 0}
 			onclick={() => {
 				close();
-				if (auth.isAuthenticated) {
-					goto('/checkout');
-				} else {
-					goto('/account?redirect=/checkout');
-				}
+				// Guests check out directly — contact email is collected on /checkout.
+				goto('/checkout');
 			}}
 		>
 			Checkout

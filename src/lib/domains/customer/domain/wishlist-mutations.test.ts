@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { postWishlistItem, removeWishlistItem } from './wishlist-mutations';
+import {
+	postWishlistItem,
+	removeWishlistItem,
+	mergeWishlistLists,
+	diffWishlistLists
+} from './wishlist-mutations';
 import type { WishlistItem } from './models';
 
 describe('wishlist mutations', () => {
@@ -40,5 +45,30 @@ describe('wishlist mutations', () => {
 
 		const next = removeWishlistItem(current, { id: 'p1' });
 		expect(next).toEqual([{ id: 'p2' }]);
+	});
+
+	it('merges guest and remote wishlists as a deduplicated union', () => {
+		const remote: WishlistItem[] = [{ id: 'p1', variantId: 'v1' }, { id: 'p2' }];
+		const guest: WishlistItem[] = [
+			{ id: 'p1', variantId: 'v1' },
+			{ id: 'p1', variantId: 'v2' },
+			{ id: 'p3' }
+		];
+
+		expect(mergeWishlistLists(remote, guest)).toEqual([
+			{ id: 'p1', variantId: 'v1' },
+			{ id: 'p2' },
+			{ id: 'p1', variantId: 'v2' },
+			{ id: 'p3' }
+		]);
+		expect(mergeWishlistLists([], [])).toEqual([]);
+	});
+
+	it('diffs only guest items missing remotely for sync', () => {
+		const remote: WishlistItem[] = [{ id: 'p1', variantId: 'v1' }];
+		const guest: WishlistItem[] = [{ id: 'p1', variantId: 'v1' }, { id: 'p2' }];
+
+		expect(diffWishlistLists(remote, guest)).toEqual([{ id: 'p2' }]);
+		expect(diffWishlistLists(remote, remote)).toEqual([]);
 	});
 });

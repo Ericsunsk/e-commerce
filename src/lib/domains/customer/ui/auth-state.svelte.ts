@@ -11,6 +11,7 @@ import {
 	logoutAccount
 } from '../infrastructure/auth-client';
 import type { AuthUser } from '../domain/models';
+import { runPostLoginTasks } from '../domain/post-login-sync';
 
 export class AuthStore {
 	isAuthenticated = $state(false);
@@ -55,6 +56,8 @@ export class AuthStore {
 			this.user = authUser;
 			this.isAuthenticated = true;
 			this.isLoading = false;
+			// Guest carts/wishlists registered on the sync bus merge now.
+			await runPostLoginTasks();
 			return true;
 		} catch (e: any) {
 			console.error('Login failed:', e);
@@ -97,6 +100,7 @@ export class AuthStore {
 
 			this.isLoading = false;
 			cleanup();
+			await runPostLoginTasks();
 			return true;
 		} catch (e: any) {
 			console.error('Google login failed:', e);

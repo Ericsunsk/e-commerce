@@ -5,16 +5,15 @@ import {
 	updateCartItemAPI,
 	removeFromCartAPI
 } from '../infrastructure/cart-api.client';
-import {
-	getGuestCart,
-	saveGuestCart
-} from '../infrastructure/cart-storage.client';
+import { getGuestCart, saveGuestCart, clearGuestCart } from '../infrastructure/cart-storage.client';
 import {
 	mergeCartItemQuantity,
 	removeCartItemByIdentity,
 	setCartItemQuantityByIdentity,
 	type CartItem
 } from '../domain/models';
+import { mergeCartLists } from '../domain/list-mutations';
+import { registerPostLoginTask } from '$domains/customer/domain/post-login-sync';
 import { formatCurrency, parsePrice, DEFAULTS } from '$shared/kernel';
 import { createOptimisticQueryHelpers } from '$shared/infrastructure';
 import { auth } from '$domains/customer';
@@ -37,10 +36,16 @@ function formatCartPrice(amount: number): string {
 export class CartState {
 	private client = useQueryClient();
 	private cartKey = CART_QUERY_KEY;
-	private optimisticHelpers = createOptimisticQueryHelpers<CartItem>(
-		this.client,
-		this.cartKey
-	);
+	private optimisticHelpers = createOptimisticQueryHelpers<CartItem>(this.client, this.cartKey);
+	private static postLoginTaskRegistered = false;
+
+	constructor() {
+		// First instance owns the post-login merge; all instances share the query cache.
+		if (!CartState.postLoginTaskRegistered) {
+			CartState.postLoginTaskRegistered = true;
+			registerPostLoginTask(() => this.mergeGuestCartOnAuth());
+		}
+	}
 
 	private query = createQuery<CartItem[]>(() => ({
 		queryKey: this.cartKey,
@@ -94,7 +99,8 @@ export class CartState {
 			saveGuestCart(next);
 			return { success: true, items: next };
 		},
-		onMutate: (newItem) => this.optimisticHelpers.performOptimisticUpdate((old) => mergeCartItemQuantity(old, newItem))
+		onMutate: (newItem) =>
+			this.optimisticHelpers.performOptimisticUpdate((old) => mergeCartItemQuantity(old, newItem))
 	}));
 
 	private removeMutation = createMutation(() => ({
@@ -107,7 +113,9 @@ export class CartState {
 			return { success: true, items: next };
 		},
 		onMutate: ({ id, variantId }) =>
-			this.optimisticHelpers.performOptimisticUpdate((old) => removeCartItemByIdentity(old, { id, variantId }))
+			this.optimisticHelpers.performOptimisticUpdate((old) =>
+				removeCartItemByIdentity(old, { id, variantId })
+			)
 	}));
 
 	private updateMutation = createMutation(() => ({
@@ -142,7 +150,13 @@ export class CartState {
 			image?: string;
 			images?: string[];
 			stripePriceId?: string;
-			variants?: Array<{ id: string; color?: string; size?: string; image?: string; stockQuantity?: number }>;
+			variants?: Array<{
+				id: string;
+				color?: string;
+				size?: string;
+				image?: string;
+				stockQuantity?: number;
+			}>;
 			hasVariants?: boolean;
 		},
 		color: string,
@@ -190,6 +204,36 @@ export class CartState {
 	clear() {
 		if (!auth.isAuthenticated) saveGuestCart([]);
 		this.client.setQueryData(this.cartKey, []);
+	}
+
+	/**
+	 * Reconcile the guest `localStorage` cart into the account cart after login.
+	 * Guest lines are POSTed (server merges quantities additively); fully synced
+	 * lines are cleared locally and the TanStack cache is refreshed with the
+	 * merged server result. Failed lines stay local for a later retry.
+	 */
+	async mergeGuestCartOnAuth(): Promise<void> {
+		if (!auth.isAuthenticated) return;
+
+		const guest = getGuestCart();
+		if (guest.length === 0) {
+			await this.client.invalidateQueries({ queryKey: this.cartKey });
+			return;
+		}
+
+		const results = await Promise.allSettled(guest.map((item) => addToCartAPI(item)));
+		const failed = guest.filter((_, index) => results[index].status === 'rejected');
+		if (failed.length === 0) {
+			clearGuestCart();
+		} else {
+			saveGuestCart(failed);
+		}
+		await this.client.invalidateQueries({ queryKey: this.cartKey });
+	}
+
+	/** Pure preview of the merged cart (remote + guest, additive). */
+	previewMergedCart(remote: CartItem[]): CartItem[] {
+		return mergeCartLists(remote, getGuestCart());
 	}
 }
 

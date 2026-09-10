@@ -190,6 +190,32 @@ describe('checkout intake', () => {
 		);
 	});
 
+	it('checks out guests with email-only customer info (no userId)', async () => {
+		const p = ports();
+		const result = await createCheckoutSession(p, {
+			items: [{ id: 'p1', quantity: 1 }],
+			customer: { email: 'guest@example.com', name: 'Guest' },
+			shippingAddress: { line1: 'x', city: 'y', postalCode: 'z', country: 'US' }
+		});
+
+		expect(result.totalAmount).toBe(50);
+		// No account lookup or cart-record lookup for guests.
+		expect(p.customer.findStoredCustomerId).not.toHaveBeenCalled();
+		expect(p.customer.findCartRecordId).not.toHaveBeenCalled();
+		// Guest email still drives Stripe customer resolution + order metadata.
+		expect(p.stripe.getOrCreateCustomer).toHaveBeenCalledWith(
+			'guest@example.com',
+			'Guest',
+			expect.anything()
+		);
+		expect(p.stripe.createPaymentIntent).toHaveBeenCalledWith(
+			expect.objectContaining({
+				customerId: 'cus_123',
+				metadata: expect.objectContaining({ user_id: '' })
+			})
+		);
+	});
+
 	it('chunks large metadata and normalizes input strictly', () => {
 		expect(resolveShippingCents('express')).toBe(2500);
 		expect(resolveShippingCents('standard')).toBe(0);

@@ -1,5 +1,11 @@
 import type { Order, OrderItem, ShippingAddress, OrderStatus } from '../domain/models';
 import {
+	buildOrderByIdFilter,
+	buildUserOrdersFilter,
+	renderFilter,
+	type OrderFilterQuery
+} from '../domain/order-filters';
+import {
 	Collections,
 	type OrdersResponse,
 	type OrderItemsResponse,
@@ -9,12 +15,10 @@ import { withAdmin } from '$shared/infrastructure/server';
 
 export async function getOrdersByUserWithClient(
 	pb: TypedPocketBase,
-	userId: string
+	userId: string,
+	email?: string | null
 ): Promise<Order[]> {
-	const pbAny = pb as unknown as {
-		filter?: (query: string, params: Record<string, unknown>) => string;
-	};
-	const filter = pbAny.filter ? pbAny.filter('user = {:userId}', { userId }) : `user = "${userId}"`;
+	const filter = resolveOrderFilter(pb, buildUserOrdersFilter(userId, email));
 
 	let orders: OrdersResponse[];
 	try {
@@ -43,12 +47,16 @@ export async function getOrdersByUserWithClient(
 	});
 }
 
-export async function getOrderById(orderId: string, userId: string): Promise<Order | null> {
+export async function getOrderById(
+	orderId: string,
+	userId: string,
+	email?: string | null
+): Promise<Order | null> {
 	return withAdmin(async (pb) => {
 		try {
 			const orderRecord = await pb
 				.collection(Collections.Orders)
-				.getFirstListItem(pb.filter('id = {:orderId} && user = {:userId}', { orderId, userId }));
+				.getFirstListItem(resolveOrderFilter(pb, buildOrderByIdFilter(orderId, userId, email)));
 
 			const items = await pb.collection(Collections.OrderItems).getFullList({
 				filter: pb.filter('order_id = {:orderId}', { orderId })
@@ -61,6 +69,17 @@ export async function getOrderById(orderId: string, userId: string): Promise<Ord
 }
 
 type OrderRecordWithItems = OrdersResponse & { items?: unknown };
+
+/** Render a pure filter query via `pb.filter()` when available, else escaped fallback. */
+function resolveOrderFilter(pb: TypedPocketBase, query: OrderFilterQuery): string {
+	const pbAny = pb as unknown as {
+		filter?: (query: string, params: Record<string, unknown>) => string;
+	};
+	if (typeof pbAny.filter === 'function') {
+		return pbAny.filter(query.template, query.params);
+	}
+	return renderFilter(query);
+}
 
 function mapOrderRecordWithResolvedItems(
 	orderRecord: OrdersResponse,

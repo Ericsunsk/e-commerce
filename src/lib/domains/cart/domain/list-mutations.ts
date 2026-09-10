@@ -32,7 +32,10 @@ export function postCartItem(
 }
 
 /** PATCH: set absolute quantity (<=0 removes the line). */
-export function patchCartItemQuantity(current: CartItem[], payload: CartItemQuantityPatch): CartItem[] {
+export function patchCartItemQuantity(
+	current: CartItem[],
+	payload: CartItemQuantityPatch
+): CartItem[] {
 	const exists = current.some((item) => isSameCartItem(item, payload));
 	if (!exists) {
 		throw { status: 404, message: 'Item not found in cart' };
@@ -43,4 +46,13 @@ export function patchCartItemQuantity(current: CartItem[], payload: CartItemQuan
 /** DELETE: remove the exact id+variant line. */
 export function removeCartItem(current: CartItem[], payload: CartItemIdentity): CartItem[] {
 	return removeCartItemByIdentity(current, payload);
+}
+
+/**
+ * Merge a guest `localStorage` cart into the remote account cart.
+ * Same id+variant lines sum quantities (additive); distinct lines append.
+ * Pure — the caller persists the result and clears guest storage.
+ */
+export function mergeCartLists(remote: CartItem[], guest: CartItem[]): CartItem[] {
+	return guest.reduce((acc, item) => mergeCartItemQuantity(acc, item), [...remote]);
 }

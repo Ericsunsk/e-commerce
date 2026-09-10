@@ -2,8 +2,12 @@ import type { TypedPocketBase } from '$shared/infrastructure';
 import { getOrdersByUserWithClient, getOrderById } from '../infrastructure/order-repository.server';
 import type { Order, OrderSummary } from '../domain/models';
 
-export async function getUserOrders(pb: TypedPocketBase, userId: string): Promise<OrderSummary[]> {
-	const orders = await getOrdersByUserWithClient(pb, userId);
+export async function getUserOrders(
+	pb: TypedPocketBase,
+	userId: string,
+	email?: string | null
+): Promise<OrderSummary[]> {
+	const orders = await getOrdersByUserWithClient(pb, userId, email);
 
 	return orders.map((order) => {
 		const firstItem = order.items[0];
@@ -20,6 +24,10 @@ export async function getUserOrders(pb: TypedPocketBase, userId: string): Promis
 	});
 }
 
-export async function getUserOrderById(orderId: string, userId: string): Promise<Order | null> {
-	return getOrderById(orderId, userId);
+export async function getUserOrderById(
+	orderId: string,
+	userId: string,
+	email?: string | null
+): Promise<Order | null> {
+	return getOrderById(orderId, userId, email);
 }

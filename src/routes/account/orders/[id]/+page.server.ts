@@ -39,8 +39,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		throw redirect(303, `/auth/login?redirectTo=/account/orders/${params.id}`);
 	}
 
-	// 2. Fetch Order
-	const order = await getOrderById(params.id, locals.user.id);
+	// 2. Fetch Order (authorizes account orders + guest orders under the verified email)
+	const order = await getOrderById(params.id, locals.user.id, locals.user.email);
 
 	if (!order) {
 		throw error(404, 'Order not found');
