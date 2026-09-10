@@ -137,7 +137,7 @@
 							<UiIcon
 								icon={NavIcon}
 								size={18}
-								class="text-zinc-900 shrink-0"
+								class="text-zinc-900 opacity-80 shrink-0"
 							/>
 							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 						</a>
@@ -149,30 +149,21 @@
 			<div
 				class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center {isCollapsed
 					? 'justify-center'
-					: 'px-3'}"
+					: 'px-2'}"
 			>
-				{#if isCollapsed}
-					<button
-						type="button"
-						onclick={toggleCollapsed}
-						class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
-						aria-label="展开侧边栏"
-						title="展开侧边栏"
-					>
-						<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-900" />
-					</button>
-				{:else}
-					<button
-						type="button"
-						onclick={toggleCollapsed}
-						class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
-						aria-label="折叠侧边栏"
-						title="折叠侧边栏"
-					>
-						<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-900 shrink-0" />
-						<span>折叠侧边栏</span>
-					</button>
-				{/if}
+				<button
+					type="button"
+					onclick={toggleCollapsed}
+					class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+					aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+					title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
+				>
+					<UiIcon
+						icon={isCollapsed ? PanelLeftOpen : PanelLeftClose}
+						size={18}
+						class="text-zinc-900 opacity-80 shrink-0"
+					/>
+				</button>
 			</div>
 		</aside>
 
