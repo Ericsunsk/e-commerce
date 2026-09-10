@@ -23,6 +23,7 @@
 
 	let { children, data } = $props();
 	let cookieConsent = $state<string | null>(null);
+	const isAdmin = $derived($page.url.pathname.startsWith('/admin'));
 	const canLoadAnalytics = $derived(
 		Boolean(env.PUBLIC_ANALYTICS_CODE) && cookieConsent === 'accepted'
 	);
@@ -146,48 +147,55 @@
 	{/if}
 </svelte:head>
 
-<div
-	class="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-white transition-colors duration-300"
->
-	<!-- Skip to Content - Accessibility -->
-	<a
-		href="#main-content"
-		class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:uppercase focus:tracking-widest"
-	>
-		Skip to Content
-	</a>
-
+{#if isAdmin}
 	<QueryClientProvider client={queryClient}>
-		<Header
-			onCartClick={toggleCart}
-			onMenuClick={toggleMenu}
-			{isMenuOpen}
-			navItems={headerNav}
-			siteName={data.settings.siteName}
-		/>
-		<CartDrawer bind:isOpen={isCartOpen} />
-
-		{#if isMenuOpen}
-			<MobileMenu
-				navItems={headerNav}
-				onClose={() => (isMenuOpen = false)}
-				onCartClick={toggleCart}
-				onSearchClick={() => {
-					isMenuOpen = false;
-				}}
-			/>
-		{/if}
-
-		<main id="main-content" class="flex-grow w-full">
-			{#key $page.url.pathname}
-				<div in:fade={{ duration: 300, delay: 100 }} class="w-full">
-					{@render children()}
-				</div>
-			{/key}
-		</main>
-
-		<Footer navItems={data.footerNav} isHome={$page.url.pathname === '/'} />
+		{@render children()}
 		<Toast />
-		<CookieBanner />
 	</QueryClientProvider>
-</div>
+{:else}
+	<div
+		class="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-white transition-colors duration-300"
+	>
+		<!-- Skip to Content - Accessibility -->
+		<a
+			href="#main-content"
+			class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:uppercase focus:tracking-widest"
+		>
+			Skip to Content
+		</a>
+
+		<QueryClientProvider client={queryClient}>
+			<Header
+				onCartClick={toggleCart}
+				onMenuClick={toggleMenu}
+				{isMenuOpen}
+				navItems={headerNav}
+				siteName={data.settings.siteName}
+			/>
+			<CartDrawer bind:isOpen={isCartOpen} />
+
+			{#if isMenuOpen}
+				<MobileMenu
+					navItems={headerNav}
+					onClose={() => (isMenuOpen = false)}
+					onCartClick={toggleCart}
+					onSearchClick={() => {
+						isMenuOpen = false;
+					}}
+				/>
+			{/if}
+
+			<main id="main-content" class="flex-grow w-full">
+				{#key $page.url.pathname}
+					<div in:fade={{ duration: 300, delay: 100 }} class="w-full">
+						{@render children()}
+					</div>
+				{/key}
+			</main>
+
+			<Footer navItems={data.footerNav} isHome={$page.url.pathname === '/'} />
+			<Toast />
+			<CookieBanner />
+		</QueryClientProvider>
+	</div>
+{/if}

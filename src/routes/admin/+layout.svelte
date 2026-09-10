@@ -13,6 +13,7 @@
 	];
 
 	let drawerOpen = $state(false);
+	const isLogin = $derived($page.url.pathname.startsWith('/admin/login'));
 
 	function isActive(href: string): boolean {
 		const pathname = $page.url.pathname;
@@ -25,7 +26,10 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="min-h-screen bg-neutral-950 text-white">
+{#if isLogin}
+	{@render children()}
+{:else}
+	<div class="min-h-screen bg-neutral-950 text-white">
 	<!-- Mobile top bar -->
 	<header class="lg:hidden flex items-center justify-between px-6 py-4 border-b border-white/10">
 		<span class="text-xs uppercase tracking-[0.3em] text-white/60">Admin</span>
@@ -84,3 +88,4 @@
 		</main>
 	</div>
 </div>
+{/if}
