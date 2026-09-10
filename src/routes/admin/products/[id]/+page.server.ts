@@ -5,7 +5,7 @@ import { getAdminProductForEdit } from '$domains/catalog/server';
 export const load: PageServerLoad = async ({ params }) => {
 	const product = await getAdminProductForEdit(params.id);
 	if (!product) {
-		throw error(404, 'Product not found');
+		throw error(404, '商品不存在');
 	}
 	return { product };
 };

@@ -12,6 +12,9 @@ export const load: PageServerLoad = async () => {
 		recentOrders: metrics.recentOrders.map((order) => ({
 			...order,
 			totalFormatted: formatCurrency(order.total, { currency: order.currency, isCents: true })
-		}))
+		})),
+		revenueTrend: metrics.revenueTrend,
+		ordersByStatus: metrics.ordersByStatus,
+		currency: metrics.currency
 	};
 };

@@ -11,7 +11,9 @@ export default defineConfig({
 		sveltekit()
 	],
 	ssr: {
-		noExternal: ['sveltekit-superforms']
+		// layerchart ships raw `.svelte` sources that Node's ESM loader can't
+		// parse — force Vite to compile them so SSR/prerender works.
+		noExternal: ['sveltekit-superforms', 'layerchart']
 	},
 	resolve: {
 		alias: {

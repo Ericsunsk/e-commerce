@@ -5,6 +5,8 @@
 
 export { default as Button } from './Button.svelte';
 export { default as Badge } from './Badge.svelte';
+export { default as AdminLogo } from './AdminLogo.svelte';
+export { default as UiIcon } from './UiIcon.svelte';
 export { default as Drawer } from './Drawer.svelte';
 export { default as EmptyState } from './EmptyState.svelte';
 export { default as FormField } from './FormField.svelte';

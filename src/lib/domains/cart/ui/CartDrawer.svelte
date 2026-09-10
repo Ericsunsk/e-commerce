@@ -4,7 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { OrderItemThumbnail } from '$domains/order';
 	import LineItemMeta from './LineItemMeta.svelte';
-	import { Drawer } from '$shared/ui';
+	import { ShoppingBag, X } from 'lucide-svelte';
+	import { Drawer, UiIcon } from '$shared/ui';
 	import FreeShippingProgress from './FreeShippingProgress.svelte';
 	import { TRANSITIONS } from '$shared/kernel';
 
@@ -32,7 +33,7 @@
 					class="hover:opacity-60 {TRANSITIONS.opacity}"
 					aria-label="Close cart"
 				>
-					<span class="material-symbols-outlined font-light">close</span>
+					<UiIcon icon={X} size={20} />
 				</button>
 			</div>
 
@@ -47,7 +48,7 @@
 		<div
 			class="h-full flex flex-col items-center justify-center text-center opacity-60 gap-4 py-12"
 		>
-			<span class="material-symbols-outlined text-4xl">shopping_bag</span>
+			<UiIcon icon={ShoppingBag} size={36} />
 			<p class="text-[11px] font-sans uppercase tracking-[0.15em]">Your bag is empty</p>
 			<button
 				onclick={close}

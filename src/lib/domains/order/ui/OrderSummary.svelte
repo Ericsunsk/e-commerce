@@ -2,6 +2,7 @@
 	import type { OrderDetail } from '../domain/models';
 	import { getOrderStatusColor } from '../domain/models';
 	import { CheckCircle, Truck, XCircle, Clock } from 'lucide-svelte';
+	import UiIcon from '$shared/ui/UiIcon.svelte';
 	import { parsePocketBaseDate } from '$shared/kernel';
 
 	let { order } = $props<{ order: OrderDetail }>();
@@ -47,7 +48,7 @@
 				<div
 					class="flex items-center gap-2 px-3 py-1 border border-neutral-200 dark:border-neutral-800"
 				>
-					<Icon size={14} class={iconClass} />
+					<UiIcon icon={Icon} size={14} class={iconClass} />
 					<span class="font-mono text-xs uppercase text-text-main dark:text-white">
 						{order.status}
 					</span>

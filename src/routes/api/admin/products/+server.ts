@@ -5,14 +5,14 @@ import { getErrorStatus } from '$shared/infrastructure/server';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	if (!locals.admin) {
-		throw error(401, 'Admin authentication required');
+		throw error(401, '需要管理员登录');
 	}
 
 	let body: unknown;
 	try {
 		body = await request.json();
 	} catch {
-		throw error(400, 'Invalid JSON body');
+		throw error(400, '请求格式错误');
 	}
 
 	try {
@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		const message =
 			typeof err === 'object' && err !== null && 'message' in err
 				? String((err as { message: unknown }).message)
-				: 'Product creation failed';
+				: '创建商品失败';
 		throw error(status, message);
 	}
 };

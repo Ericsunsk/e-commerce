@@ -11,9 +11,7 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { isSuperuserRecord } from '../domain/admin-auth';
 
 function resolvePbUrl(): string {
-	return (
-		privateEnv.POCKETBASE_URL || publicEnv.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090'
-	);
+	return privateEnv.POCKETBASE_URL || publicEnv.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
 }
 
 export interface AdminSession {
@@ -29,7 +27,7 @@ export async function createAdminSession(email: string, password: string): Promi
 	try {
 		await pb.collection('_superusers').authWithPassword(email.trim(), password);
 	} catch {
-		throw { status: 401, message: 'Invalid admin credentials' };
+		throw { status: 401, message: '管理员账号或密码错误' };
 	}
 
 	const token = pb.authStore.token;
@@ -37,7 +35,7 @@ export async function createAdminSession(email: string, password: string): Promi
 	pb.authStore.clear();
 
 	if (!token || !isSuperuserRecord(record)) {
-		throw { status: 401, message: 'Invalid admin credentials' };
+		throw { status: 401, message: '管理员账号或密码错误' };
 	}
 	return { token, email: record?.email ?? email.trim() };
 }

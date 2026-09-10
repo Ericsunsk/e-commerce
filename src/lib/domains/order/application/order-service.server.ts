@@ -84,10 +84,10 @@ export async function refundAdminOrder(orderId: string, body: unknown): Promise<
 	return withAdmin(async (pb) => {
 		const current = await getAdminOrderByIdWithClient(pb, orderId);
 		if (!current) {
-			throw { status: 404, message: 'Order not found' };
+			throw { status: 404, message: '订单不存在' };
 		}
 		if (!current.stripePaymentIntent) {
-			throw { status: 409, message: 'Order has no Stripe payment to refund' };
+			throw { status: 409, message: '该订单没有可退款的 Stripe 支付' };
 		}
 
 		const request: RefundRequest = normalizeRefundBody(body, current.amountTotal);

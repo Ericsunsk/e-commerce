@@ -17,7 +17,7 @@ export interface FulfillPayload {
 /** Parse the fulfill endpoint body; throws `{ status: 400 }` when invalid. */
 export function normalizeFulfillBody(input: unknown): FulfillPayload {
 	if (!input || typeof input !== 'object') {
-		throw { status: 400, message: 'Invalid payload' };
+		throw { status: 400, message: '请求数据格式错误' };
 	}
 	const data = input as Record<string, unknown>;
 	const carrier = typeof data.carrier === 'string' ? data.carrier.trim() : '';
@@ -28,8 +28,8 @@ export function normalizeFulfillBody(input: unknown): FulfillPayload {
 				? data.tracking_number.trim()
 				: '';
 
-	if (!carrier) throw { status: 400, message: 'Carrier is required' };
-	if (!trackingNumber) throw { status: 400, message: 'Tracking number is required' };
+	if (!carrier) throw { status: 400, message: '承运商必填' };
+	if (!trackingNumber) throw { status: 400, message: '运单号必填' };
 	return { carrier, trackingNumber };
 }
 

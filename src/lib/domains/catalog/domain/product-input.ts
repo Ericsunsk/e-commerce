@@ -49,11 +49,11 @@ function normalizeVariant(raw: unknown, index: number): NormalizedProductVariant
 				? Number(stockRaw)
 				: NaN;
 
-	if (!color) throwProductIssue(`Variant ${index + 1}: color is required`);
-	if (!size) throwProductIssue(`Variant ${index + 1}: size is required`);
-	if (!sku) throwProductIssue(`Variant ${index + 1}: sku is required`);
+	if (!color) throwProductIssue(`规格 ${index + 1}：颜色必填`);
+	if (!size) throwProductIssue(`规格 ${index + 1}：尺码必填`);
+	if (!sku) throwProductIssue(`规格 ${index + 1}：SKU 必填`);
 	if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
-		throwProductIssue(`Variant ${index + 1}: stockQuantity must be an integer >= 0`);
+		throwProductIssue(`规格 ${index + 1}：库存必须是不小于 0 的整数`);
 	}
 	const id = readString(item.id);
 	return { ...(id ? { id } : {}), color, size, sku, stockQuantity };
@@ -61,11 +61,11 @@ function normalizeVariant(raw: unknown, index: number): NormalizedProductVariant
 
 function normalizeVariants(raw: unknown): NormalizedProductVariant[] {
 	if (raw === undefined) return [];
-	if (!Array.isArray(raw)) throwProductIssue('Variants must be an array');
+	if (!Array.isArray(raw)) throwProductIssue('规格必须是数组');
 	const variants = raw.map(normalizeVariant);
 	const skus = new Set<string>();
 	for (const variant of variants) {
-		if (skus.has(variant.sku)) throwProductIssue(`Duplicate sku: ${variant.sku}`);
+		if (skus.has(variant.sku)) throwProductIssue(`SKU 重复：${variant.sku}`);
 		skus.add(variant.sku);
 	}
 	return variants;
@@ -74,7 +74,7 @@ function normalizeVariants(raw: unknown): NormalizedProductVariant[] {
 function normalizePriceDollars(raw: unknown, field = 'price'): number {
 	const value = typeof raw === 'number' ? raw : Number(raw);
 	if (!Number.isFinite(value) || value <= 0 || value > 1_000_000) {
-		throwProductIssue(`${field} must be a positive amount`);
+		throwProductIssue(`${field} 必须是正数金额`);
 	}
 	return Math.round(value * 100);
 }
@@ -82,7 +82,7 @@ function normalizePriceDollars(raw: unknown, field = 'price'): number {
 function normalizeCurrency(raw: unknown): string {
 	const currency = readString(raw).toUpperCase() || 'USD';
 	if (!(ADMIN_PRODUCT_CURRENCIES as readonly string[]).includes(currency)) {
-		throwProductIssue(`Currency must be one of ${ADMIN_PRODUCT_CURRENCIES.join(', ')}`);
+		throwProductIssue(`币种必须是 ${ADMIN_PRODUCT_CURRENCIES.join('、')} 之一`);
 	}
 	return currency.toLowerCase();
 }
@@ -99,12 +99,12 @@ export interface NormalizedProductCreate {
 
 /** Validate the admin creation payload (slug derived from title). */
 export function normalizeProductCreate(input: unknown): NormalizedProductCreate {
-	if (!input || typeof input !== 'object') throwProductIssue('Invalid product payload');
+	if (!input || typeof input !== 'object') throwProductIssue('商品数据格式错误');
 	const data = input as Record<string, unknown>;
 
 	const title = readString(data.title);
 	if (title.length < 2 || title.length > 120) {
-		throwProductIssue('Title must be 2–120 characters');
+		throwProductIssue('标题长度需为 2–120 个字符');
 	}
 
 	return {
@@ -130,14 +130,14 @@ export interface NormalizedProductEdit {
 
 /** Validate the admin edit payload (all fields optional). */
 export function normalizeProductEdit(input: unknown): NormalizedProductEdit {
-	if (!input || typeof input !== 'object') throwProductIssue('Invalid product payload');
+	if (!input || typeof input !== 'object') throwProductIssue('商品数据格式错误');
 	const data = input as Record<string, unknown>;
 	const edit: NormalizedProductEdit = {};
 
 	if (data.title !== undefined) {
 		const title = readString(data.title);
 		if (title.length < 2 || title.length > 120) {
-			throwProductIssue('Title must be 2–120 characters');
+			throwProductIssue('标题长度需为 2–120 个字符');
 		}
 		edit.title = title;
 		edit.slug = slugifyTitle(title);

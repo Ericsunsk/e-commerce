@@ -66,8 +66,8 @@ export default ts.config(
 			'node_modules/',
 			'*.config.js',
 			'*.config.ts',
-			'src/lib/pocketbase-types.ts', // 自动生成的类型文件
-			'src/lib/stores/*.svelte.ts', // Svelte 5 Runes 特殊语法文件
+			'**/pocketbase-types.ts', // 自动生成的类型文件
+			'**/*.svelte.ts', // Svelte 5 Runes 特殊语法文件
 			'**/shop/\\[id\\]/**' // 复杂模板语法，ESLint 解析器无法处理
 		]
 	},

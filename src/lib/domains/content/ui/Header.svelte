@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { Menu, X } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import { page } from '$app/stores';
 	import { useCart } from '$domains/cart';
 	import { goto } from '$app/navigation';
@@ -166,9 +168,11 @@
 			aria-label="Toggle menu"
 			class="md:hidden p-2 -ml-2 hover:opacity-70 transition-opacity outline-none focus:outline-none active:outline-none tap-highlight-transparent"
 		>
-			<span class="material-symbols-outlined text-[24px]">
-				{isMenuOpen ? 'close' : 'menu'}
-			</span>
+			{#if isMenuOpen}
+				<UiIcon icon={X} size={24} />
+			{:else}
+				<UiIcon icon={Menu} size={24} />
+			{/if}
 		</button>
 
 		<!-- Logo -->

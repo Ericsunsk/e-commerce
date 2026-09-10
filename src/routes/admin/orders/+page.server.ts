@@ -7,9 +7,7 @@ const TABS = ['all', 'unfulfilled', 'shipped', 'delivered', 'refunded'] as const
 
 export const load: PageServerLoad = async ({ url }) => {
 	const raw = url.searchParams.get('status') ?? 'all';
-	const status: AdminOrderStatusFilter = (
-		TABS as readonly string[]
-	).includes(raw)
+	const status: AdminOrderStatusFilter = (TABS as readonly string[]).includes(raw)
 		? (raw as AdminOrderStatusFilter)
 		: 'all';
 
@@ -28,6 +26,6 @@ export const load: PageServerLoad = async ({ url }) => {
 			}))
 		};
 	} catch {
-		throw error(500, 'Failed to load orders');
+		throw error(500, '订单加载失败');
 	}
 };

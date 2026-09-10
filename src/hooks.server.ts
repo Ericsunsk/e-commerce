@@ -127,7 +127,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		if (!adminEmail) {
 			// API clients get JSON (a redirect would surface as opaque HTML).
 			if (url.pathname.startsWith('/api/')) {
-				const unauthorized = json({ error: 'Admin authentication required' }, { status: 401 });
+				const unauthorized = json({ error: '需要管理员登录' }, { status: 401 });
 				applySecurityHeaders(unauthorized, url, cspOrigins);
 				return unauthorized;
 			}

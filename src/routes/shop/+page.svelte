@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { ProductListGrid, ProductGridSkeleton } from '$domains/catalog';
-	import { Drawer, Button } from '$shared/ui';
+	import { SearchX } from 'lucide-svelte';
+	import { Drawer, Button, UiIcon } from '$shared/ui';
 	import { parsePrice } from '$shared/kernel';
 	import { SectionRenderer } from '$domains/content';
 	import { fade } from 'svelte/transition';
@@ -252,7 +253,7 @@
 					class="col-span-full flex flex-col items-center justify-center py-32 text-primary/40 dark:text-white/40 gap-6"
 					in:fade
 				>
-					<span class="material-symbols-outlined text-4xl opacity-50">search_off</span>
+					<UiIcon icon={SearchX} size={36} class="opacity-50" />
 					<p class="text-sm uppercase tracking-widest">No products found in this category</p>
 				</div>
 			{:else if data.products.length === 0}

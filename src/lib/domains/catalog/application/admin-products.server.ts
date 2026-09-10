@@ -97,7 +97,7 @@ async function ensureUniqueSlug(pb: TypedPocketBase, base: string): Promise<stri
 			return candidate; // 404 → available.
 		}
 	}
-	throw { status: 409, message: `Slug is taken: ${base}` };
+	throw { status: 409, message: `Slug 已被占用: ${base}` };
 }
 
 async function syncVariantsWithClient(

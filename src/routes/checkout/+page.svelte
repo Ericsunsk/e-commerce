@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { useCart, LineItemMeta } from '$domains/cart';
 	import { auth } from '$domains/customer';
-	import { toastStore, Button, FormInput, FormSelect } from '$shared/ui';
+	import { ChevronRight, LoaderCircle } from 'lucide-svelte';
+	import { toastStore, Button, FormInput, FormSelect, UiIcon } from '$shared/ui';
 	import { MESSAGES, COLORS, TYPOGRAPHY, buildFullName, formatCurrency } from '$shared/kernel';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import { ShippingOption, shippingAddressSchema, type ShippingAddressSchema } from '$domains/checkout';
+	import {
+		ShippingOption,
+		shippingAddressSchema,
+		type ShippingAddressSchema
+	} from '$domains/checkout';
 	import { OrderItemThumbnail } from '$domains/order';
 	import type { Stripe, StripeElements } from '@stripe/stripe-js';
 	import { superForm } from 'sveltekit-superforms';
@@ -376,7 +381,7 @@
 {/snippet}
 
 {#snippet loadingSpinnerIcon()}
-	<span class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+	<UiIcon icon={LoaderCircle} size={14} class="animate-spin" />
 {/snippet}
 
 {#snippet continueSubmitButton(className: string)}
@@ -400,7 +405,7 @@
 			: 'opacity-40'} transition-all duration-500"
 	>
 		{#if withChevron}
-			<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+			<UiIcon icon={ChevronRight} size={12} />
 		{/if}
 		{label}
 	</span>

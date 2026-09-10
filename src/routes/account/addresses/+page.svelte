@@ -2,7 +2,7 @@
 	import { Collections, pb } from '$shared/infrastructure';
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import { auth, AccountEmptyState, AddressFormField, type UserAddress } from '$domains/customer';
+	import { auth, AccountEmptyState, AddressFormField } from '$domains/customer';
 	import { onMount } from 'svelte';
 	import { toastStore, PageHeader, LoadingState } from '$shared/ui';
 	import { MESSAGES, LAYOUT, BUTTON_STYLES } from '$shared/kernel';

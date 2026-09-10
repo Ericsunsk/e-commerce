@@ -5,7 +5,7 @@ import { getAdminOrderById } from '$domains/order/server';
 export const load: PageServerLoad = async ({ params }) => {
 	const order = await getAdminOrderById(params.id);
 	if (!order) {
-		throw error(404, 'Order not found');
+		throw error(404, '订单不存在');
 	}
 	return {
 		order: {

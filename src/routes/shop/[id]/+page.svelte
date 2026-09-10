@@ -3,7 +3,8 @@
 	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { ProductListGrid } from '$domains/catalog';
-	import { RemoteImage, toastStore } from '$shared/ui';
+	import { Heart } from 'lucide-svelte';
+	import { RemoteImage, toastStore, UiIcon } from '$shared/ui';
 	import { MESSAGES, COLORS } from '$shared/kernel';
 
 	const cart = useCart();
@@ -391,11 +392,11 @@
 						onclick={() => wishlist.toggle(product)}
 						aria-label="Add to wishlist"
 					>
-						<span
-							class="material-symbols-outlined text-[24px] font-light {wishlist.has(product.id)
-								? 'font-fill'
-								: ''}">favorite</span
-						>
+						<UiIcon
+							icon={Heart}
+							size={24}
+							fill={wishlist.has(product.id) ? 'currentColor' : 'none'}
+						/>
 					</button>
 				</div>
 
@@ -533,11 +534,6 @@
 	}
 	.animate-shake {
 		animation: shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-	}
-
-	/* Font Fill for icons */
-	.font-fill {
-		font-variation-settings: 'FILL' 1;
 	}
 
 	details > summary::-webkit-details-marker {

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import { fade, fly } from 'svelte/transition';
 	import { TRANSITIONS } from '$shared/kernel';
 
@@ -72,7 +74,7 @@
 						class="hover:opacity-60 ${TRANSITIONS.opacity} p-2 -mr-2"
 						aria-label="Close"
 					>
-						<span class="material-symbols-outlined font-light">close</span>
+						<UiIcon icon={X} size={20} />
 					</button>
 				</div>
 			{/if}

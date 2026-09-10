@@ -68,5 +68,55 @@ describe('dashboard metrics', () => {
 			lowStockCount: 0
 		});
 		expect(metrics.recentOrders).toEqual([]);
+		expect(metrics.revenueTrend).toHaveLength(14);
+		expect(metrics.ordersByStatus).toEqual([]);
+	});
+
+	it('buckets daily revenue over the trailing window with zero fill', () => {
+		const now = new Date('2026-09-10T12:00:00').getTime();
+		const metrics = computeDashboardMetrics(
+			[
+				{
+					id: 'o1',
+					status: 'paid',
+					amountTotal: 5000,
+					currency: 'usd',
+					customerEmail: 'a',
+					date: '2026-09-10T08:00:00'
+				},
+				{
+					id: 'o2',
+					status: 'paid',
+					amountTotal: 2500,
+					currency: 'usd',
+					customerEmail: 'b',
+					date: '2026-09-10T09:00:00'
+				},
+				{
+					id: 'o3',
+					status: 'shipped',
+					amountTotal: 1000,
+					currency: 'usd',
+					customerEmail: 'c',
+					date: '2026-09-08T08:00:00'
+				}
+			],
+			[],
+			{},
+			now
+		);
+		expect(metrics.revenueTrend).toHaveLength(14);
+		expect(metrics.revenueTrend[13]).toEqual({ date: '09-10', revenue: 75 });
+		expect(metrics.revenueTrend[11]).toEqual({ date: '09-08', revenue: 10 });
+		expect(metrics.revenueTrend[0]).toEqual({ date: '08-28', revenue: 0 });
+	});
+
+	it('groups order counts by status with chinese labels', () => {
+		const metrics = computeDashboardMetrics(orders, [], {});
+		expect(metrics.ordersByStatus).toEqual([
+			{ key: 'paid', label: '已付款', value: 2 },
+			{ key: 'shipped', label: '已发货', value: 1 },
+			{ key: 'refunded', label: '已退款', value: 1 }
+		]);
 	});
 });

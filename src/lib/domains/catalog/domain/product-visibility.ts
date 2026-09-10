@@ -24,11 +24,11 @@ export function filterVisibleProducts<T extends VisibilityRecord>(records: T[]):
 /** Validate the admin toggle payload; throws `{ status: 400 }` otherwise. */
 export function normalizeActiveToggle(input: unknown): boolean {
 	if (!input || typeof input !== 'object') {
-		throw { status: 400, message: 'Invalid payload' };
+		throw { status: 400, message: '请求数据格式错误' };
 	}
 	const value = (input as Record<string, unknown>).is_active;
 	if (typeof value !== 'boolean') {
-		throw { status: 400, message: 'is_active must be a boolean' };
+		throw { status: 400, message: 'is_active 必须是布尔值' };
 	}
 	return value;
 }

@@ -3,7 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { auth, loginSchema, registerSchema, passwordRecoverySchema } from '$domains/customer';
-	import { toastStore, RemoteImage, FormInput } from '$shared/ui';
+	import { MailCheck, X } from 'lucide-svelte';
+	import { toastStore, RemoteImage, FormInput, UiIcon } from '$shared/ui';
 	import { MESSAGES, buildFullName } from '$shared/kernel';
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4 as zod } from 'sveltekit-superforms/adapters';
@@ -212,9 +213,7 @@
 	<div class="w-full max-w-sm mx-auto" in:fade>
 		<div class="mb-12 text-center">
 			<div class="flex justify-center mb-6">
-				<span class="material-symbols-outlined text-4xl text-primary dark:text-white font-light"
-					>mark_email_read</span
-				>
+				<UiIcon icon={MailCheck} size={36} class="text-primary dark:text-white" />
 			</div>
 			<h1 class="text-2xl font-display font-bold uppercase tracking-widest mb-4">
 				Check Your Email
@@ -295,7 +294,7 @@
 				class="absolute top-8 right-8 md:top-12 md:right-12 flex items-center justify-center text-primary dark:text-white hover:opacity-50 transition-opacity"
 				aria-label="Close"
 			>
-				<span class="material-symbols-outlined font-light">close</span>
+				<UiIcon icon={X} size={20} />
 			</a>
 		{/if}
 

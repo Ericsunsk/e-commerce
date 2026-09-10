@@ -2,7 +2,8 @@
 	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { TRANSITIONS, MESSAGES } from '$shared/kernel';
-	import { toastStore, Badge } from '$shared/ui';
+	import { Heart } from 'lucide-svelte';
+	import { toastStore, Badge, UiIcon } from '$shared/ui';
 	import CoverImageLayer from './CoverImageLayer.svelte';
 	import type { Product } from '../domain/models';
 
@@ -61,13 +62,12 @@
 			}}
 			aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
 		>
-			<span
-				class="material-symbols-outlined text-[20px] drop-shadow-md {inWishlist
-					? "[font-variation-settings:'FILL'_1]"
-					: "[font-variation-settings:'FILL'_0]"}"
-			>
-				favorite
-			</span>
+			<UiIcon
+				icon={Heart}
+				size={20}
+				class="drop-shadow-md"
+				fill={inWishlist ? 'currentColor' : 'none'}
+			/>
 		</button>
 
 		<div

@@ -95,23 +95,23 @@ function throwCouponIssue(message: string): never {
 
 /** Validate admin coupon creation input; normalizes code and bounds. */
 export function normalizeCouponCreate(input: unknown): NormalizedCouponCreate {
-	if (!input || typeof input !== 'object') throwCouponIssue('Invalid coupon payload');
+	if (!input || typeof input !== 'object') throwCouponIssue('优惠券数据格式错误');
 	const data = input as Record<string, unknown>;
 
 	const code = typeof data.code === 'string' ? data.code.trim().toUpperCase() : '';
 	if (!/^[A-Z0-9_-]{3,24}$/.test(code)) {
-		throwCouponIssue('Code must be 3–24 characters (letters, digits, _ or -)');
+		throwCouponIssue('券码需为 3–24 位字母、数字、_ 或 -');
 	}
 
 	const type = data.type;
 	if (type !== 'percentage' && type !== 'fixed_amount') {
-		throwCouponIssue('Type must be percentage or fixed_amount');
+		throwCouponIssue('类型必须是 percentage 或 fixed_amount');
 	}
 
 	const value = Number(data.value);
-	if (!Number.isFinite(value) || value <= 0) throwCouponIssue('Value must be positive');
+	if (!Number.isFinite(value) || value <= 0) throwCouponIssue('面值必须大于 0');
 	if (type === 'percentage' && value > 100) {
-		throwCouponIssue('Percentage value cannot exceed 100');
+		throwCouponIssue('百分比面值不能超过 100');
 	}
 
 	const normalized: NormalizedCouponCreate = {
@@ -128,7 +128,7 @@ export function normalizeCouponCreate(input: unknown): NormalizedCouponCreate {
 	) {
 		const minOrder = Number(data.min_order_amount);
 		if (!Number.isFinite(minOrder) || minOrder < 0) {
-			throwCouponIssue('Minimum order amount must be >= 0');
+			throwCouponIssue('最低消费金额不能小于 0');
 		}
 		normalized.min_order_amount = minOrder;
 	}
@@ -136,15 +136,15 @@ export function normalizeCouponCreate(input: unknown): NormalizedCouponCreate {
 	if (data.usage_limit !== undefined && data.usage_limit !== null && data.usage_limit !== '') {
 		const limit = Number(data.usage_limit);
 		if (!Number.isInteger(limit) || limit < 1) {
-			throwCouponIssue('Usage limit must be an integer >= 1');
+			throwCouponIssue('发放上限必须是不小于 1 的整数');
 		}
 		normalized.usage_limit = limit;
 	}
 
 	if (typeof data.expire_date === 'string' && data.expire_date.trim()) {
 		const expiry = new Date(data.expire_date);
-		if (Number.isNaN(expiry.getTime())) throwCouponIssue('Expiry date is invalid');
-		if (expiry <= new Date()) throwCouponIssue('Expiry date must be in the future');
+		if (Number.isNaN(expiry.getTime())) throwCouponIssue('过期日期无效');
+		if (expiry <= new Date()) throwCouponIssue('过期日期必须是未来时间');
 		normalized.expire_date = expiry.toISOString();
 	}
 

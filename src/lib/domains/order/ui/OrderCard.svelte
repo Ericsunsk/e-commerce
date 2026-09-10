@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { ArrowUpRight } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import type { OrderSummary } from '../domain/models';
 	import { getOrderStatusColor } from '../domain/models';
-	import { ArrowUpRight } from 'lucide-svelte';
 	import { parsePocketBaseDate, formatCurrency } from '$shared/kernel';
 
 	let { order } = $props<{ order: OrderSummary }>();
@@ -68,7 +69,8 @@
 				class="hidden md:flex items-center text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 group-hover:text-primary dark:group-hover:text-white transition-colors"
 			>
 				View
-				<ArrowUpRight
+				<UiIcon
+					icon={ArrowUpRight}
 					size={14}
 					class="ml-1 opacity-0 group-hover:opacity-100 transition-[opacity,transform] -translate-y-1 group-hover:translate-y-0"
 				/>

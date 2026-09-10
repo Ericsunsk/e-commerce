@@ -137,7 +137,7 @@ export async function fulfillOrderWithClient(
 	if (!canMarkShipped((current as OrdersResponse).status as OrderStatus)) {
 		throw {
 			status: 409,
-			message: `Order cannot transition to shipped from status "${(current as OrdersResponse).status}"`
+			message: `订单当前状态为 "${(current as OrdersResponse).status}"，无法标记发货`
 		};
 	}
 

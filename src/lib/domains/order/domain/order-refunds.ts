@@ -15,7 +15,7 @@ export interface RefundRequest {
 /** Parse the refund endpoint body against the order total. Throws `{ status: 400 }`. */
 export function normalizeRefundBody(input: unknown, orderTotalCents: number): RefundRequest {
 	if (!input || typeof input !== 'object') {
-		throw { status: 400, message: 'Invalid payload' };
+		throw { status: 400, message: '请求数据格式错误' };
 	}
 	const data = input as Record<string, unknown>;
 	const raw = data.amount;
@@ -26,14 +26,14 @@ export function normalizeRefundBody(input: unknown, orderTotalCents: number): Re
 
 	const amount = typeof raw === 'number' ? raw : Number(raw);
 	if (!Number.isFinite(amount) || amount <= 0) {
-		throw { status: 400, message: 'Refund amount must be positive' };
+		throw { status: 400, message: '退款金额必须大于 0' };
 	}
 	const amountCents = Math.round(amount * 100);
 	if (!Number.isFinite(orderTotalCents) || orderTotalCents <= 0) {
-		throw { status: 400, message: 'Order total is invalid' };
+		throw { status: 400, message: '订单金额异常' };
 	}
 	if (amountCents > orderTotalCents) {
-		throw { status: 400, message: 'Refund amount cannot exceed the order total' };
+		throw { status: 400, message: '退款金额不能超过订单总额' };
 	}
 	return { amountCents, reason: readReason(data.reason) };
 }

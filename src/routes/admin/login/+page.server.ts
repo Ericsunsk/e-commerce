@@ -25,7 +25,7 @@ export const actions: Actions = {
 		const redirectTo = String(form.get('redirect') || url.searchParams.get('redirect') || '/admin');
 
 		if (!email || !password) {
-			return fail(400, { error: 'Email and password are required' });
+			return fail(400, { error: '请填写邮箱和密码' });
 		}
 
 		try {
@@ -38,7 +38,7 @@ export const actions: Actions = {
 				maxAge: SESSION_MAX_AGE
 			});
 		} catch {
-			return fail(401, { error: 'Invalid admin credentials' });
+			return fail(401, { error: '管理员账号或密码错误' });
 		}
 
 		throw redirect(303, redirectTo);

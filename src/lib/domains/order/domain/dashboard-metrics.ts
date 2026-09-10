@@ -42,6 +42,19 @@ export interface RecentOrderRow {
 	email: string;
 }
 
+export interface RevenuePoint {
+	/** `MM-DD` label for the chart axis. */
+	date: string;
+	/** Revenue in major currency units (dollars), rounded to 2dp. */
+	revenue: number;
+}
+
+export interface StatusSlice {
+	key: string;
+	label: string;
+	value: number;
+}
+
 export interface DashboardMetrics {
 	/** Gross merchandise volume, in minor currency units (cents). */
 	gmvCents: number;
@@ -50,16 +63,33 @@ export interface DashboardMetrics {
 	lowStockCount: number;
 	lowStock: LowStockRow[];
 	recentOrders: RecentOrderRow[];
+	/** Last N days of daily revenue, zero-filled. */
+	revenueTrend: RevenuePoint[];
+	/** Order counts grouped by status. */
+	ordersByStatus: StatusSlice[];
 }
+
+import { ORDER_STATUS_LABELS } from './models';
 
 export const LOW_STOCK_THRESHOLD = 5;
 export const RECENT_ORDER_LIMIT = 5;
+export const REVENUE_TREND_DAYS = 14;
+
+function dayKey(time: number): string {
+	const date = new Date(time);
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function axisLabel(key: string): string {
+	return key.slice(5); // `YYYY-MM-DD` → `MM-DD`
+}
 
 /** Pure aggregation over in-memory batches (unit-testable). */
 export function computeDashboardMetrics(
 	orders: MetricOrder[],
 	variants: MetricVariant[],
-	productTitles: Map<string, string> | Record<string, string>
+	productTitles: Map<string, string> | Record<string, string>,
+	now: number = Date.now()
 ): DashboardMetrics {
 	const titleOf = (productId: string): string =>
 		productTitles instanceof Map
@@ -97,12 +127,42 @@ export function computeDashboardMetrics(
 			email: order.customerEmail
 		}));
 
+	const dayMs = 24 * 60 * 60 * 1000;
+	const todayStart = new Date(now);
+	todayStart.setHours(0, 0, 0, 0);
+	const revenueByDay = new Map<string, number>();
+	for (const order of orders) {
+		const time = new Date(order.date).getTime();
+		if (!Number.isFinite(time)) continue;
+		const key = dayKey(time);
+		revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + order.amountTotal);
+	}
+	const revenueTrend: RevenuePoint[] = [];
+	for (let i = REVENUE_TREND_DAYS - 1; i >= 0; i--) {
+		const key = dayKey(todayStart.getTime() - i * dayMs);
+		revenueTrend.push({
+			date: axisLabel(key),
+			revenue: Math.round(revenueByDay.get(key) ?? 0) / 100
+		});
+	}
+
+	const statusCounts = new Map<string, number>();
+	for (const order of orders) {
+		const status = order.status || 'unknown';
+		statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
+	}
+	const ordersByStatus: StatusSlice[] = [...statusCounts.entries()]
+		.map(([key, value]) => ({ key, label: ORDER_STATUS_LABELS[key] ?? key, value }))
+		.sort((a, b) => b.value - a.value);
+
 	return {
 		gmvCents,
 		currency,
 		pendingShipments,
 		lowStockCount: lowStock.length,
 		lowStock,
-		recentOrders
+		recentOrders,
+		revenueTrend,
+		ordersByStatus
 	};
 }

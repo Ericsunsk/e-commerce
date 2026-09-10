@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { LoaderCircle } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import type { NavItem } from '../domain/models';
 	import { TRANSITIONS, MESSAGES } from '$shared/kernel';
 	import { onMount } from 'svelte';
@@ -122,8 +124,7 @@
 					disabled={status === 'loading'}
 				>
 					{#if status === 'loading'}
-						<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span
-						>
+						<UiIcon icon={LoaderCircle} size={18} class="animate-spin" />
 					{:else}
 						<svg
 							width="18"
@@ -232,7 +233,6 @@
 			>
 				COOKIE SETTINGS
 			</button>
-
 		</div>
 	</div>
 </footer>

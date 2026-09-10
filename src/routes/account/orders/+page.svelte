@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { ShoppingBag } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import type { PageData } from './$types';
 	import { AccountEmptyState, AccountPageShell, AccountBackLink } from '$domains/customer';
 	import { OrderCard } from '$domains/order';
-	import { ShoppingBag } from 'lucide-svelte';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data } = $props<{ data: PageData }>();
@@ -63,7 +64,7 @@
 					<div
 						class="w-20 h-20 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center mx-auto"
 					>
-						<ShoppingBag size={24} class="text-neutral-400" />
+						<UiIcon icon={ShoppingBag} size={24} class="text-neutral-400" />
 					</div>
 				{/snippet}
 			</AccountEmptyState>

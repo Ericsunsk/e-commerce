@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { ArrowLeft, CircleAlert, Clock, Image as ImageIcon, Truck } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
+	import { getOrderStatusBadgeClass, getOrderStatusLabel } from '$domains/order';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -28,23 +31,6 @@
 			order.status !== 'pending'
 	);
 
-	function statusBadge(status: string): string {
-		switch (status.toLowerCase()) {
-			case 'paid':
-			case 'processing':
-				return 'bg-amber-50 text-amber-700 border-amber-200';
-			case 'shipped':
-				return 'bg-sky-50 text-sky-700 border-sky-200';
-			case 'delivered':
-				return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-			case 'refunded':
-			case 'cancelled':
-				return 'bg-rose-50 text-rose-700 border-rose-200';
-			default:
-				return 'bg-zinc-100 text-zinc-700 border-zinc-200';
-		}
-	}
-
 	async function submitFulfillment() {
 		saving = true;
 		error = '';
@@ -67,7 +53,7 @@
 			};
 			modalOpen = false;
 		} catch (e: unknown) {
-			error = e instanceof Error ? e.message : 'Fulfillment failed';
+			error = e instanceof Error ? e.message : '发货失败';
 		} finally {
 			saving = false;
 		}
@@ -86,14 +72,14 @@
 				})
 			});
 			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || `Refund failed (${res.status})`);
+			if (!res.ok) throw new Error(body.error || `退款失败 (${res.status})`);
 			order = { ...order, status: body.order.status };
 			refundOpen = false;
 			refundAmount = '';
 			refundReason = '';
 			refundMode = 'full';
 		} catch (e: unknown) {
-			error = e instanceof Error ? e.message : 'Refund failed';
+			error = e instanceof Error ? e.message : '退款失败';
 		} finally {
 			refunding = false;
 		}
@@ -101,7 +87,7 @@
 </script>
 
 <svelte:head>
-	<title>Order #{order.id.slice(0, 8)} | Admin</title>
+	<title>订单 #{order.id.slice(0, 8)} | 管理后台</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
@@ -111,8 +97,8 @@
 		href="/admin/orders"
 		class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors"
 	>
-		<span class="material-symbols-outlined text-sm">arrow_back</span>
-		Back to Orders
+		<UiIcon icon={ArrowLeft} size={14} />
+		返回订单列表
 	</a>
 
 	<!-- Header with Status and Actions -->
@@ -120,13 +106,17 @@
 		<div>
 			<div class="flex items-center gap-3">
 				<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">
-					Order #{order.id.slice(0, 8)}
+					订单 #{order.id.slice(0, 8)}
 				</h1>
-				<span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {statusBadge(order.status)}">
-					{order.status}
+				<span
+					class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {getOrderStatusBadgeClass(
+						order.status
+					)}"
+				>
+					{getOrderStatusLabel(order.status)}
 				</span>
 			</div>
-			<p class="text-xs text-zinc-500 mt-1">Placed on {order.date} · {order.email}</p>
+			<p class="text-xs text-zinc-500 mt-1">下单于 {order.date} · {order.email}</p>
 		</div>
 
 		<div class="flex items-center gap-2.5">
@@ -135,7 +125,7 @@
 					onclick={() => (refundOpen = true)}
 					class="px-4 py-2.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-semibold uppercase tracking-wider hover:bg-rose-100 transition-colors cursor-pointer"
 				>
-					Issue Refund
+					发起退款
 				</button>
 			{/if}
 			{#if canFulfill}
@@ -143,8 +133,8 @@
 					onclick={() => (modalOpen = true)}
 					class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
 				>
-					<span class="material-symbols-outlined text-base">local_shipping</span>
-					Mark as Shipped
+					<UiIcon icon={Truck} size={16} />
+					标记发货
 				</button>
 			{/if}
 		</div>
@@ -155,7 +145,7 @@
 			role="alert"
 			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
 		>
-			<span class="material-symbols-outlined text-base shrink-0">error</span>
+			<UiIcon icon={CircleAlert} size={16} class="shrink-0" />
 			<span>{error}</span>
 		</div>
 	{/if}
@@ -163,10 +153,14 @@
 	<!-- Order Grid -->
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left: Purchased items -->
-		<section class="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+		<section
+			class="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between"
+		>
 			<div>
-				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-4 mb-4 border-b border-zinc-100">
-					Ordered Items ({order.items.length})
+				<h2
+					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-4 mb-4 border-b border-zinc-100"
+				>
+					购买商品 ({order.items.length})
 				</h2>
 				<div class="divide-y divide-zinc-100">
 					{#each order.items as item (item.id)}
@@ -179,8 +173,10 @@
 									loading="lazy"
 								/>
 							{:else}
-								<div class="w-14 h-16 rounded-lg border border-zinc-200 bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0">
-									<span class="material-symbols-outlined text-lg">image</span>
+								<div
+									class="w-14 h-16 rounded-lg border border-zinc-200 bg-zinc-100 flex items-center justify-center text-zinc-400 shrink-0"
+								>
+									<UiIcon icon={ImageIcon} size={18} />
 								</div>
 							{/if}
 							<div class="flex-1 min-w-0">
@@ -188,7 +184,7 @@
 								{#if item.variant}
 									<p class="text-xs text-zinc-500 font-mono mt-0.5">{item.variant}</p>
 								{/if}
-								<p class="text-xs text-zinc-400 mt-1">Quantity: {item.quantity}</p>
+								<p class="text-xs text-zinc-400 mt-1">数量：{item.quantity}</p>
 							</div>
 							<div class="text-right shrink-0">
 								<p class="text-sm font-bold text-zinc-900">{item.price}</p>
@@ -202,19 +198,21 @@
 			<!-- Price Breakdown -->
 			<div class="pt-6 mt-6 border-t border-zinc-100 space-y-2 text-xs">
 				<div class="flex justify-between text-zinc-500">
-					<span>Subtotal</span>
+					<span>小计</span>
 					<span class="font-medium text-zinc-800">{order.subtotal}</span>
 				</div>
 				<div class="flex justify-between text-zinc-500">
-					<span>Estimated Shipping</span>
+					<span>预估运费</span>
 					<span class="font-medium text-zinc-800">{order.shipping}</span>
 				</div>
 				<div class="flex justify-between text-zinc-500">
-					<span>Taxes & Duties</span>
+					<span>税费</span>
 					<span class="font-medium text-zinc-800">{order.tax}</span>
 				</div>
-				<div class="flex justify-between text-sm font-bold text-zinc-900 pt-3 border-t border-zinc-200">
-					<span>Total Amount</span>
+				<div
+					class="flex justify-between text-sm font-bold text-zinc-900 pt-3 border-t border-zinc-200"
+				>
+					<span>总金额</span>
 					<span>{order.total} {order.currency.toUpperCase()}</span>
 				</div>
 			</div>
@@ -224,16 +222,20 @@
 		<div class="space-y-6">
 			<!-- Customer details -->
 			<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-3">
-				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100">
-					Customer Information
+				<h2
+					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
+				>
+					客户信息
 				</h2>
 				<div>
-					<p class="text-sm font-semibold text-zinc-900">{order.name || 'Anonymous Shopper'}</p>
+					<p class="text-sm font-semibold text-zinc-900">{order.name || '匿名顾客'}</p>
 					<p class="text-xs text-zinc-500 break-all mt-0.5">{order.email}</p>
 				</div>
 				{#if order.address}
 					<div class="pt-2 border-t border-zinc-100">
-						<p class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Shipping Address</p>
+						<p class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1">
+							收货地址
+						</p>
 						<p class="text-xs text-zinc-700 leading-relaxed">
 							{order.address.line1}<br />
 							{order.address.city}, {order.address.postalCode}<br />
@@ -245,24 +247,28 @@
 
 			<!-- Fulfillment tracking -->
 			<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs space-y-3">
-				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100">
-					Fulfillment & Logistics
+				<h2
+					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
+				>
+					发货与物流
 				</h2>
 				{#if order.trackingNumber}
 					<div class="space-y-2">
 						<div class="flex justify-between text-xs">
-							<span class="text-zinc-400 uppercase font-semibold">Carrier</span>
+							<span class="text-zinc-400 uppercase font-semibold">承运商</span>
 							<span class="font-bold text-zinc-800 uppercase">{order.trackingCarrier}</span>
 						</div>
 						<div class="flex justify-between text-xs">
-							<span class="text-zinc-400 uppercase font-semibold">Tracking #</span>
-							<span class="font-mono font-semibold text-zinc-900 break-all">{order.trackingNumber}</span>
+							<span class="text-zinc-400 uppercase font-semibold">运单号</span>
+							<span class="font-mono font-semibold text-zinc-900 break-all"
+								>{order.trackingNumber}</span
+							>
 						</div>
 					</div>
 				{:else}
 					<div class="py-4 text-center">
-						<span class="material-symbols-outlined text-2xl text-zinc-300 block mb-1">pending</span>
-						<p class="text-xs font-medium text-zinc-500">Order not shipped yet</p>
+						<UiIcon icon={Clock} size={24} class="text-zinc-300 block mb-1 mx-auto" />
+						<p class="text-xs font-medium text-zinc-500">订单尚未发货</p>
 					</div>
 				{/if}
 			</section>
@@ -272,33 +278,48 @@
 
 <!-- Fulfillment modal -->
 {#if modalOpen}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-xs px-4" role="dialog" aria-modal="true" aria-label="Mark as shipped">
-		<div class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5">
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-xs px-4"
+		role="dialog"
+		aria-modal="true"
+		aria-label="标记发货"
+	>
+		<div
+			class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5"
+		>
 			<div>
-				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">Mark Order as Shipped</h2>
-				<p class="text-xs text-zinc-500 mt-1">Provide carrier details and tracking number for customer updates</p>
+				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">
+					标记为已发货
+				</h2>
+				<p class="text-xs text-zinc-500 mt-1">填写承运商与运单号，客户将收到更新</p>
 			</div>
 
 			<div>
-				<label for="f-carrier" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-					Carrier *
+				<label
+					for="f-carrier"
+					class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5"
+				>
+					承运商 *
 				</label>
 				<input
 					id="f-carrier"
 					bind:value={carrier}
-					placeholder="e.g. UPS, FedEx, USPS, DHL"
+					placeholder="例如：顺丰、京东、中通、UPS"
 					class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
 				/>
 			</div>
 
 			<div>
-				<label for="f-tracking" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-					Tracking Number *
+				<label
+					for="f-tracking"
+					class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5"
+				>
+					运单号 *
 				</label>
 				<input
 					id="f-tracking"
 					bind:value={trackingNumber}
-					placeholder="e.g. 1Z9999999999999999"
+					placeholder="例如：SF1234567890"
 					class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm font-mono text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
 				/>
 			</div>
@@ -309,7 +330,7 @@
 					onclick={() => (modalOpen = false)}
 					class="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
 				>
-					Cancel
+					取消
 				</button>
 				<button
 					type="button"
@@ -317,7 +338,7 @@
 					disabled={saving || !carrier.trim() || !trackingNumber.trim()}
 					class="flex-1 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
 				>
-					{saving ? 'Saving…' : 'Confirm Shipment'}
+					{saving ? '保存中…' : '确认发货'}
 				</button>
 			</div>
 		</div>
@@ -326,38 +347,52 @@
 
 <!-- Refund modal -->
 {#if refundOpen}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-xs px-4" role="dialog" aria-modal="true" aria-label="Issue refund">
-		<div class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5">
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 backdrop-blur-xs px-4"
+		role="dialog"
+		aria-modal="true"
+		aria-label="发起退款"
+	>
+		<div
+			class="w-full max-w-md bg-white border border-zinc-200 rounded-2xl shadow-xl p-6 sm:p-8 space-y-5"
+		>
 			<div>
-				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">Issue Stripe Refund</h2>
-				<p class="text-xs text-zinc-500 mt-1">Direct refund via Stripe API for this transaction</p>
+				<h2 class="text-lg font-display font-bold uppercase tracking-wider text-zinc-900">
+					发起 Stripe 退款
+				</h2>
+				<p class="text-xs text-zinc-500 mt-1">直接通过 Stripe API 退回该笔交易</p>
 			</div>
 
 			<div class="grid grid-cols-2 gap-2 bg-zinc-100 p-1 rounded-xl">
 				<button
 					type="button"
 					onclick={() => (refundMode = 'full')}
-					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode === 'full'
+					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
+					'full'
 						? 'bg-white text-zinc-900 shadow-xs'
 						: 'text-zinc-600 hover:text-zinc-900'}"
 				>
-					Full Refund
+					全额退款
 				</button>
 				<button
 					type="button"
 					onclick={() => (refundMode = 'partial')}
-					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode === 'partial'
+					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
+					'partial'
 						? 'bg-white text-zinc-900 shadow-xs'
 						: 'text-zinc-600 hover:text-zinc-900'}"
 				>
-					Partial Refund
+					部分退款
 				</button>
 			</div>
 
 			{#if refundMode === 'partial'}
 				<div>
-					<label for="ref-amount" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-						Amount to Refund ({order.currency.toUpperCase()}) *
+					<label
+						for="ref-amount"
+						class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5"
+					>
+						退款金额 ({order.currency.toUpperCase()}) *
 					</label>
 					<input
 						id="ref-amount"
@@ -365,20 +400,23 @@
 						type="number"
 						min="0"
 						step="0.01"
-						placeholder="e.g. 25.00"
+						placeholder="例如：25.00"
 						class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
 					/>
 				</div>
 			{/if}
 
 			<div>
-				<label for="ref-reason" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-					Refund Reason (Optional)
+				<label
+					for="ref-reason"
+					class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5"
+				>
+					退款原因（选填）
 				</label>
 				<input
 					id="ref-reason"
 					bind:value={refundReason}
-					placeholder="e.g. Customer returned package, sizing mismatch"
+					placeholder="例如：客户退货、尺码不合适"
 					class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
 				/>
 			</div>
@@ -389,7 +427,7 @@
 					onclick={() => (refundOpen = false)}
 					class="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
 				>
-					Cancel
+					取消
 				</button>
 				<button
 					type="button"
@@ -397,7 +435,7 @@
 					disabled={refunding || (refundMode === 'partial' && !refundAmount)}
 					class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-rose-700 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
 				>
-					{refunding ? 'Issuing…' : 'Confirm Refund'}
+					{refunding ? '退款中…' : '确认退款'}
 				</button>
 			</div>
 		</div>

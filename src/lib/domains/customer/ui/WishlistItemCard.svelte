@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { X } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import type { WishlistItem } from '../domain/models';
 	import { CoverImageLayer } from '$domains/catalog';
 	import { COLORS, BUTTON_STYLES, TYPOGRAPHY, formatCurrency } from '$shared/kernel';
@@ -28,7 +30,7 @@
 			class="absolute top-0 right-0 p-4 {COLORS.textSubtle} hover:text-primary dark:hover:text-white transition-colors z-20 cursor-pointer"
 			aria-label="Remove"
 		>
-			<span class="material-symbols-outlined text-lg">close</span>
+			<UiIcon icon={X} size={18} />
 		</button>
 
 		<div

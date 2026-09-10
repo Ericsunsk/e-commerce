@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ChevronDown } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import FormField from './FormField.svelte';
 
 	interface Option {
@@ -59,7 +61,7 @@
 	{/snippet}
 	{#snippet extra()}
 		<div class="absolute right-0 top-4 pointer-events-none">
-			<span class="material-symbols-outlined text-sm">expand_more</span>
+			<UiIcon icon={ChevronDown} size={14} />
 		</div>
 	{/snippet}
 </FormField>

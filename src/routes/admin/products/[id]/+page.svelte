@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { ArrowLeft, CircleAlert, CircleCheck } from 'lucide-svelte';
+	import { UiIcon } from '$shared/ui';
 	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -46,7 +48,7 @@
 				await goto('/admin/products');
 			}
 		} catch (e: unknown) {
-			error = e instanceof Error ? e.message : 'Update failed';
+			error = e instanceof Error ? e.message : '保存失败';
 		} finally {
 			saving = false;
 		}
@@ -54,7 +56,7 @@
 </script>
 
 <svelte:head>
-	<title>Edit {data.product.title} | Admin</title>
+	<title>编辑 {data.product.title} | 管理后台</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
@@ -64,22 +66,26 @@
 		href="/admin/products"
 		class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors"
 	>
-		<span class="material-symbols-outlined text-sm">arrow_back</span>
-		Back to Products
+		<UiIcon icon={ArrowLeft} size={14} />
+		返回商品列表
 	</a>
 
 	<!-- Header -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 		<div>
 			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">
-				Edit {data.product.title}
+				编辑 {data.product.title}
 			</h1>
 			<div class="flex flex-wrap items-center gap-2 mt-1.5">
-				<span class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+				<span
+					class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200"
+				>
 					/{data.product.slug}
 				</span>
 				{#if data.product.stripePriceId}
-					<span class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+					<span
+						class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200"
+					>
 						{data.product.stripePriceId}
 					</span>
 				{/if}
@@ -92,7 +98,7 @@
 			role="alert"
 			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
 		>
-			<span class="material-symbols-outlined text-base shrink-0">error</span>
+			<UiIcon icon={CircleAlert} size={16} class="shrink-0" />
 			<span>{error}</span>
 		</div>
 	{/if}
@@ -102,16 +108,19 @@
 			role="status"
 			class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs font-medium"
 		>
-			<span class="material-symbols-outlined text-base shrink-0">check_circle</span>
-			<span>Saved successfully — Stripe price rolled to a new Price object to protect historical orders.</span>
+			<UiIcon icon={CircleCheck} size={16} class="shrink-0" />
+			<span>保存成功——Stripe 价格已滚动到新的 Price 对象，历史订单不受影响。</span>
 		</div>
 	{/if}
 
 	<!-- Form Card -->
 	<div class="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
 		<div>
-			<label for="edit-title" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
-				Product Title *
+			<label
+				for="edit-title"
+				class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2"
+			>
+				商品标题 *
 			</label>
 			<input
 				id="edit-title"
@@ -121,8 +130,11 @@
 		</div>
 
 		<div>
-			<label for="edit-desc" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
-				Description
+			<label
+				for="edit-desc"
+				class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2"
+			>
+				商品描述
 			</label>
 			<textarea
 				id="edit-desc"
@@ -134,11 +146,17 @@
 
 		<div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
 			<div>
-				<label for="edit-price" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
-					Price *
+				<label
+					for="edit-price"
+					class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2"
+				>
+					售价 *
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold">$</span>
+					<span
+						class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold"
+						>$</span
+					>
 					<input
 						id="edit-price"
 						bind:value={price}
@@ -151,8 +169,11 @@
 			</div>
 
 			<div>
-				<label for="edit-curr" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
-					Currency
+				<label
+					for="edit-curr"
+					class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2"
+				>
+					币种
 				</label>
 				<select
 					id="edit-curr"
@@ -167,33 +188,37 @@
 			</div>
 
 			<div class="flex items-center sm:pt-6">
-				<label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-zinc-800">
+				<label
+					class="flex items-center gap-2.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-zinc-800"
+				>
 					<input
 						type="checkbox"
 						bind:checked={isActive}
 						class="w-4 h-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
 					/>
-					Visible on Storefront
+					前台可见
 				</label>
 			</div>
 		</div>
 
 		<VariantMatrix bind:variants />
 
-		<div class="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-			<p class="text-xs text-zinc-400">
-				Updating the base price automatically archives old prices and generates a fresh Stripe Price.
-			</p>
+		<div
+			class="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4"
+		>
+			<p class="text-xs text-zinc-400">修改基础售价会自动归档旧价格并生成新的 Stripe Price。</p>
 			<button
 				onclick={submit}
 				disabled={saving}
 				class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
 			>
 				{#if saving}
-					<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-					Saving Changes...
+					<span
+						class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+					></span>
+					保存中...
 				{:else}
-					Save Changes
+					保存修改
 				{/if}
 			</button>
 		</div>
