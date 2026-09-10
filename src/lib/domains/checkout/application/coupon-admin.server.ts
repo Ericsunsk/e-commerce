@@ -21,7 +21,7 @@ export type { AdminCouponRow };
 export async function listAdminCoupons(): Promise<AdminCouponRow[]> {
 	return withAdmin(async (pb: TypedPocketBase) => {
 		const records = await pb.collection(Collections.Coupons).getFullList<Coupon & { id: string }>({
-			sort: '-created'
+			sort: '-id'
 		});
 		return records.map(toAdminCouponRow);
 	}, []);

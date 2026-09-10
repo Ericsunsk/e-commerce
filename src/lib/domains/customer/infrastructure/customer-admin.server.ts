@@ -44,29 +44,38 @@ async function countOrdersWithClient(pb: TypedPocketBase, userId: string): Promi
 export async function listAdminCustomers(query: string, page: number): Promise<CustomerListPage> {
 	const perPage = 20;
 	const safePage = Math.min(Math.max(page || 1, 1), 1000);
-	return withAdmin(async (pb) => {
-		const filter = query ? `email ~ "${escapeFilterValue(query)}"` : undefined;
-		const result = await pb.collection(Collections.Users).getList(safePage, perPage, {
-			sort: '-created',
-			...(filter ? { filter } : {})
-		});
-		const rows: CustomerRow[] = [];
-		for (const record of result.items as UsersResponse[]) {
-			rows.push(
-				toCustomerRow(
-					{ id: record.id, email: record.email, verified: record.verified },
-					await countOrdersWithClient(pb, record.id)
-				)
-			);
+	return withAdmin(
+		async (pb) => {
+			const filter = query ? `email ~ "${escapeFilterValue(query)}"` : undefined;
+			const result = await pb.collection(Collections.Users).getList(safePage, perPage, {
+				sort: '-id',
+				...(filter ? { filter } : {})
+			});
+			const rows: CustomerRow[] = [];
+			for (const record of result.items as UsersResponse[]) {
+				rows.push(
+					toCustomerRow(
+						{ id: record.id, email: record.email, verified: record.verified },
+						await countOrdersWithClient(pb, record.id)
+					)
+				);
+			}
+			return {
+				rows,
+				page: result.page,
+				perPage: result.perPage,
+				totalPages: result.totalPages,
+				totalItems: result.totalItems
+			};
+		},
+		{
+			rows: [],
+			page: safePage,
+			perPage,
+			totalPages: 1,
+			totalItems: 0
 		}
-		return {
-			rows,
-			page: result.page,
-			perPage: result.perPage,
-			totalPages: result.totalPages,
-			totalItems: result.totalItems
-		};
-	});
+	);
 }
 
 export interface CustomerDetail {
