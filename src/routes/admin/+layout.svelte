@@ -78,89 +78,54 @@
 {#if isLogin}
 	{@render children()}
 {:else}
-	<div class="min-h-screen bg-zinc-50 text-zinc-900 font-sans antialiased flex flex-col">
-		<!-- Global Top Bar (顶部栏) -->
-		<header
-			class="sticky top-0 z-40 h-14 bg-zinc-50 border-b border-zinc-200 px-4 lg:px-6 flex items-center justify-between"
+	<div class="min-h-screen bg-zinc-50 text-zinc-900 font-sans antialiased flex">
+		<!-- Mobile drawer backdrop -->
+		{#if drawerOpen}
+			<button
+				onclick={() => (drawerOpen = false)}
+				aria-label="关闭菜单"
+				class="fixed inset-0 z-40 bg-zinc-900/30 backdrop-blur-xs lg:hidden cursor-default"
+			></button>
+		{/if}
+
+		<!-- Left Column: Sidebar (垂直贯穿到底，包含顶部 Logo 栏 + 导航链接 + 底部折叠切换) -->
+		<aside
+			class="fixed lg:sticky top-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 {isCollapsed
+				? 'w-64 lg:w-20'
+				: 'w-64'} {drawerOpen
+				? 'translate-x-0 shadow-xl'
+				: '-translate-x-full lg:translate-x-0'}"
 		>
-			<div class="flex items-center gap-3 min-w-0">
-				<button
-					onclick={() => (drawerOpen = !drawerOpen)}
-					aria-label="切换导航菜单"
-					class="lg:hidden p-1.5 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
+			<div class="flex flex-col min-h-0 flex-1">
+				<!-- Sidebar Top Brand Box (与右侧顶部栏等高 h-14，底部有横向分割线 border-b) -->
+				<div
+					class="h-14 shrink-0 border-b border-zinc-200 flex items-center {isCollapsed
+						? 'lg:justify-center px-3'
+						: 'px-4'} transition-all"
 				>
-					{#if drawerOpen}
-						<UiIcon icon={X} size={18} />
-					{:else}
-						<UiIcon icon={Menu} size={18} />
-					{/if}
-				</button>
-				<a
-					href="/admin"
-					class="flex items-center gap-2.5 min-w-0 group hover:opacity-90 transition-opacity"
-					title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
-				>
-					<AdminLogo
-						src={data.logoUrl}
-						label={data.siteName}
-						class="w-8 h-8 shrink-0"
-						iconSize={16}
-					/>
-					<span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 truncate">
-						{data.siteName || 'JEVARIE'}
-					</span>
-				</a>
-			</div>
-
-			<div class="flex items-center gap-3 shrink-0">
-				<a
-					href="/"
-					target="_blank"
-					title="查看线上店铺"
-					class="text-zinc-400 hover:text-zinc-700 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors hidden sm:flex items-center"
-					aria-label="查看线上店铺"
-				>
-					<UiIcon icon={ExternalLink} size={16} />
-				</a>
-				{#if data.adminEmail}
-					<div class="h-4 w-px bg-zinc-200 hidden sm:block"></div>
-					<div class="flex items-center gap-2" title={data.adminEmail}>
-						<div
-							class="w-7 h-7 rounded-full bg-zinc-900 text-white text-[11px] font-bold flex items-center justify-center font-mono shrink-0"
-						>
-							{userInitials}
-						</div>
+					<a
+						href="/admin"
+						class="flex items-center {isCollapsed ? 'gap-0' : 'gap-2.5'} min-w-0 group hover:opacity-90 transition-opacity"
+						title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
+					>
+						<AdminLogo
+							src={data.logoUrl}
+							label={data.siteName}
+							class="w-8 h-8 shrink-0"
+							iconSize={16}
+						/>
 						<span
-							class="text-xs font-mono font-medium text-zinc-600 hidden md:inline-block truncate max-w-[200px]"
+							class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 truncate {isCollapsed
+								? 'lg:hidden'
+								: ''}"
 						>
-							{data.adminEmail}
+							{data.siteName || 'JEVARIE'}
 						</span>
-					</div>
-				{/if}
-			</div>
-		</header>
+					</a>
+				</div>
 
-		<!-- Main Layout with Divider below Top Bar -->
-		<div class="flex flex-1 min-h-[calc(100vh-3.5rem)]">
-			<!-- Mobile drawer backdrop -->
-			{#if drawerOpen}
-				<button
-					onclick={() => (drawerOpen = false)}
-					aria-label="关闭菜单"
-					class="fixed inset-0 top-14 z-40 bg-zinc-900/30 backdrop-blur-xs lg:hidden cursor-default"
-				></button>
-			{/if}
-
-			<!-- Sidebar (导航栏) -->
-			<aside
-				class="fixed lg:sticky top-14 z-40 lg:z-10 shrink-0 h-[calc(100vh-3.5rem)] border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 py-4 {isCollapsed
-					? 'w-64 px-4 lg:w-20 lg:px-3'
-					: 'w-64 px-4'} {drawerOpen
-					? 'translate-x-0 shadow-xl'
-					: '-translate-x-full lg:translate-x-0'}"
-			>
 				<!-- Navigation links -->
-				<nav class="flex flex-col gap-1 overflow-y-auto min-h-0 flex-1">
+				<nav class="flex flex-col gap-1 p-3 overflow-y-auto min-h-0 flex-1">
 					{#each nav as item (item.href)}
 						{@const active = isActive(item.href)}
 						{@const NavIcon = item.icon}
@@ -169,8 +134,8 @@
 							onclick={() => (drawerOpen = false)}
 							title={isCollapsed ? item.label : undefined}
 							class="flex items-center rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {isCollapsed
-								? 'lg:justify-center lg:p-2.5 px-3.5 py-2.5 gap-3'
-								: 'gap-3 px-3.5 py-2.5'} {active
+								? 'lg:justify-center lg:p-2.5 px-3 py-2.5 gap-3'
+								: 'gap-3 px-3 py-2.5'} {active
 								? 'bg-zinc-900 text-white shadow-xs'
 								: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'}"
 						>
@@ -183,37 +148,101 @@
 						</a>
 					{/each}
 				</nav>
+			</div>
 
-				<!-- Sidebar Footer: Collapse Toggle -->
-				<div class="pt-3 border-t border-zinc-200/80 shrink-0 hidden lg:block">
-					{#if isCollapsed}
-						<div class="flex justify-center">
-							<button
-								type="button"
-								onclick={toggleCollapsed}
-								class="p-2.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
-								aria-label="展开侧边栏"
-								title="展开侧边栏"
-							>
-								<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
-							</button>
-						</div>
-					{:else}
+			<!-- Sidebar Footer: Collapse Toggle -->
+			<div class="p-3 border-t border-zinc-200 shrink-0 hidden lg:block">
+				{#if isCollapsed}
+					<div class="flex justify-center">
 						<button
 							type="button"
 							onclick={toggleCollapsed}
-							class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
-							aria-label="折叠侧边栏"
-							title="折叠侧边栏"
+							class="p-2 rounded-lg border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+							aria-label="展开侧边栏"
+							title="展开侧边栏"
 						>
-							<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
-							<span>折叠侧边栏</span>
+							<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
 						</button>
+					</div>
+				{:else}
+					<button
+						type="button"
+						onclick={toggleCollapsed}
+						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-zinc-200 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+						aria-label="折叠侧边栏"
+						title="折叠侧边栏"
+					>
+						<UiIcon icon={PanelLeftClose} size={18} class="text-zinc-400 shrink-0" />
+						<span>折叠侧边栏</span>
+					</button>
+				{/if}
+			</div>
+		</aside>
+
+		<!-- Right Column: Top Bar + Main Content Area -->
+		<div class="flex-1 min-w-0 flex flex-col min-h-screen">
+			<!-- Right Top Bar (顶部栏：高 h-14，底部有横向分割线 border-b) -->
+			<header
+				class="sticky top-0 z-30 h-14 bg-zinc-50 border-b border-zinc-200 px-4 sm:px-6 flex items-center justify-between"
+			>
+				<div class="flex items-center gap-3">
+					<!-- Mobile menu button -->
+					<button
+						onclick={() => (drawerOpen = !drawerOpen)}
+						aria-label="切换导航菜单"
+						class="lg:hidden p-1.5 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
+					>
+						{#if drawerOpen}
+							<UiIcon icon={X} size={18} />
+						{:else}
+							<UiIcon icon={Menu} size={18} />
+						{/if}
+					</button>
+
+					<!-- Mobile Brand (shown only on mobile) -->
+					<div class="lg:hidden flex items-center gap-2">
+						<AdminLogo
+							src={data.logoUrl}
+							label={data.siteName}
+							class="w-7 h-7 shrink-0"
+							iconSize={14}
+						/>
+						<span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 truncate">
+							{data.siteName || 'JEVARIE'}
+						</span>
+					</div>
+				</div>
+
+				<!-- Right tools / profile -->
+				<div class="flex items-center gap-3 shrink-0">
+					<a
+						href="/"
+						target="_blank"
+						title="查看线上店铺"
+						class="text-zinc-400 hover:text-zinc-700 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors flex items-center"
+						aria-label="查看线上店铺"
+					>
+						<UiIcon icon={ExternalLink} size={16} />
+					</a>
+					{#if data.adminEmail}
+						<div class="h-4 w-px bg-zinc-200"></div>
+						<div class="flex items-center gap-2" title={data.adminEmail}>
+							<div
+								class="w-7 h-7 rounded-full bg-zinc-900 text-white text-[11px] font-bold flex items-center justify-center font-mono shrink-0"
+							>
+								{userInitials}
+							</div>
+							<span
+								class="text-xs font-mono font-medium text-zinc-600 hidden md:inline-block truncate max-w-[200px]"
+							>
+								{data.adminEmail}
+							</span>
+						</div>
 					{/if}
 				</div>
-			</aside>
+			</header>
 
-			<!-- Content Area -->
+			<!-- Main Content -->
 			<main class="flex-1 min-w-0 px-6 md:px-10 py-8 max-w-7xl mx-auto w-full">
 				{@render children()}
 			</main>
