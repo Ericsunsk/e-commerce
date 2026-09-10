@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import type { LayoutData } from './$types';
 	import {
 		LayoutDashboard,
 		Boxes,
@@ -14,13 +15,12 @@
 		Settings,
 		X,
 		Menu,
-		ExternalLink,
 		PanelLeftClose,
 		PanelLeftOpen
 	} from 'lucide-svelte';
 	import { AdminLogo, UiIcon } from '$shared/ui';
 
-	let { children }: { children: import('svelte').Snippet } = $props();
+	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
 	const nav = [
 		{ href: '/admin', label: '仪表盘', icon: LayoutDashboard },
@@ -78,14 +78,16 @@
 		<header
 			class="lg:hidden flex items-center justify-between px-5 py-3.5 bg-zinc-50 sticky top-0 z-30"
 		>
-			<div class="flex items-center gap-2.5">
-				<AdminLogo class="w-7 h-7" iconSize={14} />
-				<span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900">Admin</span>
+			<div class="flex items-center gap-2.5 min-w-0">
+				<AdminLogo src={data.logoUrl} class="w-7 h-7" iconSize={14} />
+				<span class="text-xs font-semibold font-mono text-zinc-900 truncate">
+					{data.adminEmail || 'Admin'}
+				</span>
 			</div>
 			<button
 				onclick={() => (drawerOpen = !drawerOpen)}
 				aria-label="切换导航菜单"
-				class="p-2 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors"
+				class="p-2 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
 			>
 				{#if drawerOpen}
 					<UiIcon icon={X} size={20} />
@@ -114,26 +116,19 @@
 					: '-translate-x-full lg:translate-x-0'}"
 			>
 				<div class="flex flex-col gap-6 overflow-y-auto min-h-0 flex-1">
-					<!-- Brand logo -->
-					<div class="flex items-center {isCollapsed ? 'lg:justify-center' : 'justify-between'} px-1">
-						<a href="/admin" class="flex items-center gap-2.5 min-w-0" title="管理后台首页">
-							<AdminLogo class="w-8 h-8 shrink-0" iconSize={16} />
-							<div class="min-w-0 {isCollapsed ? 'lg:hidden' : ''}">
-								<h1 class="text-xs font-bold uppercase tracking-[0.25em] text-zinc-900 truncate">JEVARIE</h1>
-								<p class="text-[9px] uppercase tracking-[0.15em] text-zinc-400 font-semibold truncate">
-									店铺管理
+					<!-- Brand logo & Admin Info -->
+					<div class="flex items-center {isCollapsed ? 'lg:justify-center' : ''} px-1">
+						<a
+							href="/admin"
+							class="flex items-center {isCollapsed ? 'gap-0' : 'gap-3'} min-w-0 group hover:opacity-90 transition-opacity"
+							title={data.adminEmail ? `管理后台 (${data.adminEmail})` : '管理后台'}
+						>
+							<AdminLogo src={data.logoUrl} class="w-8 h-8 shrink-0" iconSize={16} />
+							<div class="min-w-0 flex-1 {isCollapsed ? 'lg:hidden' : ''}">
+								<p class="text-xs font-semibold text-zinc-900 truncate font-mono" title={data.adminEmail || ''}>
+									{data.adminEmail || '管理员'}
 								</p>
 							</div>
-						</a>
-						<a
-							href="/"
-							target="_blank"
-							title="查看线上店铺"
-							class="text-zinc-400 hover:text-zinc-800 p-1.5 rounded-md hover:bg-zinc-100 transition-colors {isCollapsed
-								? 'lg:hidden'
-								: ''}"
-						>
-							<UiIcon icon={ExternalLink} size={16} />
 						</a>
 					</div>
 
