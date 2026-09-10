@@ -3,6 +3,10 @@ import type { TypedPocketBase, UsersResponse } from '$shared/infrastructure';
 declare global {
 	namespace App {
 		// interface Error {}
+		interface Error {
+			message: string;
+			errorId?: string;
+		}
 		interface Locals {
 			pb: TypedPocketBase;
 			user: UsersResponse | null;

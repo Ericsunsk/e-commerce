@@ -1,48 +1,25 @@
-import { type Handle } from '@sveltejs/kit';
+import { type Handle, type HandleServerError } from '@sveltejs/kit';
 import { checkoutLimiter, apiLimiter } from '$shared/infrastructure/server';
+import {
+	applySecurityHeaders,
+	createErrorId,
+	extractAnalyticsDomain,
+	logServerError,
+	toErrorPayload,
+	type CspOrigins
+} from '$shared/infrastructure/server/security-headers.server';
 import PocketBase from 'pocketbase';
 import { env } from '$env/dynamic/public';
 import { env as privateEnv } from '$env/dynamic/private';
 import type { TypedPocketBase, UsersResponse } from '$shared/infrastructure';
 
-function buildCspHeader(url: URL): string {
-	const isHttps = url.protocol === 'https:';
-
-	const directives = [
-		"default-src 'self'",
-		"base-uri 'self'",
-		"object-src 'none'",
-		"frame-ancestors 'none'",
-		"form-action 'self'",
-		"img-src 'self' data: blob: https: http:",
-		"font-src 'self' https: data:",
-		"style-src 'self' 'unsafe-inline' https:",
-		"script-src 'self' 'unsafe-inline' https://js.stripe.com",
-		'frame-src https://js.stripe.com https://hooks.stripe.com',
-		"connect-src 'self' https: http: ws: wss:",
-		"worker-src 'self' blob:"
-	];
-
-	if (isHttps) {
-		directives.push('upgrade-insecure-requests');
-	}
-
-	return directives.join('; ');
-}
-
-function applySecurityHeaders(response: Response, url: URL): void {
-	response.headers.set('Content-Security-Policy', buildCspHeader(url));
-	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-	response.headers.set('X-Content-Type-Options', 'nosniff');
-	response.headers.set('X-Frame-Options', 'DENY');
-	response.headers.set(
-		'Permissions-Policy',
-		'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'
-	);
-
-	if (url.protocol === 'https:') {
-		response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-	}
+function resolveCspOrigins(): CspOrigins {
+	const cdnUrl = env.PUBLIC_R2_CDN_URL || '';
+	return {
+		pbOrigin: env.PUBLIC_POCKETBASE_URL || null,
+		cdnOrigins: cdnUrl ? [cdnUrl.replace(/\/$/, '')] : [],
+		analyticsOrigins: [extractAnalyticsDomain(env.PUBLIC_ANALYTICS_CODE)]
+	};
 }
 
 function isPrivatePath(pathname: string): boolean {
@@ -88,8 +65,17 @@ function applyCacheHeaders(
 	);
 }
 
+export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+	const errorId = createErrorId();
+	const isDev = import.meta.env.DEV;
+
+	logServerError(error, { errorId, path: event.url.pathname, status, message }, isDev);
+	return toErrorPayload(error, errorId, isDev, status);
+};
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const { url, request } = event;
+	const cspOrigins = resolveCspOrigins();
 	const cookieHeader = request.headers.get('cookie') || '';
 	const hasAuthCookie = cookieHeader.includes('pb_auth=');
 	const disableRateLimit =
@@ -141,7 +127,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 					headers: { 'Retry-After': '60' }
 				});
 				response.headers.set('Cache-Control', 'no-store');
-				applySecurityHeaders(response, url);
+				applySecurityHeaders(response, url, cspOrigins);
 				return response;
 			}
 		}
@@ -156,7 +142,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 						headers: { 'Retry-After': '60' }
 					});
 					response.headers.set('Cache-Control', 'no-store');
-					applySecurityHeaders(response, url);
+					applySecurityHeaders(response, url, cspOrigins);
 					return response;
 				}
 			}
@@ -180,7 +166,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		response.headers.append('set-cookie', authCookie);
 	}
 
-	applySecurityHeaders(response, url);
+	applySecurityHeaders(response, url, cspOrigins);
 	applyCacheHeaders(response, url, request, { hasAuthCookie });
 
 	return response;

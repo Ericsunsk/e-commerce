@@ -59,6 +59,11 @@
 			<p class="text-sm text-white/50 mb-12 tracking-wider font-sans">
 				{$page.error?.message || 'An unexpected error occurred.'}
 			</p>
+			{#if $page.error?.errorId}
+				<p class="text-[10px] text-white/30 mb-12 tracking-widest font-mono">
+					Error ID: {$page.error.errorId}
+				</p>
+			{/if}
 			<a
 				href="/"
 				class="inline-block border border-white/20 hover:border-white px-8 py-3 text-xs uppercase tracking-[0.2em] transition-all hover:bg-white hover:text-black"

@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck (svelte-check)
+        run: npm run check
+
+      - name: Unit tests (vitest)
+        run: npm test -- --run
+
+      - name: Architecture cycle check (dependency-cruiser)
+        run: npx depcruise --validate .dependency-cruiser.cjs src
+
+      - name: Production build
+        run: npm run build

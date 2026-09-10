@@ -3,6 +3,9 @@
 	import { useCart } from '$domains/cart';
 	import { fade } from 'svelte/transition';
 	import { DEFAULTS } from '$shared/kernel';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 
 	const cart = useCart();
 
@@ -36,6 +39,12 @@
 			Your order has been received and is being processed. A confirmation email will be sent to you
 			shortly.
 		</p>
+
+		{#if data.reconciled?.orderId}
+			<p class="text-[10px] uppercase tracking-[0.2em] text-primary/40 dark:text-white/40 mb-12">
+				Order {data.reconciled.orderId} confirmed
+			</p>
+		{/if}
 
 		<div class="flex flex-col gap-4">
 			<a
