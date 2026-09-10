@@ -88,7 +88,7 @@
 
 		<!-- Desktop Spacer: 保持主内容区宽度稳定，折叠态 hover 时以悬浮浮层展开，避免主页面重排抖动 -->
 		<div
-			class="hidden lg:block shrink-0 transition-[width] duration-200 {isCollapsed
+			class="hidden lg:block shrink-0 transition-[width] duration-200 ease-[cubic-bezier(0.2,0,0,1)] {isCollapsed
 				? 'w-14'
 				: 'w-52'}"
 		></div>
@@ -97,7 +97,7 @@
 		<aside
 			onmouseenter={() => (isHovered = true)}
 			onmouseleave={() => (isHovered = false)}
-			class="fixed top-0 left-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between transition-[width,box-shadow,transform] duration-200 {effectiveCollapsed
+			class="fixed top-0 left-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between overflow-hidden transition-[width,box-shadow,transform] duration-200 ease-[cubic-bezier(0.2,0,0,1)] {effectiveCollapsed
 				? 'w-52 lg:w-14'
 				: 'w-52'} {isCollapsed && isHovered
 				? 'lg:shadow-xl lg:z-40'
@@ -107,26 +107,24 @@
 		>
 			<div class="flex flex-col min-h-0 flex-1">
 				<!-- Sidebar Top Brand Box (与右侧顶部栏等高 h-14，底部有横向分割线 border-b) -->
-				<div
-					class="h-14 shrink-0 border-b border-zinc-200 flex items-center {effectiveCollapsed
-						? 'lg:justify-center px-2'
-						: 'px-4'} transition-all"
-				>
+				<div class="h-14 shrink-0 border-b border-zinc-200 flex items-center px-2">
 					<a
 						href="/admin"
-						class="flex items-center {effectiveCollapsed ? 'lg:justify-center lg:w-full gap-3' : 'gap-3'} min-w-0 group hover:opacity-85 transition-opacity"
+						class="flex items-center w-full h-10 rounded-xl min-w-0 group hover:opacity-85 transition-opacity whitespace-nowrap overflow-hidden"
 						title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
 					>
-						<AdminLogo
-							src={data.logoUrl}
-							label={data.siteName}
-							class="w-7 h-7 shrink-0"
-							iconSize={16}
-						/>
+						<div class="w-10 h-10 shrink-0 flex items-center justify-center">
+							<AdminLogo
+								src={data.logoUrl}
+								label={data.siteName}
+								class="w-7 h-7"
+								iconSize={16}
+							/>
+						</div>
 						<span
-							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate {effectiveCollapsed
-								? 'lg:hidden'
-								: ''}"
+							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate pl-1 transition-[opacity,transform] duration-200 ease-out {effectiveCollapsed
+								? 'opacity-0 -translate-x-2 pointer-events-none'
+								: 'opacity-100 translate-x-0'}"
 						>
 							{data.siteName || 'JEVARIE'}
 						</span>
@@ -134,7 +132,7 @@
 				</div>
 
 				<!-- Navigation links -->
-				<nav class="flex flex-col gap-1.5 p-2 overflow-y-auto min-h-0 flex-1">
+				<nav class="flex flex-col gap-1.5 p-2 overflow-x-hidden overflow-y-auto min-h-0 flex-1">
 					{#each nav as item (item.href)}
 						{@const active = isActive(item.href)}
 						{@const NavIcon = item.icon}
@@ -145,30 +143,32 @@
 								isHovered = false;
 							}}
 							title={effectiveCollapsed ? item.label : undefined}
-							class="flex items-center rounded-xl text-xs font-normal tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {effectiveCollapsed
-								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
-								: 'gap-3 px-3 py-2.5'} {active
+							class="flex items-center h-10 w-full rounded-xl text-xs font-normal tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
 								? 'bg-zinc-100'
 								: 'hover:bg-zinc-100'}"
 						>
-							<UiIcon
-								icon={NavIcon}
-								size={ICONS.sizeNav}
-								strokeWidth={ICONS.strokeWidth}
-								class={ICONS.navClass}
-							/>
-							<span class="text-zinc-900 {effectiveCollapsed ? 'lg:hidden' : ''}">{item.label}</span>
+							<div class="w-10 h-10 shrink-0 flex items-center justify-center">
+								<UiIcon
+									icon={NavIcon}
+									size={ICONS.sizeNav}
+									strokeWidth={ICONS.strokeWidth}
+									class={ICONS.navClass}
+								/>
+							</div>
+							<span
+								class="text-zinc-900 pl-1 transition-[opacity,transform] duration-200 ease-out {effectiveCollapsed
+									? 'opacity-0 -translate-x-2 pointer-events-none'
+									: 'opacity-100 translate-x-0'}"
+							>
+								{item.label}
+							</span>
 						</a>
 					{/each}
 				</nav>
 			</div>
 
 			<!-- Sidebar Footer: Collapse Toggle -->
-			<div
-				class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center {effectiveCollapsed
-					? 'justify-center'
-					: 'px-2'}"
-			>
+			<div class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center px-2">
 				<button
 					type="button"
 					onclick={toggleCollapsed}
