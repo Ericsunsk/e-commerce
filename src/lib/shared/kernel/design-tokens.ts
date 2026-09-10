@@ -71,3 +71,17 @@ export const LAYOUT = {
 	loadingText: 'animate-pulse text-primary/60 dark:text-white/60',
 	emptyState: 'text-center py-24 border border-primary/10 dark:border-white/10'
 } as const;
+
+export const ICONS = {
+	sizeXs: 14,
+	sizeSm: 16,
+	sizeNav: 18,
+	sizeMd: 20,
+	sizeLg: 24,
+	sizeXl: 32,
+	strokeWidthThin: 1.2,
+	strokeWidth: 1.5,
+	strokeWidthBold: 2.0,
+	navClass: 'text-zinc-900 opacity-80 shrink-0'
+} as const;
+

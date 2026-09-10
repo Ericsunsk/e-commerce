@@ -4,12 +4,12 @@
 	import type { LayoutData } from './$types';
 	import {
 		LayoutDashboard,
-		Boxes,
+		Package,
 		ReceiptText,
 		Tag,
 		KeyRound,
-		DatabaseBackup,
-		ScrollText,
+		Database,
+		FileText,
 		Newspaper,
 		Users,
 		Settings,
@@ -19,19 +19,20 @@
 		PanelLeftOpen
 	} from 'lucide-svelte';
 	import { AdminLogo, UiIcon } from '$shared/ui';
+	import { ICONS } from '$shared/kernel';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
 	const nav = [
 		{ href: '/admin', label: '仪表盘', icon: LayoutDashboard },
-		{ href: '/admin/products', label: '商品', icon: Boxes },
+		{ href: '/admin/products', label: '商品', icon: Package },
 		{ href: '/admin/orders', label: '订单', icon: ReceiptText },
 		{ href: '/admin/coupons', label: '优惠券', icon: Tag },
 		{ href: '/admin/customers', label: '客户', icon: Users },
 		{ href: '/admin/content', label: '内容', icon: Newspaper },
 		{ href: '/admin/auth', label: '认证', icon: KeyRound },
-		{ href: '/admin/backups', label: '备份', icon: DatabaseBackup },
-		{ href: '/admin/logs', label: '日志', icon: ScrollText },
+		{ href: '/admin/backups', label: '备份', icon: Database },
+		{ href: '/admin/logs', label: '日志', icon: FileText },
 		{ href: '/admin/settings', label: '设置', icon: Settings }
 	];
 
@@ -136,8 +137,9 @@
 						>
 							<UiIcon
 								icon={NavIcon}
-								size={18}
-								class="text-zinc-900 opacity-80 shrink-0"
+								size={ICONS.sizeNav}
+								strokeWidth={ICONS.strokeWidth}
+								class={ICONS.navClass}
 							/>
 							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 						</a>
@@ -160,8 +162,9 @@
 				>
 					<UiIcon
 						icon={isCollapsed ? PanelLeftOpen : PanelLeftClose}
-						size={18}
-						class="text-zinc-900 opacity-80 shrink-0"
+						size={ICONS.sizeNav}
+						strokeWidth={ICONS.strokeWidth}
+						class={ICONS.navClass}
 					/>
 				</button>
 			</div>
@@ -181,9 +184,9 @@
 						class="lg:hidden p-1.5 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
 					>
 						{#if drawerOpen}
-							<UiIcon icon={X} size={18} />
+							<UiIcon icon={X} size={ICONS.sizeNav} strokeWidth={ICONS.strokeWidth} />
 						{:else}
-							<UiIcon icon={Menu} size={18} />
+							<UiIcon icon={Menu} size={ICONS.sizeNav} strokeWidth={ICONS.strokeWidth} />
 						{/if}
 					</button>
 

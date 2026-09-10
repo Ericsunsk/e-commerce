@@ -1,9 +1,9 @@
 <script lang="ts">
+	import { ICONS } from '$shared/kernel';
+
 	/**
 	 * Global icon outlet — single source of truth for icon thickness and
-	 * color. Thickness defaults to a 1.2px grid; color always
-	 * inherits the surrounding text color, so status colors belong on the
-	 * parent, never on the icon itself.
+	 * color. Defaults to centralized ICONS design tokens.
 	 */
 	interface Props {
 		// Any renderable icon component (e.g. lucide-svelte icons, which are
@@ -16,7 +16,14 @@
 		[key: string]: unknown;
 	}
 
-	let { icon: Icon, size = 20, strokeWidth = 1.2, class: cls = '', ...rest }: Props = $props();
+	let {
+		icon: Icon,
+		size = ICONS.sizeMd,
+		strokeWidth = ICONS.strokeWidth,
+		class: cls = '',
+		...rest
+	}: Props = $props();
 </script>
 
 <Icon {size} {strokeWidth} class={cls} {...rest} />
+
