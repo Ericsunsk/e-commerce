@@ -6,7 +6,6 @@
 	let { data }: { data: PageData } = $props();
 
 	// svelte-ignore state_referenced_locally
-	// Intentional snapshot: the form becomes client-owned state after edits.
 	let title = $state(data.product.title);
 	// svelte-ignore state_referenced_locally
 	let description = $state(data.product.description);
@@ -59,81 +58,144 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<a href="/admin/products" class="text-[11px] uppercase tracking-widest text-white/50 hover:text-white">
-	← Back to Products
-</a>
+<div class="space-y-6 max-w-4xl">
+	<!-- Back link -->
+	<a
+		href="/admin/products"
+		class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 transition-colors"
+	>
+		<span class="material-symbols-outlined text-sm">arrow_back</span>
+		Back to Products
+	</a>
 
-<h1 class="text-2xl font-display uppercase tracking-widest mt-4 mb-2">Edit Product</h1>
-<p class="text-xs text-white/40 font-mono mb-8">
-	{data.product.slug} · {data.product.stripePriceId ?? 'no stripe price'}
-</p>
-
-{#if error}
-	<p role="alert" class="text-xs uppercase tracking-widest text-red-400 mb-4">{error}</p>
-{/if}
-{#if rolled}
-	<p role="status" class="text-xs uppercase tracking-widest text-emerald-400 mb-4">
-		Saved — Stripe price rolled to a new Price object.
-	</p>
-{/if}
-
-<div class="max-w-2xl space-y-4">
-	<label class="block">
-		<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Title</span>
-		<input
-			bind:value={title}
-			class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-		/>
-	</label>
-
-	<label class="block">
-		<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Description</span>
-		<textarea
-			bind:value={description}
-			rows="3"
-			class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-		></textarea>
-	</label>
-
-	<div class="grid grid-cols-3 gap-4">
-		<label class="block">
-			<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Price $</span>
-			<input
-				bind:value={price}
-				type="number"
-				min="0"
-				step="0.01"
-				class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-			/>
-		</label>
-		<label class="block">
-			<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Currency</span>
-			<select
-				bind:value={currency}
-				class="w-full bg-neutral-950 border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-			>
-				<option value="USD">USD</option>
-				<option value="EUR">EUR</option>
-				<option value="GBP">GBP</option>
-				<option value="CAD">CAD</option>
-			</select>
-		</label>
-		<div class="flex items-end pb-3">
-			<label class="flex items-center gap-2 text-[11px] uppercase tracking-widest text-white/70">
-				<input type="checkbox" bind:checked={isActive} class="w-4 h-4 accent-emerald-500" />
-				Active
-			</label>
+	<!-- Header -->
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+		<div>
+			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">
+				Edit {data.product.title}
+			</h1>
+			<div class="flex flex-wrap items-center gap-2 mt-1.5">
+				<span class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+					/{data.product.slug}
+				</span>
+				{#if data.product.stripePriceId}
+					<span class="text-xs font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+						{data.product.stripePriceId}
+					</span>
+				{/if}
+			</div>
 		</div>
 	</div>
 
-	<VariantMatrix bind:variants />
+	{#if error}
+		<div
+			role="alert"
+			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
+		>
+			<span class="material-symbols-outlined text-base shrink-0">error</span>
+			<span>{error}</span>
+		</div>
+	{/if}
 
-	<button
-		onclick={submit}
-		disabled={saving}
-		class="w-full bg-white text-black py-4 text-[11px] font-bold uppercase tracking-widest hover:opacity-90 disabled:opacity-50"
-	>
-		{saving ? 'Saving…' : 'Save Changes'}
-	</button>
-	<p class="text-[10px] text-white/30">Changing the price provisions a new Stripe Price (auto roll).</p>
+	{#if rolled}
+		<div
+			role="status"
+			class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-xs font-medium"
+		>
+			<span class="material-symbols-outlined text-base shrink-0">check_circle</span>
+			<span>Saved successfully — Stripe price rolled to a new Price object to protect historical orders.</span>
+		</div>
+	{/if}
+
+	<!-- Form Card -->
+	<div class="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+		<div>
+			<label for="edit-title" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
+				Product Title *
+			</label>
+			<input
+				id="edit-title"
+				bind:value={title}
+				class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+			/>
+		</div>
+
+		<div>
+			<label for="edit-desc" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
+				Description
+			</label>
+			<textarea
+				id="edit-desc"
+				bind:value={description}
+				rows="3"
+				class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+			></textarea>
+		</div>
+
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+			<div>
+				<label for="edit-price" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
+					Price *
+				</label>
+				<div class="relative">
+					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold">$</span>
+					<input
+						id="edit-price"
+						bind:value={price}
+						type="number"
+						min="0"
+						step="0.01"
+						class="w-full bg-white border border-zinc-300 rounded-xl pl-8 pr-4 py-3 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+					/>
+				</div>
+			</div>
+
+			<div>
+				<label for="edit-curr" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
+					Currency
+				</label>
+				<select
+					id="edit-curr"
+					bind:value={currency}
+					class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+				>
+					<option value="USD">USD ($)</option>
+					<option value="EUR">EUR (€)</option>
+					<option value="GBP">GBP (£)</option>
+					<option value="CAD">CAD ($)</option>
+				</select>
+			</div>
+
+			<div class="flex items-center sm:pt-6">
+				<label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-zinc-800">
+					<input
+						type="checkbox"
+						bind:checked={isActive}
+						class="w-4 h-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600"
+					/>
+					Visible on Storefront
+				</label>
+			</div>
+		</div>
+
+		<VariantMatrix bind:variants />
+
+		<div class="pt-4 border-t border-zinc-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+			<p class="text-xs text-zinc-400">
+				Updating the base price automatically archives old prices and generates a fresh Stripe Price.
+			</p>
+			<button
+				onclick={submit}
+				disabled={saving}
+				class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+			>
+				{#if saving}
+					<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+					Saving Changes...
+				{:else}
+					Save Changes
+				{/if}
+			</button>
+		</div>
+	</div>
 </div>

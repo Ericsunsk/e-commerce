@@ -5,7 +5,7 @@
 	let { data }: { data: PageData } = $props();
 
 	const tabs = [
-		{ id: 'all', label: 'All' },
+		{ id: 'all', label: 'All Orders' },
 		{ id: 'unfulfilled', label: 'Paid / Unfulfilled' },
 		{ id: 'shipped', label: 'Shipped' },
 		{ id: 'delivered', label: 'Delivered' },
@@ -22,20 +22,20 @@
 		})
 	);
 
-	function statusClass(status: string): string {
-		switch (status) {
+	function statusBadge(status: string): string {
+		switch (status.toLowerCase()) {
 			case 'paid':
 			case 'processing':
-				return 'bg-amber-400/10 text-amber-300';
+				return 'bg-amber-50 text-amber-700 border-amber-200';
 			case 'shipped':
-				return 'bg-sky-400/10 text-sky-300';
+				return 'bg-sky-50 text-sky-700 border-sky-200';
 			case 'delivered':
-				return 'bg-emerald-400/10 text-emerald-300';
+				return 'bg-emerald-50 text-emerald-700 border-emerald-200';
 			case 'refunded':
 			case 'cancelled':
-				return 'bg-white/10 text-white/50';
+				return 'bg-rose-50 text-rose-700 border-rose-200';
 			default:
-				return 'bg-white/10 text-white/70';
+				return 'bg-zinc-100 text-zinc-700 border-zinc-200';
 		}
 	}
 </script>
@@ -45,69 +45,104 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<h1 class="text-2xl font-display uppercase tracking-widest mb-8">Orders</h1>
+<div class="space-y-6">
+	<!-- Page Header -->
+	<div>
+		<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">Orders Management</h1>
+		<p class="text-xs text-zinc-500 mt-1">Review orders, manage fulfillment logistics, and process refunds</p>
+	</div>
 
-<div class="flex flex-wrap items-center gap-2 mb-4">
-	{#each tabs as tab (tab.id)}
-		<button
-			onclick={() => goto(`?status=${tab.id}`)}
-			class="px-4 py-2 text-[11px] uppercase tracking-widest border {data.status === tab.id
-				? 'bg-white text-black border-white'
-				: 'border-white/20 text-white/60 hover:text-white'}"
-		>
-			{tab.label}
-		</button>
-	{/each}
-	<input
-		type="search"
-		placeholder="Search id or email"
-		bind:value={search}
-		aria-label="Search orders"
-		class="ml-auto bg-transparent border border-white/20 px-4 py-2 text-sm outline-none focus:border-white placeholder:text-white/30"
-	/>
-</div>
-
-<div class="border border-white/10 overflow-x-auto">
-	<table class="w-full text-left min-w-[760px]">
-		<thead>
-			<tr class="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-white/40">
-				<th class="px-4 py-3">Order</th>
-				<th class="px-4 py-3">Buyer</th>
-				<th class="px-4 py-3 text-right">Items</th>
-				<th class="px-4 py-3 text-right">Total</th>
-				<th class="px-4 py-3">Status</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each visible as order (order.id)}
-				<tr class="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-					<td class="px-4 py-3">
-						<a href="/admin/orders/{order.id}" class="hover:underline">
-							<p class="text-sm font-mono">{order.id.slice(0, 8)}…</p>
-							<p class="text-[10px] text-white/40">{order.date}</p>
-						</a>
-					</td>
-					<td class="px-4 py-3 text-sm break-all">{order.email}</td>
-					<td class="px-4 py-3 text-sm text-right">{order.itemCount}</td>
-					<td class="px-4 py-3 text-sm text-right">
-						{order.total} {order.currency.toUpperCase()}
-					</td>
-					<td class="px-4 py-3">
-						<span
-							class="inline-block px-2 py-1 text-[10px] uppercase tracking-widest {statusClass(
-								order.status
-							)}"
-						>
-							{order.status}
-						</span>
-					</td>
-				</tr>
+	<!-- Controls bar -->
+	<div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-zinc-200 shadow-xs">
+		<!-- Filter tabs -->
+		<div class="flex flex-wrap items-center gap-1.5">
+			{#each tabs as tab (tab.id)}
+				{@const active = data.status === tab.id}
+				<button
+					onclick={() => goto(`?status=${tab.id}`)}
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer {active
+						? 'bg-zinc-900 text-white shadow-xs'
+						: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'}"
+				>
+					{tab.label}
+				</button>
 			{/each}
-			{#if visible.length === 0}
-				<tr>
-					<td colspan="5" class="px-4 py-10 text-center text-sm text-white/40">No orders found</td>
-				</tr>
-			{/if}
-		</tbody>
-	</table>
+		</div>
+
+		<!-- Search -->
+		<div class="relative w-full md:w-72">
+			<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-lg">
+				search
+			</span>
+			<input
+				type="search"
+				placeholder="Search order ID or email..."
+				bind:value={search}
+				aria-label="Search orders"
+				class="w-full bg-zinc-50 border border-zinc-200 rounded-lg pl-10 pr-4 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:bg-white focus:border-zinc-900 transition-all"
+			/>
+		</div>
+	</div>
+
+	<!-- Table Card -->
+	<div class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+		<div class="overflow-x-auto">
+			<table class="w-full text-left min-w-[780px]">
+				<thead>
+					<tr class="bg-zinc-50/80 border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+						<th class="px-5 py-3.5">Order ID</th>
+						<th class="px-5 py-3.5">Date</th>
+						<th class="px-5 py-3.5">Customer</th>
+						<th class="px-5 py-3.5 text-right">Items</th>
+						<th class="px-5 py-3.5 text-right">Total Amount</th>
+						<th class="px-5 py-3.5 text-right">Fulfillment Status</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-zinc-100">
+					{#each visible as order (order.id)}
+						<tr class="hover:bg-zinc-50/70 transition-colors">
+							<td class="px-5 py-3.5">
+								<a
+									href="/admin/orders/{order.id}"
+									class="text-xs font-mono font-bold text-zinc-900 hover:text-zinc-600 inline-flex items-center gap-1.5"
+								>
+									#{order.id.slice(0, 8)}
+									<span class="material-symbols-outlined text-xs text-zinc-400">north_east</span>
+								</a>
+							</td>
+							<td class="px-5 py-3.5 text-xs text-zinc-500">
+								{order.date}
+							</td>
+							<td class="px-5 py-3.5 text-xs font-medium text-zinc-800 break-all">
+								{order.email}
+							</td>
+							<td class="px-5 py-3.5 text-xs font-semibold text-zinc-700 text-right">
+								{order.itemCount}
+							</td>
+							<td class="px-5 py-3.5 text-xs font-bold text-zinc-900 text-right">
+								{order.total} <span class="text-[10px] font-semibold text-zinc-400">{order.currency.toUpperCase()}</span>
+							</td>
+							<td class="px-5 py-3.5 text-right">
+								<span
+									class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border {statusBadge(
+										order.status
+									)}"
+								>
+									{order.status}
+								</span>
+							</td>
+						</tr>
+					{/each}
+					{#if visible.length === 0}
+						<tr>
+							<td colspan="6" class="px-5 py-12 text-center text-sm text-zinc-400">
+								<span class="material-symbols-outlined text-3xl text-zinc-300 block mb-2">inbox</span>
+								No orders found matching the filter.
+							</td>
+						</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
 </div>

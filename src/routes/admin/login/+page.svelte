@@ -7,65 +7,109 @@
 </script>
 
 <svelte:head>
-	<title>Admin Login</title>
+	<title>Admin Sign In | JEVARIE</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-neutral-950 px-6">
-	<form
-		method="POST"
-		action="?/login"
-		use:enhance={() => {
-			loading = true;
-			return async ({ update }) => {
-				loading = false;
-				await update();
-			};
-		}}
-		class="w-full max-w-sm border border-white/10 bg-white/[0.02] p-8"
-	>
-		<p class="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-2">Restricted Area</p>
-		<h1 class="text-2xl font-display uppercase tracking-widest text-white mb-8">Admin Login</h1>
+<div class="min-h-screen flex items-center justify-center bg-zinc-50 px-4 py-12">
+	<div class="w-full max-w-md">
+		<!-- Brand & Heading -->
+		<div class="text-center mb-8">
+			<div class="inline-flex w-12 h-12 rounded-xl bg-zinc-900 text-white items-center justify-center font-bold text-lg tracking-wider mb-4 shadow-sm">
+				J
+			</div>
+			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">
+				Admin Portal
+			</h1>
+			<p class="text-xs text-zinc-500 mt-1 uppercase tracking-wider">
+				Sign in to manage your e-commerce store
+			</p>
+		</div>
 
-		{#if form?.error}
-			<p role="alert" class="text-xs uppercase tracking-widest text-red-400 mb-4">{form.error}</p>
-		{/if}
-
-		<label class="block mb-4">
-			<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Email</span>
-			<input
-				name="email"
-				type="email"
-				required
-				autocomplete="username"
-				class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm text-white outline-none focus:border-white transition-colors"
-			/>
-		</label>
-
-		<label class="block mb-8">
-			<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Password</span>
-			<input
-				name="password"
-				type="password"
-				required
-				autocomplete="current-password"
-				class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm text-white outline-none focus:border-white transition-colors"
-			/>
-		</label>
-
-		<input type="hidden" name="redirect" value={data.redirectTo} />
-
-		<button
-			type="submit"
-			disabled={loading}
-			class="w-full bg-white text-black py-4 text-[11px] font-bold uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
-		>
-			{#if loading}
-				<span class="inline-block w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-				Signing In...
-			{:else}
-				Sign In
+		<!-- Card -->
+		<div class="bg-white border border-zinc-200 rounded-2xl shadow-sm p-8 md:p-10">
+			{#if form?.error}
+				<div
+					role="alert"
+					class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium mb-6"
+				>
+					<span class="material-symbols-outlined text-base shrink-0">error</span>
+					<span>{form.error}</span>
+				</div>
 			{/if}
-		</button>
-	</form>
+
+			<form
+				method="POST"
+				action="?/login"
+				use:enhance={() => {
+					loading = true;
+					return async ({ update }) => {
+						loading = false;
+						await update();
+					};
+				}}
+				class="flex flex-col gap-5"
+			>
+				<div>
+					<label for="admin-email" class="block text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">
+						Email Address
+					</label>
+					<div class="relative">
+						<input
+							id="admin-email"
+							name="email"
+							type="email"
+							required
+							autocomplete="username"
+							placeholder="admin@example.com"
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						/>
+					</div>
+				</div>
+
+				<div>
+					<label for="admin-password" class="block text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">
+						Password
+					</label>
+					<div class="relative">
+						<input
+							id="admin-password"
+							name="password"
+							type="password"
+							required
+							autocomplete="current-password"
+							placeholder="••••••••"
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						/>
+					</div>
+				</div>
+
+				<input type="hidden" name="redirect" value={data.redirectTo} />
+
+				<button
+					type="submit"
+					disabled={loading}
+					class="w-full bg-zinc-900 text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed mt-2"
+				>
+					{#if loading}
+						<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+						Signing In...
+					{:else}
+						Sign In to Dashboard
+					{/if}
+				</button>
+			</form>
+		</div>
+
+		<!-- Back link -->
+		<div class="text-center mt-6">
+			<a
+				href="/"
+				class="text-xs text-zinc-500 hover:text-zinc-900 uppercase tracking-wider font-semibold inline-flex items-center gap-1 transition-colors"
+			>
+				<span class="material-symbols-outlined text-sm">arrow_back</span>
+				Back to Storefront
+			</a>
+		</div>
+	</div>
 </div>

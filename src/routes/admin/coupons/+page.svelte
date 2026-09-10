@@ -4,7 +4,6 @@
 	let { data }: { data: PageData } = $props();
 
 	// svelte-ignore state_referenced_locally
-	// Intentional snapshot: rows become client-owned state after toggles/creates.
 	let rows = $state(data.coupons.map((c) => ({ ...c })));
 	let pendingIds = $state(new Set<string>());
 	let error = $state('');
@@ -78,7 +77,7 @@
 	}
 
 	function usageLabel(row: (typeof rows)[number]): string {
-		return row.usageLimit != null ? `${row.usageCount} / ${row.usageLimit}` : `${row.usageCount}`;
+		return row.usageLimit != null ? `${row.usageCount} / ${row.usageLimit}` : `${row.usageCount} used`;
 	}
 </script>
 
@@ -87,171 +86,235 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="flex items-center justify-between mb-8">
-	<h1 class="text-2xl font-display uppercase tracking-widest">Coupons</h1>
-	<button
-		onclick={() => (drawerOpen = true)}
-		class="px-5 py-3 bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:opacity-90"
-	>
-		New Coupon
-	</button>
-</div>
+<div class="space-y-6">
+	<!-- Page Header -->
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<div>
+			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">Promotions & Coupons</h1>
+			<p class="text-xs text-zinc-500 mt-1">Manage marketing discount codes, usage limits, and expiration thresholds</p>
+		</div>
+		<button
+			onclick={() => (drawerOpen = true)}
+			class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
+		>
+			<span class="material-symbols-outlined text-base">add</span>
+			New Coupon
+		</button>
+	</div>
 
-{#if error}
-	<p role="alert" class="text-xs uppercase tracking-widest text-red-400 mb-4">{error}</p>
-{/if}
+	{#if error}
+		<div
+			role="alert"
+			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
+		>
+			<span class="material-symbols-outlined text-base shrink-0">error</span>
+			<span>{error}</span>
+		</div>
+	{/if}
 
-<div class="border border-white/10 overflow-x-auto">
-	<table class="w-full text-left min-w-[720px]">
-		<thead>
-			<tr class="border-b border-white/10 text-[10px] uppercase tracking-[0.2em] text-white/40">
-				<th class="px-4 py-3">Code</th>
-				<th class="px-4 py-3">Discount</th>
-				<th class="px-4 py-3 text-right">Redeemed</th>
-				<th class="px-4 py-3">Expiry</th>
-				<th class="px-4 py-3 text-right">Active</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each rows as row (row.id)}
-				<tr class="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-					<td class="px-4 py-3">
-						<span class="font-mono text-sm bg-white/10 px-2 py-1">{row.code}</span>
-					</td>
-					<td class="px-4 py-3 text-sm">
-						{row.type === 'percentage' ? `${row.value}%` : `$${row.value}`}
-					</td>
-					<td class="px-4 py-3 text-sm text-right">{usageLabel(row)}</td>
-					<td class="px-4 py-3 text-sm text-white/60">
-						{row.expireDate ? row.expireDate.slice(0, 10) : '—'}
-						{#if row.minOrderAmount != null}
-							<span class="block text-[10px]">Min ${row.minOrderAmount}</span>
-						{/if}
-					</td>
-					<td class="px-4 py-3 text-right">
-						<button
-							role="switch"
-							aria-checked={row.isActive}
-							aria-label="Toggle {row.code}"
-							disabled={pendingIds.has(row.id)}
-							onclick={() => toggleActive(row.id, !row.isActive)}
-							class="relative inline-flex w-11 h-6 items-center rounded-full transition-colors {row.isActive
-								? 'bg-emerald-500'
-								: 'bg-white/20'} disabled:opacity-50"
-						>
-							<span
-								class="inline-block w-4 h-4 rounded-full bg-white transition-transform {row.isActive
-									? 'translate-x-6'
-									: 'translate-x-1'}"
-							></span>
-						</button>
-					</td>
-				</tr>
-			{/each}
-			{#if rows.length === 0}
-				<tr>
-					<td colspan="5" class="px-4 py-10 text-center text-sm text-white/40">No coupons yet</td>
-				</tr>
-			{/if}
-		</tbody>
-	</table>
+	<!-- Table Card -->
+	<div class="bg-white border border-zinc-200 rounded-2xl shadow-xs overflow-hidden">
+		<div class="overflow-x-auto">
+			<table class="w-full text-left min-w-[720px]">
+				<thead>
+					<tr class="bg-zinc-50/80 border-b border-zinc-200 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+						<th class="px-5 py-3.5">Code</th>
+						<th class="px-5 py-3.5">Discount</th>
+						<th class="px-5 py-3.5 text-right">Redemptions</th>
+						<th class="px-5 py-3.5">Expiration & Conditions</th>
+						<th class="px-5 py-3.5 text-right">Status</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-zinc-100">
+					{#each rows as row (row.id)}
+						<tr class="hover:bg-zinc-50/70 transition-colors">
+							<td class="px-5 py-3.5">
+								<span class="font-mono text-xs font-bold text-zinc-900 bg-zinc-100 px-2.5 py-1 rounded-md border border-zinc-200 tracking-wider">
+									{row.code}
+								</span>
+							</td>
+							<td class="px-5 py-3.5 text-sm font-bold text-zinc-900">
+								{row.type === 'percentage' ? `${row.value}% OFF` : `$${row.value} OFF`}
+							</td>
+							<td class="px-5 py-3.5 text-xs text-right font-medium text-zinc-600">
+								{usageLabel(row)}
+							</td>
+							<td class="px-5 py-3.5 text-xs text-zinc-600">
+								<div class="flex flex-col gap-0.5">
+									<span>{row.expireDate ? `Expires ${row.expireDate.slice(0, 10)}` : 'No expiry'}</span>
+									{#if row.minOrderAmount != null}
+										<span class="text-[11px] text-zinc-400">Min. spend: ${row.minOrderAmount}</span>
+									{/if}
+								</div>
+							</td>
+							<td class="px-5 py-3.5 text-right">
+								<button
+									role="switch"
+									aria-checked={row.isActive}
+									aria-label="Toggle {row.code} status"
+									disabled={pendingIds.has(row.id)}
+									onclick={() => toggleActive(row.id, !row.isActive)}
+									class="relative inline-flex w-11 h-6 items-center rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed {row.isActive
+										? 'bg-emerald-500'
+										: 'bg-zinc-300'} disabled:opacity-50 shadow-inner"
+								>
+									<span
+										class="inline-block w-4 h-4 rounded-full bg-white transition-transform shadow-xs {row.isActive
+											? 'translate-x-6'
+											: 'translate-x-1'}"
+									></span>
+								</button>
+							</td>
+						</tr>
+					{/each}
+					{#if rows.length === 0}
+						<tr>
+							<td colspan="5" class="px-5 py-12 text-center text-sm text-zinc-400">
+								<span class="material-symbols-outlined text-3xl text-zinc-300 block mb-2">sell</span>
+								No promotional coupon codes created yet.
+							</td>
+						</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
 </div>
 
 <!-- Creation drawer -->
 {#if drawerOpen}
-	<div class="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="New coupon">
+	<div class="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="New coupon">
 		<button
 			aria-label="Close"
-			class="absolute inset-0 bg-black/70"
+			class="absolute inset-0 bg-zinc-900/40 backdrop-blur-xs transition-opacity cursor-default"
 			onclick={() => (drawerOpen = false)}
 		></button>
-		<aside class="absolute right-0 top-0 h-full w-full max-w-md bg-neutral-950 border-l border-white/15 p-8 overflow-y-auto">
-			<h2 class="text-xl font-display uppercase tracking-widest mb-6">New Coupon</h2>
-
-			{#if formError}
-				<p role="alert" class="text-xs uppercase tracking-widest text-red-400 mb-4">{formError}</p>
-			{/if}
-
-			<label class="block mb-4">
-				<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Code</span>
-				<input
-					bind:value={form.code}
-					placeholder="SAVE15"
-					class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm font-mono uppercase outline-none focus:border-white"
-				/>
-			</label>
-
-			<div class="grid grid-cols-2 gap-4 mb-4">
-				<label class="block">
-					<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Type</span>
-					<select
-						bind:value={form.type}
-						class="w-full bg-neutral-950 border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
+		<aside class="absolute right-0 top-0 h-full w-full max-w-md bg-white border-l border-zinc-200 shadow-2xl p-6 sm:p-8 overflow-y-auto flex flex-col justify-between">
+			<div class="space-y-6">
+				<div class="flex items-center justify-between pb-4 border-b border-zinc-100">
+					<div>
+						<h2 class="text-xl font-display font-bold uppercase tracking-wider text-zinc-900">Create Coupon</h2>
+						<p class="text-xs text-zinc-500 mt-0.5">Generate a new promotional code for customer checkout</p>
+					</div>
+					<button
+						onclick={() => (drawerOpen = false)}
+						class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
 					>
-						<option value="percentage">Percentage %</option>
-						<option value="fixed_amount">Fixed $</option>
-					</select>
-				</label>
-				<label class="block">
-					<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Value</span>
+						<span class="material-symbols-outlined text-xl">close</span>
+					</button>
+				</div>
+
+				{#if formError}
+					<div
+						role="alert"
+						class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
+					>
+						<span class="material-symbols-outlined text-base shrink-0">error</span>
+						<span>{formError}</span>
+					</div>
+				{/if}
+
+				<div>
+					<label for="c-code" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+						Coupon Code *
+					</label>
 					<input
-						bind:value={form.value}
-						type="number"
-						min="0"
-						step="any"
-						placeholder={form.type === 'percentage' ? '15' : '20'}
-						class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
+						id="c-code"
+						bind:value={form.code}
+						placeholder="e.g. SUMMER20, VIP15"
+						class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm font-mono uppercase text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
 					/>
-				</label>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="c-type" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+							Discount Type
+						</label>
+						<select
+							id="c-type"
+							bind:value={form.type}
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						>
+							<option value="percentage">Percentage (%)</option>
+							<option value="fixed_amount">Fixed Amount ($)</option>
+						</select>
+					</div>
+					<div>
+						<label for="c-val" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+							Value *
+						</label>
+						<input
+							id="c-val"
+							bind:value={form.value}
+							type="number"
+							min="0"
+							step="any"
+							placeholder={form.type === 'percentage' ? '15' : '20'}
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						/>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="c-min" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+							Min. Spend ($)
+						</label>
+						<input
+							id="c-min"
+							bind:value={form.min_order_amount}
+							type="number"
+							min="0"
+							step="any"
+							placeholder="Optional"
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						/>
+					</div>
+					<div>
+						<label for="c-cap" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+							Max Uses Cap
+						</label>
+						<input
+							id="c-cap"
+							bind:value={form.usage_limit}
+							type="number"
+							min="1"
+							step="1"
+							placeholder="Optional"
+							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+						/>
+					</div>
+				</div>
+
+				<div>
+					<label for="c-exp" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
+						Expiration Date
+					</label>
+					<input
+						id="c-exp"
+						bind:value={form.expire_date}
+						type="date"
+						class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 shadow-xs transition-colors"
+					/>
+				</div>
 			</div>
 
-			<div class="grid grid-cols-2 gap-4 mb-4">
-				<label class="block">
-					<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Min spend $</span>
-					<input
-						bind:value={form.min_order_amount}
-						type="number"
-						min="0"
-						step="any"
-						placeholder="Optional"
-						class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-					/>
-				</label>
-				<label class="block">
-					<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Usage cap</span>
-					<input
-						bind:value={form.usage_limit}
-						type="number"
-						min="1"
-						step="1"
-						placeholder="Optional"
-						class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-					/>
-				</label>
-			</div>
-
-			<label class="block mb-8">
-				<span class="block text-[10px] uppercase tracking-[0.2em] text-white/50 mb-2">Expiry</span>
-				<input
-					bind:value={form.expire_date}
-					type="date"
-					class="w-full bg-transparent border border-white/20 px-4 py-3 text-sm outline-none focus:border-white"
-				/>
-			</label>
-
-			<div class="flex gap-3">
+			<div class="flex items-center gap-3 pt-6 border-t border-zinc-100">
 				<button
+					type="button"
 					onclick={() => (drawerOpen = false)}
-					class="flex-1 border border-white/20 py-3 text-[11px] uppercase tracking-widest hover:bg-white/5"
+					class="flex-1 py-3 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
 				>
 					Cancel
 				</button>
 				<button
+					type="button"
 					onclick={createCoupon}
 					disabled={saving || !form.code.trim() || !form.value}
-					class="flex-1 bg-white text-black py-3 text-[11px] font-bold uppercase tracking-widest hover:opacity-90 disabled:opacity-50"
+					class="flex-1 py-3 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
 				>
-					{saving ? 'Saving…' : 'Create'}
+					{saving ? 'Creating…' : 'Create Coupon'}
 				</button>
 			</div>
 		</aside>
