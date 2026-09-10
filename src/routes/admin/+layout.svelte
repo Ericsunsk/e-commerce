@@ -217,7 +217,7 @@
 								isHovered = false;
 							}}
 							title={effectiveCollapsed ? item.label : undefined}
-							class="flex items-center h-10 w-full rounded-xl text-xs font-normal tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
+							class="flex items-center h-10 w-full rounded-xl text-xs font-medium tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
 								? 'bg-zinc-100'
 								: 'hover:bg-zinc-100'}"
 						>
@@ -311,7 +311,7 @@
 								class="{ICONS.navClass} shrink-0"
 							/>
 							<span
-								class="text-xs font-normal tracking-wider uppercase text-zinc-900 truncate"
+								class="text-xs font-medium tracking-wider uppercase text-zinc-900 truncate"
 							>
 								{dynamicTitle || currentNav.label}
 							</span>
