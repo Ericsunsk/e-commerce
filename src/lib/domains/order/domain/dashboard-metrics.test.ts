@@ -119,4 +119,16 @@ describe('dashboard metrics', () => {
 			{ key: 'refunded', label: '已退款', value: 1 }
 		]);
 	});
+
+	it('computes multi-window range summaries with sparklines and AOV', () => {
+		const now = new Date('2026-09-10T12:00:00').getTime();
+		const metrics = computeDashboardMetrics(orders, [], {}, now);
+		expect(metrics.totalOrdersCount).toBe(4);
+		expect(metrics.totalCustomersCount).toBe(4);
+		expect(metrics.overallAovCents).toBe(2750);
+		expect(metrics.ranges.today.trend).toHaveLength(12);
+		expect(metrics.ranges['7d'].trend).toHaveLength(7);
+		expect(metrics.ranges['30d'].trend).toHaveLength(30);
+		expect(metrics.ranges['7d'].sparkline).toHaveLength(7);
+	});
 });

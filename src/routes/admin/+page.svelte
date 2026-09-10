@@ -1,57 +1,69 @@
 <script lang="ts">
-	import { BarChart, PieChart } from 'layerchart';
+	import { AreaChart } from 'layerchart';
 	import {
 		Wallet,
 		Truck,
 		TriangleAlert,
 		ArrowRight,
+		ArrowUpRight,
+		ArrowDownRight,
 		CircleCheck,
 		ReceiptText,
 		Inbox,
-		Package
+		Package,
+		TrendingUp,
+		Minus
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { getOrderStatusBadgeClass, getOrderStatusLabel } from '$domains/order';
+	import { ICONS } from '$shared/kernel';
+	import { getOrderStatusBadgeClass, getOrderStatusLabel, type TimeRangeKey } from '$domains/order';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	const cards = $derived([
-		{
-			label: '总 GMV',
-			value: data.gmv,
-			icon: Wallet,
-			desc: '累计商品交易总额',
-			badge: '营收',
-			badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-		},
-		{
-			label: '待发货',
-			value: String(data.pendingShipments),
-			icon: Truck,
-			desc: '已付款待履约订单',
-			badge: data.pendingShipments > 0 ? '需要处理' : '全部完成',
-			badgeClass:
-				data.pendingShipments > 0
-					? 'bg-amber-50 text-amber-700 border-amber-200'
-					: 'bg-zinc-50 text-zinc-600 border-zinc-200'
-		},
-		{
-			label: '低库存规格',
-			value: String(data.lowStockCount),
-			icon: TriangleAlert,
-			desc: '库存 ≤ 5 的商品规格',
-			badge: data.lowStockCount > 0 ? '尽快补货' : '库存健康',
-			badgeClass:
-				data.lowStockCount > 0
-					? 'bg-rose-50 text-rose-700 border-rose-200'
-					: 'bg-zinc-50 text-zinc-600 border-zinc-200'
-		}
-	]);
+	let selectedRange = $state<TimeRangeKey>('7d');
+	let chartMetric = $state<'revenue' | 'orders'>('revenue');
+
+	const activeRange = $derived(data.ranges[selectedRange]);
+
+	const rangeLabels: { key: TimeRangeKey; label: string }[] = [
+		{ key: 'today', label: '今日' },
+		{ key: '7d', label: '近 7 天' },
+		{ key: '30d', label: '近 30 天' },
+		{ key: 'all', label: '全部' }
+	];
+
+	function getSparkline(values: number[]) {
+		if (!values || values.length === 0) return { points: '', area: '' };
+		const width = 96;
+		const height = 30;
+		const min = Math.min(...values);
+		const max = Math.max(...values);
+		const range = max - min || 1;
+		const pad = 2;
+		const h = height - pad * 2;
+
+		const coords = values.map((v, i) => {
+			const x = (i / Math.max(values.length - 1, 1)) * width;
+			const y = height - pad - ((v - min) / range) * h;
+			return [Number(x.toFixed(1)), Number(y.toFixed(1))];
+		});
+
+		const points = coords.map(([x, y]) => `${x},${y}`).join(' ');
+		const area =
+			`M ${coords[0][0]},${coords[0][1]} ` +
+			coords
+				.slice(1)
+				.map(([x, y]) => `L ${x},${y}`)
+				.join(' ') +
+			` L ${width},${height} L 0,${height} Z`;
+
+		return { points, area };
+	}
 
 	const STATUS_COLORS: Record<string, string> = {
 		paid: '#f59e0b',
-		processing: '#fbbf24',
+		processing: '#eab308',
 		shipped: '#0ea5e9',
 		delivered: '#10b981',
 		refunded: '#f43f5e',
@@ -62,218 +74,505 @@
 	};
 
 	function statusColor(status: string): string {
-		return STATUS_COLORS[status.toLowerCase()] ?? '#52525b';
+		return STATUS_COLORS[status.toLowerCase()] ?? '#71717a';
 	}
 
-	let pieSeries = $derived(
-		data.ordersByStatus.map((slice) => ({
-			key: slice.key,
-			label: slice.label,
-			value: (d: { value: number }) => d.value,
-			color: statusColor(slice.key)
-		}))
-	);
+	const gmvSpark = $derived(getSparkline(activeRange.sparkline));
+	const ordersSpark = $derived(getSparkline(activeRange.trend.map((p) => p.orders)));
+	const aovSpark = $derived(getSparkline(activeRange.sparkline));
 </script>
 
 <svelte:head>
-	<title>仪表盘 | 管理后台</title>
+	<title>运营仪表盘 | 管理后台</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="space-y-8">
-	<!-- Page Header -->
+	<!-- Header with Time Range Switcher -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<div>
 			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">
 				运营总览
 			</h1>
-			<p class="text-xs text-zinc-500 mt-1">店铺营收、库存与订单履约实时概览</p>
+			<p class="text-xs text-zinc-500 mt-1">实时业务指标、走势洞察与履约健康度</p>
+		</div>
+
+		<!-- Time Range Segmented Pills -->
+		<div class="flex items-center bg-zinc-100 p-1 rounded-xl border border-zinc-200/70 self-start sm:self-auto">
+			{#each rangeLabels as r (r.key)}
+				{@const active = selectedRange === r.key}
+				<button
+					type="button"
+					onclick={() => (selectedRange = r.key)}
+					class="px-3 py-1.5 rounded-lg text-xs tracking-wider transition-all duration-150 cursor-pointer {active
+						? 'bg-white text-zinc-900 font-semibold shadow-xs'
+						: 'text-zinc-500 hover:text-zinc-900 font-normal'}"
+				>
+					{r.label}
+				</button>
+			{/each}
 		</div>
 	</div>
 
-	<!-- Metric cards -->
-	<div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-		{#each cards as card (card.label)}
-			{@const CardIcon = card.icon}
-			<div
-				class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors"
-			>
-				<div class="flex items-start justify-between">
-					<span class="p-2 rounded-xl bg-zinc-100 text-zinc-700">
-						<UiIcon icon={CardIcon} size={20} />
+	<!-- 4-Card KPI Row with Sparklines -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+		<!-- KPI 1: GMV -->
+		<div class="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+					<UiIcon icon={Wallet} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
+					总营收 (GMV)
+				</span>
+				{#if activeRange.gmvChange > 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 font-mono">
+						<UiIcon icon={ArrowUpRight} size={11} strokeWidth={2} />
+						+{activeRange.gmvChange}%
 					</span>
-					<span
-						class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border {card.badgeClass}"
-					>
-						{card.badge}
+				{:else if activeRange.gmvChange < 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60 font-mono">
+						<UiIcon icon={ArrowDownRight} size={11} strokeWidth={2} />
+						{activeRange.gmvChange}%
 					</span>
+				{:else}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-medium text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-full border border-zinc-200/60 font-mono">
+						<UiIcon icon={Minus} size={11} />
+						0.0%
+					</span>
+				{/if}
+			</div>
+
+			<div class="mt-4 flex items-end justify-between gap-2">
+				<div>
+					<p class="text-2xl font-display font-bold text-zinc-900 tracking-tight">{activeRange.gmvFormatted}</p>
+					<p class="text-[11px] text-zinc-400 mt-1">共 {activeRange.ordersCount} 笔订单累计</p>
 				</div>
-				<div class="mt-6">
-					<p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">{card.label}</p>
-					<p class="text-3xl font-display font-bold text-zinc-900 mt-1">{card.value}</p>
-					<p class="text-[11px] text-zinc-400 mt-1.5">{card.desc}</p>
+				<!-- SVG Sparkline -->
+				<div class="shrink-0">
+					<svg viewBox="0 0 96 30" class="w-20 h-7 overflow-visible">
+						<defs>
+							<linearGradient id="spark-gmv" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stop-color={activeRange.gmvChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.25" />
+								<stop offset="100%" stop-color={activeRange.gmvChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.0" />
+							</linearGradient>
+						</defs>
+						{#if gmvSpark.area}
+							<path d={gmvSpark.area} fill="url(#spark-gmv)" />
+						{/if}
+						{#if gmvSpark.points}
+							<polyline
+								fill="none"
+								stroke={activeRange.gmvChange >= 0 ? '#10b981' : '#f43f5e'}
+								stroke-width="1.75"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								points={gmvSpark.points}
+							/>
+						{/if}
+					</svg>
 				</div>
 			</div>
-		{/each}
+		</div>
+
+		<!-- KPI 2: Orders Count -->
+		<div class="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+					<UiIcon icon={ReceiptText} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
+					订单总量
+				</span>
+				{#if activeRange.ordersChange > 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 font-mono">
+						<UiIcon icon={ArrowUpRight} size={11} strokeWidth={2} />
+						+{activeRange.ordersChange}%
+					</span>
+				{:else if activeRange.ordersChange < 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60 font-mono">
+						<UiIcon icon={ArrowDownRight} size={11} strokeWidth={2} />
+						{activeRange.ordersChange}%
+					</span>
+				{:else}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-medium text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-full border border-zinc-200/60 font-mono">
+						<UiIcon icon={Minus} size={11} />
+						0.0%
+					</span>
+				{/if}
+			</div>
+
+			<div class="mt-4 flex items-end justify-between gap-2">
+				<div>
+					<p class="text-2xl font-display font-bold text-zinc-900 tracking-tight">{activeRange.ordersCount} <span class="text-xs font-normal text-zinc-500">单</span></p>
+					<p class="text-[11px] text-zinc-400 mt-1">{activeRange.uniqueCustomers} 位独立客户下单</p>
+				</div>
+				<!-- SVG Sparkline -->
+				<div class="shrink-0">
+					<svg viewBox="0 0 96 30" class="w-20 h-7 overflow-visible">
+						<defs>
+							<linearGradient id="spark-orders" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stop-color={activeRange.ordersChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.25" />
+								<stop offset="100%" stop-color={activeRange.ordersChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.0" />
+							</linearGradient>
+						</defs>
+						{#if ordersSpark.area}
+							<path d={ordersSpark.area} fill="url(#spark-orders)" />
+						{/if}
+						{#if ordersSpark.points}
+							<polyline
+								fill="none"
+								stroke={activeRange.ordersChange >= 0 ? '#10b981' : '#f43f5e'}
+								stroke-width="1.75"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								points={ordersSpark.points}
+							/>
+						{/if}
+					</svg>
+				</div>
+			</div>
+		</div>
+
+		<!-- KPI 3: AOV (Average Order Value) -->
+		<div class="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+					<UiIcon icon={TrendingUp} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
+					平均客单价 (AOV)
+				</span>
+				{#if activeRange.aovChange > 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 font-mono">
+						<UiIcon icon={ArrowUpRight} size={11} strokeWidth={2} />
+						+{activeRange.aovChange}%
+					</span>
+				{:else if activeRange.aovChange < 0}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60 font-mono">
+						<UiIcon icon={ArrowDownRight} size={11} strokeWidth={2} />
+						{activeRange.aovChange}%
+					</span>
+				{:else}
+					<span class="inline-flex items-center gap-0.5 text-[10px] font-medium text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-full border border-zinc-200/60 font-mono">
+						<UiIcon icon={Minus} size={11} />
+						0.0%
+					</span>
+				{/if}
+			</div>
+
+			<div class="mt-4 flex items-end justify-between gap-2">
+				<div>
+					<p class="text-2xl font-display font-bold text-zinc-900 tracking-tight">{activeRange.aovFormatted}</p>
+					<p class="text-[11px] text-zinc-400 mt-1">平均每单交易金额</p>
+				</div>
+				<!-- SVG Sparkline -->
+				<div class="shrink-0">
+					<svg viewBox="0 0 96 30" class="w-20 h-7 overflow-visible">
+						<defs>
+							<linearGradient id="spark-aov" x1="0" y1="0" x2="0" y2="1">
+								<stop offset="0%" stop-color={activeRange.aovChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.25" />
+								<stop offset="100%" stop-color={activeRange.aovChange >= 0 ? '#10b981' : '#f43f5e'} stop-opacity="0.0" />
+							</linearGradient>
+						</defs>
+						{#if aovSpark.area}
+							<path d={aovSpark.area} fill="url(#spark-aov)" />
+						{/if}
+						{#if aovSpark.points}
+							<polyline
+								fill="none"
+								stroke={activeRange.aovChange >= 0 ? '#10b981' : '#f43f5e'}
+								stroke-width="1.75"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								points={aovSpark.points}
+							/>
+						{/if}
+					</svg>
+				</div>
+			</div>
+		</div>
+
+		<!-- KPI 4: Pending Shipments -->
+		<div class="bg-white border border-zinc-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors">
+			<div class="flex items-center justify-between">
+				<span class="text-xs font-medium uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+					<UiIcon icon={Truck} size={15} strokeWidth={ICONS.strokeWidth} class="text-zinc-600" />
+					待发货履约
+				</span>
+				<span
+					class="text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-full border {data.pendingShipments > 0
+						? 'bg-amber-50 text-amber-700 border-amber-200/60'
+						: 'bg-emerald-50 text-emerald-700 border-emerald-200/60'}"
+				>
+					{data.pendingShipments > 0 ? '需尽快发货' : '全部已履约'}
+				</span>
+			</div>
+
+			<div class="mt-4 flex items-end justify-between gap-2">
+				<div>
+					<p class="text-2xl font-display font-bold text-zinc-900 tracking-tight">{data.pendingShipments} <span class="text-xs font-normal text-zinc-500">单</span></p>
+					<p class="text-[11px] text-zinc-400 mt-1">已付款待打包出库</p>
+				</div>
+				<a
+					href="/admin/orders?status=paid"
+					class="inline-flex items-center gap-1 text-xs font-medium text-zinc-700 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200/70 px-2.5 py-1 rounded-lg transition-colors"
+				>
+					去发货
+					<UiIcon icon={ArrowRight} size={12} />
+				</a>
+			</div>
+		</div>
 	</div>
 
-	<!-- Charts -->
+	<!-- Main Analytics Grid: Trends + Pipeline -->
 	<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-		<section class="lg:col-span-3 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs">
-			<div class="flex items-center justify-between pb-4 mb-2">
-				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">近 14 天营收趋势</h2>
-				<span class="text-[10px] text-zinc-400">单位：{data.currency.toUpperCase()}</span>
+		<!-- Left: Core Trend Area Chart (3 cols) -->
+		<section class="lg:col-span-3 bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-2 gap-3">
+				<div>
+					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">业务走势趋势</h2>
+					<p class="text-[11px] text-zinc-400 mt-0.5">
+						当前查看：{rangeLabels.find((r) => r.key === selectedRange)?.label}（{activeRange.trend.length} 个数据点）
+					</p>
+				</div>
+
+				<!-- Metric Selector: Revenue vs Orders -->
+				<div class="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200/70 self-start sm:self-auto">
+					<button
+						type="button"
+						onclick={() => (chartMetric = 'revenue')}
+						class="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'revenue'
+							? 'bg-white text-zinc-900 shadow-xs'
+							: 'text-zinc-500 hover:text-zinc-900'}"
+					>
+						营收额 ({data.currency.toUpperCase()})
+					</button>
+					<button
+						type="button"
+						onclick={() => (chartMetric = 'orders')}
+						class="px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 cursor-pointer {chartMetric === 'orders'
+							? 'bg-white text-zinc-900 shadow-xs'
+							: 'text-zinc-500 hover:text-zinc-900'}"
+					>
+						订单量 (单)
+					</button>
+				</div>
 			</div>
+
 			<div class="h-64">
-				<BarChart
-					data={data.revenueTrend}
-					x="date"
-					y="revenue"
-					series={[{ key: 'revenue', label: '日营收', color: '#18181b' }]}
-					axis="x"
-					grid={{ y: true }}
-				/>
+				{#if activeRange.trend.length === 0}
+					<div class="h-full flex flex-col items-center justify-center text-center">
+						<UiIcon icon={Inbox} size={28} class="text-zinc-300 mb-1.5" />
+						<p class="text-xs text-zinc-400">该周期内暂无交易数据</p>
+					</div>
+				{:else}
+					<AreaChart
+						data={activeRange.trend}
+						x="date"
+						y={chartMetric}
+						series={[
+							{
+								key: chartMetric,
+								label: chartMetric === 'revenue' ? `日营收 (${data.currency.toUpperCase()})` : '日订单量',
+								color: '#18181b'
+							}
+						]}
+						axis="x"
+						grid={{ y: true }}
+						props={{
+							area: {
+								fillOpacity: 0.08
+							}
+						}}
+					/>
+				{/if}
 			</div>
 		</section>
 
-		<section class="lg:col-span-2 bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs">
-			<div class="pb-4 mb-2">
-				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">订单状态分布</h2>
+		<!-- Right: Modern Fulfillment Pipeline (2 cols) -->
+		<section class="lg:col-span-2 bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+			<div>
+				<div class="flex items-center justify-between pb-3">
+					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">订单履约状态流</h2>
+					<span class="text-xs font-mono text-zinc-500">{activeRange.ordersCount} 笔订单</span>
+				</div>
+
+				<!-- Segmented Multi-color Distribution Bar -->
+				<div class="h-2.5 w-full bg-zinc-100 rounded-full overflow-hidden flex my-3">
+					{#if activeRange.ordersCount === 0}
+						<div class="h-full w-full bg-zinc-200 rounded-full" title="暂无订单"></div>
+					{:else}
+						{#each activeRange.statusDistribution as slice (slice.key)}
+							{@const pct = (slice.value / activeRange.ordersCount) * 100}
+							{#if pct > 0}
+								<div
+									class="h-full transition-all duration-300 first:rounded-l-full last:rounded-r-full"
+									style="width: {pct}%; background-color: {statusColor(slice.key)}"
+									title="{slice.label}: {slice.value} 单 ({pct.toFixed(1)}%)"
+								></div>
+							{/if}
+						{/each}
+					{/if}
+				</div>
+
+				<!-- Status rows list -->
+				<div class="mt-4 space-y-2">
+					{#if activeRange.statusDistribution.length === 0}
+						<p class="text-xs text-zinc-400 text-center py-8">该周期内暂无状态分布数据</p>
+					{:else}
+						{#each activeRange.statusDistribution as slice (slice.key)}
+							{@const pct = activeRange.ordersCount > 0 ? ((slice.value / activeRange.ordersCount) * 100).toFixed(1) : '0.0'}
+							<a
+								href="/admin/orders?status={slice.key}"
+								class="flex items-center justify-between p-2 rounded-xl hover:bg-zinc-50 transition-colors group text-xs"
+							>
+								<div class="flex items-center gap-2.5 min-w-0">
+									<span
+										class="w-2.5 h-2.5 rounded-full shrink-0"
+										style="background-color: {statusColor(slice.key)}"
+									></span>
+									<span class="text-zinc-700 font-medium group-hover:text-zinc-900 truncate">
+										{slice.label}
+									</span>
+								</div>
+								<div class="flex items-center gap-3 font-mono shrink-0">
+									<span class="text-zinc-400 text-[11px]">{pct}%</span>
+									<span class="font-semibold text-zinc-900 w-8 text-right">{slice.value}</span>
+								</div>
+							</a>
+						{/each}
+					{/if}
+				</div>
 			</div>
-			{#if data.ordersByStatus.length === 0}
-				<div class="h-64 flex items-center justify-center">
-					<p class="text-sm text-zinc-400">暂无订单数据</p>
-				</div>
-			{:else}
-				<div class="h-64">
-					<PieChart data={data.ordersByStatus} key="key" value="value" series={pieSeries} />
-				</div>
-				<ul class="mt-2 space-y-1">
-					{#each data.ordersByStatus as slice (slice.key)}
-						<li class="flex items-center justify-between text-xs">
-							<span class="flex items-center gap-2 text-zinc-600">
-								<span
-									class="inline-block w-2.5 h-2.5 rounded-sm"
-									style="background-color: {statusColor(slice.key)}"
-								></span>
-								{slice.label}
-							</span>
-							<span class="font-mono font-bold text-zinc-900">{slice.value}</span>
-						</li>
-					{/each}
-				</ul>
-			{/if}
+
+			<div class="pt-4 mt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
+				<span>全量累计：{data.totalOrdersCount} 笔订单</span>
+				<a href="/admin/orders" class="text-zinc-600 hover:text-zinc-900 font-medium flex items-center gap-0.5">
+					进入订单中心
+					<UiIcon icon={ArrowRight} size={11} />
+				</a>
+			</div>
 		</section>
 	</div>
 
-	<!-- Details Grid -->
+	<!-- Bottom Section: Low Stock + Recent Orders -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-		<!-- Low stock alert -->
-		<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col">
-			<div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100">
-				<div class="flex items-center gap-2">
-					<UiIcon icon={Package} size={18} class="text-amber-500" />
-					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-						低库存预警（≤ 5 件）
-					</h2>
-				</div>
-				<a
-					href="/admin/products"
-					class="text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 transition-colors"
-				>
-					管理商品
-					<UiIcon icon={ArrowRight} size={14} />
-				</a>
-			</div>
-
-			{#if data.lowStock.length === 0}
-				<div class="flex flex-col items-center justify-center py-12 text-center my-auto">
-					<UiIcon icon={CircleCheck} size={30} class="text-emerald-500 mb-2" />
-					<p class="text-sm font-semibold text-zinc-800">全部规格库存充足</p>
-					<p class="text-xs text-zinc-400 mt-0.5">暂无需要紧急补货的商品</p>
-				</div>
-			{:else}
-				<ul class="divide-y divide-zinc-100 -mx-2">
-					{#each data.lowStock as row (row.variantId)}
-						<li
-							class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-lg transition-colors"
-						>
-							<div class="min-w-0">
-								<a
-									href="/admin/products/{row.productId}"
-									class="text-sm font-semibold text-zinc-900 hover:text-zinc-600 truncate block"
-								>
-									{row.productTitle}
-								</a>
-								<p class="text-xs text-zinc-400 font-mono mt-0.5">
-									{row.sku}{row.detail ? ` · ${row.detail}` : ''}
-								</p>
-							</div>
-							<span
-								class="text-xs font-mono font-bold px-2.5 py-1 rounded-lg border shrink-0 {row.stockQuantity ===
-								0
-									? 'bg-rose-50 text-rose-700 border-rose-200'
-									: 'bg-amber-50 text-amber-700 border-amber-200'}"
-							>
-								{row.stockQuantity === 0 ? '缺货' : `仅剩 ${row.stockQuantity} 件`}
+		<!-- Low Stock Alert -->
+		<section class="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+			<div>
+				<div class="flex items-center justify-between pb-4 mb-3 border-b border-zinc-100">
+					<div class="flex items-center gap-2">
+						<UiIcon icon={TriangleAlert} size={16} class="text-amber-500 shrink-0" />
+						<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+							库存预警（≤ 5 件）
+						</h2>
+						{#if data.lowStockCount > 0}
+							<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60">
+								{data.lowStockCount} 项
 							</span>
-						</li>
-					{/each}
-				</ul>
-			{/if}
+						{/if}
+					</div>
+					<a
+						href="/admin/products"
+						class="text-xs font-medium text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 transition-colors"
+					>
+						商品管理
+						<UiIcon icon={ArrowRight} size={13} />
+					</a>
+				</div>
+
+				{#if data.lowStock.length === 0}
+					<div class="flex flex-col items-center justify-center py-12 text-center">
+						<UiIcon icon={CircleCheck} size={28} class="text-emerald-500 mb-2" />
+						<p class="text-xs font-semibold text-zinc-800">全部规格库存充足</p>
+						<p class="text-[11px] text-zinc-400 mt-0.5">暂无需要紧急补货的商品</p>
+					</div>
+				{:else}
+					<ul class="divide-y divide-zinc-100 -mx-2">
+						{#each data.lowStock as row (row.variantId)}
+							<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-xl transition-colors">
+								<div class="min-w-0">
+									<a
+										href="/admin/products/{row.productId}"
+										class="text-xs font-semibold text-zinc-900 hover:underline truncate block"
+									>
+										{row.productTitle}
+									</a>
+									<p class="text-[11px] text-zinc-400 font-mono mt-0.5">
+										{row.sku}{row.detail ? ` · ${row.detail}` : ''}
+									</p>
+								</div>
+								<div class="flex items-center gap-3 shrink-0">
+									<span
+										class="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg border {row.stockQuantity === 0
+											? 'bg-rose-50 text-rose-700 border-rose-200'
+											: 'bg-amber-50 text-amber-700 border-amber-200'}"
+									>
+										{row.stockQuantity === 0 ? '已售罄' : `仅剩 ${row.stockQuantity} 件`}
+									</span>
+									<a
+										href="/admin/products/{row.productId}"
+										class="text-zinc-400 hover:text-zinc-700 text-xs font-medium"
+										title="去补货"
+									>
+										补货 →
+									</a>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 		</section>
 
-		<!-- Recent orders -->
-		<section class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-xs flex flex-col">
-			<div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100">
-				<div class="flex items-center gap-2">
-					<UiIcon icon={ReceiptText} size={18} class="text-zinc-700" />
-					<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">最新客户订单</h2>
+		<!-- Recent Orders -->
+		<section class="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+			<div>
+				<div class="flex items-center justify-between pb-4 mb-3 border-b border-zinc-100">
+					<div class="flex items-center gap-2">
+						<UiIcon icon={Package} size={16} class="text-zinc-700 shrink-0" />
+						<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">最新客户订单</h2>
+					</div>
+					<a
+						href="/admin/orders"
+						class="text-xs font-medium text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 transition-colors"
+					>
+						全部订单
+						<UiIcon icon={ArrowRight} size={13} />
+					</a>
 				</div>
-				<a
-					href="/admin/orders"
-					class="text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 transition-colors"
-				>
-					查看全部订单
-					<UiIcon icon={ArrowRight} size={14} />
-				</a>
-			</div>
 
-			{#if data.recentOrders.length === 0}
-				<div class="flex flex-col items-center justify-center py-12 text-center my-auto">
-					<UiIcon icon={Inbox} size={30} class="text-zinc-300 mb-2" />
-					<p class="text-sm font-semibold text-zinc-700">暂无订单</p>
-					<p class="text-xs text-zinc-400 mt-0.5">客户下单后会显示在这里</p>
-				</div>
-			{:else}
-				<ul class="divide-y divide-zinc-100 -mx-2">
-					{#each data.recentOrders as order (order.id)}
-						<li
-							class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-lg transition-colors"
-						>
-							<div class="min-w-0">
-								<a
-									href="/admin/orders/{order.id}"
-									class="text-sm font-mono font-semibold text-zinc-900 hover:underline block"
-								>
-									订单 #{order.id.slice(0, 8)}
-								</a>
-								<p class="text-xs text-zinc-400 truncate mt-0.5">{order.email} · {order.date}</p>
-							</div>
-							<div class="text-right shrink-0 flex flex-col items-end gap-1">
-								<p class="text-sm font-bold text-zinc-900">{order.totalFormatted}</p>
-								<span
-									class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border {getOrderStatusBadgeClass(
-										order.status
-									)}"
-								>
-									{getOrderStatusLabel(order.status)}
-								</span>
-							</div>
-						</li>
-					{/each}
-				</ul>
-			{/if}
+				{#if data.recentOrders.length === 0}
+					<div class="flex flex-col items-center justify-center py-12 text-center">
+						<UiIcon icon={Inbox} size={28} class="text-zinc-300 mb-2" />
+						<p class="text-xs font-semibold text-zinc-700">暂无近期订单</p>
+						<p class="text-[11px] text-zinc-400 mt-0.5">客户下单后会实时显示在此处</p>
+					</div>
+				{:else}
+					<ul class="divide-y divide-zinc-100 -mx-2">
+						{#each data.recentOrders as order (order.id)}
+							<li class="px-2 py-3 flex items-center justify-between gap-4 hover:bg-zinc-50/80 rounded-xl transition-colors">
+								<div class="min-w-0">
+									<a
+										href="/admin/orders/{order.id}"
+										class="text-xs font-mono font-semibold text-zinc-900 hover:underline block truncate"
+									>
+										订单 #{order.id.slice(0, 8)}
+									</a>
+									<p class="text-[11px] text-zinc-400 truncate mt-0.5">
+										{order.email} · {order.date ? order.date.slice(0, 16) : '未知时间'}
+									</p>
+								</div>
+								<div class="text-right shrink-0 flex flex-col items-end gap-1">
+									<p class="text-xs font-bold font-mono text-zinc-900">{order.totalFormatted}</p>
+									<span
+										class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border {getOrderStatusBadgeClass(
+											order.status
+										)}"
+									>
+										{getOrderStatusLabel(order.status)}
+									</span>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 		</section>
 	</div>
 </div>

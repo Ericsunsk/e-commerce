@@ -55,6 +55,27 @@ export interface StatusSlice {
 	value: number;
 }
 
+export interface MetricPoint {
+	date: string;
+	revenue: number;
+	orders: number;
+}
+
+export interface RangeSummary {
+	gmvCents: number;
+	ordersCount: number;
+	aovCents: number;
+	uniqueCustomers: number;
+	gmvChange: number;
+	ordersChange: number;
+	aovChange: number;
+	trend: MetricPoint[];
+	statusDistribution: StatusSlice[];
+	sparkline: number[];
+}
+
+export type TimeRangeKey = 'today' | '7d' | '30d' | 'all';
+
 export interface DashboardMetrics {
 	/** Gross merchandise volume, in minor currency units (cents). */
 	gmvCents: number;
@@ -67,6 +88,11 @@ export interface DashboardMetrics {
 	revenueTrend: RevenuePoint[];
 	/** Order counts grouped by status. */
 	ordersByStatus: StatusSlice[];
+	/** Multi-window metrics for period switching. */
+	ranges: Record<TimeRangeKey, RangeSummary>;
+	totalOrdersCount: number;
+	totalCustomersCount: number;
+	overallAovCents: number;
 }
 
 import { ORDER_STATUS_LABELS } from './models';
@@ -82,6 +108,24 @@ function dayKey(time: number): string {
 
 function axisLabel(key: string): string {
 	return key.slice(5); // `YYYY-MM-DD` → `MM-DD`
+}
+
+function calcPercentChange(current: number, previous: number): number {
+	if (previous === 0) {
+		return current > 0 ? 100 : 0;
+	}
+	return Math.round(((current - previous) / previous) * 1000) / 10;
+}
+
+function buildStatusDistribution(ordersSubset: MetricOrder[]): StatusSlice[] {
+	const statusCounts = new Map<string, number>();
+	for (const order of ordersSubset) {
+		const status = order.status || 'unknown';
+		statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
+	}
+	return [...statusCounts.entries()]
+		.map(([key, value]) => ({ key, label: ORDER_STATUS_LABELS[key] ?? key, value }))
+		.sort((a, b) => b.value - a.value);
 }
 
 /** Pure aggregation over in-memory batches (unit-testable). */
@@ -130,6 +174,9 @@ export function computeDashboardMetrics(
 	const dayMs = 24 * 60 * 60 * 1000;
 	const todayStart = new Date(now);
 	todayStart.setHours(0, 0, 0, 0);
+	const todayStartTime = todayStart.getTime();
+	const todayEndTime = todayStartTime + dayMs;
+
 	const revenueByDay = new Map<string, number>();
 	for (const order of orders) {
 		const time = new Date(order.date).getTime();
@@ -155,6 +202,132 @@ export function computeDashboardMetrics(
 		.map(([key, value]) => ({ key, label: ORDER_STATUS_LABELS[key] ?? key, value }))
 		.sort((a, b) => b.value - a.value);
 
+	const orderTime = (o: MetricOrder) => {
+		const t = new Date(o.date).getTime();
+		return Number.isFinite(t) ? t : -1;
+	};
+
+	// 1. Today vs Yesterday
+	const todayOrders = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= todayStartTime && t < todayEndTime;
+	});
+	const yesterdayOrders = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= todayStartTime - dayMs && t < todayStartTime;
+	});
+
+	const todayTrend: MetricPoint[] = [];
+	for (let h = 0; h < 24; h += 2) {
+		const bStart = todayStartTime + h * 3600 * 1000;
+		const bEnd = bStart + 2 * 3600 * 1000;
+		const bOrders = todayOrders.filter((o) => {
+			const t = orderTime(o);
+			return t >= bStart && t < bEnd;
+		});
+		const bRev = bOrders.reduce((sum, o) => sum + (Number.isFinite(o.amountTotal) ? o.amountTotal : 0), 0);
+		todayTrend.push({
+			date: `${String(h).padStart(2, '0')}:00`,
+			revenue: Math.round(bRev) / 100,
+			orders: bOrders.length
+		});
+	}
+
+	// 2. 7 Days vs Previous 7 Days
+	const start7d = todayStartTime - 6 * dayMs;
+	const prevStart7d = todayStartTime - 13 * dayMs;
+	const orders7d = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= start7d && t < todayEndTime;
+	});
+	const prevOrders7d = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= prevStart7d && t < start7d;
+	});
+
+	const trend7d: MetricPoint[] = [];
+	for (let i = 6; i >= 0; i--) {
+		const dayT = todayStartTime - i * dayMs;
+		const nextDayT = dayT + dayMs;
+		const dOrders = orders.filter((o) => {
+			const t = orderTime(o);
+			return t >= dayT && t < nextDayT;
+		});
+		const dRev = dOrders.reduce((sum, o) => sum + (Number.isFinite(o.amountTotal) ? o.amountTotal : 0), 0);
+		trend7d.push({
+			date: axisLabel(dayKey(dayT)),
+			revenue: Math.round(dRev) / 100,
+			orders: dOrders.length
+		});
+	}
+
+	// 3. 30 Days vs Previous 30 Days
+	const start30d = todayStartTime - 29 * dayMs;
+	const prevStart30d = todayStartTime - 59 * dayMs;
+	const orders30d = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= start30d && t < todayEndTime;
+	});
+	const prevOrders30d = orders.filter((o) => {
+		const t = orderTime(o);
+		return t >= prevStart30d && t < start30d;
+	});
+
+	const trend30d: MetricPoint[] = [];
+	for (let i = 29; i >= 0; i--) {
+		const dayT = todayStartTime - i * dayMs;
+		const nextDayT = dayT + dayMs;
+		const dOrders = orders.filter((o) => {
+			const t = orderTime(o);
+			return t >= dayT && t < nextDayT;
+		});
+		const dRev = dOrders.reduce((sum, o) => sum + (Number.isFinite(o.amountTotal) ? o.amountTotal : 0), 0);
+		trend30d.push({
+			date: axisLabel(dayKey(dayT)),
+			revenue: Math.round(dRev) / 100,
+			orders: dOrders.length
+		});
+	}
+
+	function buildRangeSummary(
+		windowOrders: MetricOrder[],
+		prevOrders: MetricOrder[],
+		trendPoints: MetricPoint[]
+	): RangeSummary {
+		const gmv = windowOrders.reduce((acc, o) => acc + (Number.isFinite(o.amountTotal) ? o.amountTotal : 0), 0);
+		const count = windowOrders.length;
+		const aov = count > 0 ? Math.round(gmv / count) : 0;
+		const custs = new Set(windowOrders.map((o) => o.customerEmail).filter(Boolean)).size;
+
+		const prevGmv = prevOrders.reduce((acc, o) => acc + (Number.isFinite(o.amountTotal) ? o.amountTotal : 0), 0);
+		const prevCount = prevOrders.length;
+		const prevAov = prevCount > 0 ? Math.round(prevGmv / prevCount) : 0;
+
+		return {
+			gmvCents: gmv,
+			ordersCount: count,
+			aovCents: aov,
+			uniqueCustomers: custs,
+			gmvChange: calcPercentChange(gmv, prevGmv),
+			ordersChange: calcPercentChange(count, prevCount),
+			aovChange: calcPercentChange(aov, prevAov),
+			trend: trendPoints,
+			statusDistribution: buildStatusDistribution(windowOrders),
+			sparkline: trendPoints.map((p) => p.revenue)
+		};
+	}
+
+	const ranges: Record<TimeRangeKey, RangeSummary> = {
+		today: buildRangeSummary(todayOrders, yesterdayOrders, todayTrend),
+		'7d': buildRangeSummary(orders7d, prevOrders7d, trend7d),
+		'30d': buildRangeSummary(orders30d, prevOrders30d, trend30d),
+		all: buildRangeSummary(orders, prevOrders30d, trend30d)
+	};
+
+	const totalOrdersCount = orders.length;
+	const totalCustomersCount = new Set(orders.map((o) => o.customerEmail).filter(Boolean)).size;
+	const overallAovCents = totalOrdersCount > 0 ? Math.round(gmvCents / totalOrdersCount) : 0;
+
 	return {
 		gmvCents,
 		currency,
@@ -163,6 +336,10 @@ export function computeDashboardMetrics(
 		lowStock,
 		recentOrders,
 		revenueTrend,
-		ordersByStatus
+		ordersByStatus,
+		ranges,
+		totalOrdersCount,
+		totalCustomersCount,
+		overallAovCents
 	};
 }
