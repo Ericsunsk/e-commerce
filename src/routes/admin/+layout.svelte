@@ -214,7 +214,6 @@
 							href={item.href}
 							onclick={() => {
 								drawerOpen = false;
-								isHovered = false;
 							}}
 							title={effectiveCollapsed ? item.label : undefined}
 							class="flex items-center h-10 w-full rounded-xl text-sm font-medium tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
