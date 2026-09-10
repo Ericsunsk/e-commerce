@@ -78,7 +78,7 @@
 {#if isLogin}
 	{@render children()}
 {:else}
-	<div class="min-h-screen bg-zinc-50 text-zinc-900 font-sans antialiased flex">
+	<div class="min-h-screen bg-zinc-50/50 text-zinc-900 font-sans antialiased flex">
 		<!-- Mobile drawer backdrop -->
 		{#if drawerOpen}
 			<button
@@ -90,8 +90,8 @@
 
 		<!-- Left Column: Sidebar (垂直贯穿到底，包含顶部 Logo 栏 + 导航链接 + 底部折叠切换) -->
 		<aside
-			class="fixed lg:sticky top-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 {isCollapsed
-				? 'w-64 lg:w-20'
+			class="fixed lg:sticky top-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between transition-all duration-200 {isCollapsed
+				? 'w-64 lg:w-14'
 				: 'w-64'} {drawerOpen
 				? 'translate-x-0 shadow-xl'
 				: '-translate-x-full lg:translate-x-0'}"
@@ -100,18 +100,18 @@
 				<!-- Sidebar Top Brand Box (与右侧顶部栏等高 h-14，底部有横向分割线 border-b) -->
 				<div
 					class="h-14 shrink-0 border-b border-zinc-200 flex items-center {isCollapsed
-						? 'lg:justify-center px-3'
+						? 'lg:justify-center px-2'
 						: 'px-4'} transition-all"
 				>
 					<a
 						href="/admin"
-						class="flex items-center {isCollapsed ? 'gap-0' : 'gap-2.5'} min-w-0 group hover:opacity-90 transition-opacity"
+						class="flex items-center {isCollapsed ? 'justify-center w-full' : 'gap-3'} min-w-0 group hover:opacity-85 transition-opacity"
 						title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
 					>
 						<AdminLogo
 							src={data.logoUrl}
 							label={data.siteName}
-							class="w-8 h-8 shrink-0"
+							class="w-7 h-7 shrink-0"
 							iconSize={16}
 						/>
 						<span
@@ -125,7 +125,7 @@
 				</div>
 
 				<!-- Navigation links -->
-				<nav class="flex flex-col gap-1 p-3 overflow-y-auto min-h-0 flex-1">
+				<nav class="flex flex-col gap-1.5 p-2 overflow-y-auto min-h-0 flex-1">
 					{#each nav as item (item.href)}
 						{@const active = isActive(item.href)}
 						{@const NavIcon = item.icon}
@@ -133,16 +133,16 @@
 							href={item.href}
 							onclick={() => (drawerOpen = false)}
 							title={isCollapsed ? item.label : undefined}
-							class="flex items-center rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {isCollapsed
-								? 'lg:justify-center lg:p-2.5 px-3 py-2.5 gap-3'
+							class="flex items-center rounded-xl text-xs font-semibold tracking-wider uppercase transition-colors {isCollapsed
+								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
 								: 'gap-3 px-3 py-2.5'} {active
-								? 'bg-zinc-900 text-white shadow-xs'
-								: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'}"
+								? 'bg-zinc-100 text-zinc-900 shadow-none font-bold'
+								: 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/70'}"
 						>
 							<UiIcon
 								icon={NavIcon}
 								size={18}
-								class={active ? 'text-white' : 'text-zinc-400 shrink-0'}
+								class={active ? 'text-zinc-900 shrink-0' : 'text-zinc-400 shrink-0'}
 							/>
 							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 						</a>
@@ -151,24 +151,26 @@
 			</div>
 
 			<!-- Sidebar Footer: Collapse Toggle -->
-			<div class="p-3 border-t border-zinc-200 shrink-0 hidden lg:block">
+			<div
+				class="h-14 shrink-0 border-t border-zinc-200 hidden lg:flex items-center {isCollapsed
+					? 'justify-center'
+					: 'px-3'}"
+			>
 				{#if isCollapsed}
-					<div class="flex justify-center">
-						<button
-							type="button"
-							onclick={toggleCollapsed}
-							class="p-2 rounded-lg border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
-							aria-label="展开侧边栏"
-							title="展开侧边栏"
-						>
-							<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
-						</button>
-					</div>
+					<button
+						type="button"
+						onclick={toggleCollapsed}
+						class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+						aria-label="展开侧边栏"
+						title="展开侧边栏"
+					>
+						<UiIcon icon={PanelLeftOpen} size={18} class="text-zinc-500" />
+					</button>
 				{:else}
 					<button
 						type="button"
 						onclick={toggleCollapsed}
-						class="w-full flex items-center gap-3 px-3 py-2 rounded-lg border border-zinc-200 text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100/80 transition-all cursor-pointer"
+						class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
 						aria-label="折叠侧边栏"
 						title="折叠侧边栏"
 					>
@@ -183,7 +185,7 @@
 		<div class="flex-1 min-w-0 flex flex-col min-h-screen">
 			<!-- Right Top Bar (顶部栏：高 h-14，底部有横向分割线 border-b) -->
 			<header
-				class="sticky top-0 z-30 h-14 bg-zinc-50 border-b border-zinc-200 px-4 sm:px-6 flex items-center justify-between"
+				class="sticky top-0 z-30 h-14 bg-white border-b border-zinc-200 px-4 sm:px-6 flex items-center justify-between"
 			>
 				<div class="flex items-center gap-3">
 					<!-- Mobile menu button -->
