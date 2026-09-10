@@ -6,11 +6,13 @@ import { getGlobalSettings } from '$domains/content/server';
 export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const settings = await getGlobalSettings().catch(() => null);
 	const logoUrl = settings?.icon || null;
+	const siteName = settings?.siteName || 'JEVARIE';
 
 	if (isAdminLoginPath(url.pathname)) {
 		return {
 			adminEmail: locals.admin?.email ?? null,
-			logoUrl
+			logoUrl,
+			siteName
 		};
 	}
 	// Hooks guard already validated the session; stay defensive for direct loads.
@@ -19,6 +21,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 	return {
 		adminEmail: locals.admin.email,
-		logoUrl
+		logoUrl,
+		siteName
 	};
 };

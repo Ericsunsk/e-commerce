@@ -15,6 +15,7 @@
 		Settings,
 		X,
 		Menu,
+		ExternalLink,
 		PanelLeftClose,
 		PanelLeftOpen
 	} from 'lucide-svelte';
@@ -63,6 +64,10 @@
 		const pathname = $page.url.pathname;
 		return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 	}
+
+	const userInitials = $derived(
+		data.adminEmail ? data.adminEmail.slice(0, 2).toUpperCase() : 'AD'
+	);
 </script>
 
 <svelte:head>
@@ -74,96 +79,110 @@
 	{@render children()}
 {:else}
 	<div class="min-h-screen bg-zinc-50 text-zinc-900 font-sans antialiased flex flex-col">
-		<!-- Mobile top bar -->
+		<!-- Global Top Bar (顶部栏) -->
 		<header
-			class="lg:hidden flex items-center justify-between px-5 py-3.5 bg-zinc-50 sticky top-0 z-30"
+			class="sticky top-0 z-40 h-14 bg-zinc-50 border-b border-zinc-200 px-4 lg:px-6 flex items-center justify-between"
 		>
-			<div class="flex items-center gap-2.5 min-w-0">
-				<AdminLogo src={data.logoUrl} class="w-7 h-7" iconSize={14} />
-				<span class="text-xs font-semibold font-mono text-zinc-900 truncate">
-					{data.adminEmail || 'Admin'}
-				</span>
+			<div class="flex items-center gap-3 min-w-0">
+				<button
+					onclick={() => (drawerOpen = !drawerOpen)}
+					aria-label="切换导航菜单"
+					class="lg:hidden p-1.5 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
+				>
+					{#if drawerOpen}
+						<UiIcon icon={X} size={18} />
+					{:else}
+						<UiIcon icon={Menu} size={18} />
+					{/if}
+				</button>
+				<a
+					href="/admin"
+					class="flex items-center gap-2.5 min-w-0 group hover:opacity-90 transition-opacity"
+					title={data.siteName ? `${data.siteName} - 管理后台` : '管理后台'}
+				>
+					<AdminLogo
+						src={data.logoUrl}
+						label={data.siteName}
+						class="w-8 h-8 shrink-0"
+						iconSize={16}
+					/>
+					<span class="text-xs font-bold uppercase tracking-[0.2em] text-zinc-900 truncate">
+						{data.siteName || 'JEVARIE'}
+					</span>
+				</a>
 			</div>
-			<button
-				onclick={() => (drawerOpen = !drawerOpen)}
-				aria-label="切换导航菜单"
-				class="p-2 rounded-lg border border-zinc-200 text-zinc-700 hover:bg-zinc-100 transition-colors shrink-0"
-			>
-				{#if drawerOpen}
-					<UiIcon icon={X} size={20} />
-				{:else}
-					<UiIcon icon={Menu} size={20} />
+
+			<div class="flex items-center gap-3 shrink-0">
+				<a
+					href="/"
+					target="_blank"
+					title="查看线上店铺"
+					class="text-zinc-400 hover:text-zinc-700 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors hidden sm:flex items-center"
+					aria-label="查看线上店铺"
+				>
+					<UiIcon icon={ExternalLink} size={16} />
+				</a>
+				{#if data.adminEmail}
+					<div class="h-4 w-px bg-zinc-200 hidden sm:block"></div>
+					<div class="flex items-center gap-2" title={data.adminEmail}>
+						<div
+							class="w-7 h-7 rounded-full bg-zinc-900 text-white text-[11px] font-bold flex items-center justify-center font-mono shrink-0"
+						>
+							{userInitials}
+						</div>
+						<span
+							class="text-xs font-mono font-medium text-zinc-600 hidden md:inline-block truncate max-w-[200px]"
+						>
+							{data.adminEmail}
+						</span>
+					</div>
 				{/if}
-			</button>
+			</div>
 		</header>
 
-		<div class="flex flex-1">
+		<!-- Main Layout with Divider below Top Bar -->
+		<div class="flex flex-1 min-h-[calc(100vh-3.5rem)]">
 			<!-- Mobile drawer backdrop -->
 			{#if drawerOpen}
 				<button
 					onclick={() => (drawerOpen = false)}
 					aria-label="关闭菜单"
-					class="fixed inset-0 z-40 bg-zinc-900/30 backdrop-blur-xs lg:hidden cursor-default"
+					class="fixed inset-0 top-14 z-40 bg-zinc-900/30 backdrop-blur-xs lg:hidden cursor-default"
 				></button>
 			{/if}
 
-			<!-- Sidebar -->
+			<!-- Sidebar (导航栏) -->
 			<aside
-				class="fixed lg:sticky top-0 z-50 lg:z-10 shrink-0 h-screen border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 py-6 {isCollapsed
-					? 'w-64 px-5 lg:w-20 lg:px-3'
-					: 'w-64 px-5'} {drawerOpen
+				class="fixed lg:sticky top-14 z-40 lg:z-10 shrink-0 h-[calc(100vh-3.5rem)] border-r border-zinc-200 bg-zinc-50 flex flex-col justify-between transition-all duration-200 py-4 {isCollapsed
+					? 'w-64 px-4 lg:w-20 lg:px-3'
+					: 'w-64 px-4'} {drawerOpen
 					? 'translate-x-0 shadow-xl'
 					: '-translate-x-full lg:translate-x-0'}"
 			>
-				<div class="flex flex-col gap-6 overflow-y-auto min-h-0 flex-1">
-					<!-- Brand logo & Admin Info -->
-					<div class="flex items-center {isCollapsed ? 'lg:justify-center' : ''} px-1">
+				<!-- Navigation links -->
+				<nav class="flex flex-col gap-1 overflow-y-auto min-h-0 flex-1">
+					{#each nav as item (item.href)}
+						{@const active = isActive(item.href)}
+						{@const NavIcon = item.icon}
 						<a
-							href="/admin"
-							class="flex items-center {isCollapsed ? 'gap-0' : 'gap-3'} min-w-0 group hover:opacity-90 transition-opacity"
-							title={data.adminEmail ? `管理后台 (${data.adminEmail})` : '管理后台'}
+							href={item.href}
+							onclick={() => (drawerOpen = false)}
+							title={isCollapsed ? item.label : undefined}
+							class="flex items-center rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {isCollapsed
+								? 'lg:justify-center lg:p-2.5 px-3.5 py-2.5 gap-3'
+								: 'gap-3 px-3.5 py-2.5'} {active
+								? 'bg-zinc-900 text-white shadow-xs'
+								: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'}"
 						>
-							<AdminLogo src={data.logoUrl} class="w-8 h-8 shrink-0" iconSize={16} />
-							<div class="min-w-0 flex-1 {isCollapsed ? 'lg:hidden' : ''}">
-								<p class="text-xs font-semibold text-zinc-900 truncate font-mono" title={data.adminEmail || ''}>
-									{data.adminEmail || '管理员'}
-								</p>
-							</div>
+							<UiIcon
+								icon={NavIcon}
+								size={18}
+								class={active ? 'text-white' : 'text-zinc-400 shrink-0'}
+							/>
+							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
 						</a>
-					</div>
-
-					<div class="h-px bg-zinc-100"></div>
-
-					<!-- Navigation links -->
-					<nav class="flex flex-col gap-1">
-						{#if !isCollapsed}
-							<p class="px-3 text-[10px] uppercase font-bold tracking-[0.2em] text-zinc-400 mb-1">
-								导航
-							</p>
-						{/if}
-						{#each nav as item (item.href)}
-							{@const active = isActive(item.href)}
-							{@const NavIcon = item.icon}
-							<a
-								href={item.href}
-								onclick={() => (drawerOpen = false)}
-								title={isCollapsed ? item.label : undefined}
-								class="flex items-center rounded-lg text-xs font-semibold tracking-wider uppercase transition-all {isCollapsed
-									? 'lg:justify-center lg:p-2.5 px-3.5 py-2.5 gap-3'
-									: 'gap-3 px-3.5 py-2.5'} {active
-									? 'bg-zinc-900 text-white shadow-xs'
-									: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/80'}"
-							>
-								<UiIcon
-									icon={NavIcon}
-									size={18}
-									class={active ? 'text-white' : 'text-zinc-400 shrink-0'}
-								/>
-								<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
-							</a>
-						{/each}
-					</nav>
-				</div>
+					{/each}
+				</nav>
 
 				<!-- Sidebar Footer: Collapse Toggle -->
 				<div class="pt-3 border-t border-zinc-200/80 shrink-0 hidden lg:block">
