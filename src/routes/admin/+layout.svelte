@@ -87,8 +87,8 @@
 		<!-- Left Column: Sidebar (垂直贯穿到底，包含顶部 Logo 栏 + 导航链接 + 底部折叠切换) -->
 		<aside
 			class="fixed lg:sticky top-0 z-50 lg:z-30 shrink-0 h-screen border-r border-zinc-200 bg-white flex flex-col justify-between transition-all duration-200 {isCollapsed
-				? 'w-64 lg:w-14'
-				: 'w-64'} {drawerOpen
+				? 'w-52 lg:w-14'
+				: 'w-52'} {drawerOpen
 				? 'translate-x-0 shadow-xl'
 				: '-translate-x-full lg:translate-x-0'}"
 		>
@@ -129,11 +129,11 @@
 							href={item.href}
 							onclick={() => (drawerOpen = false)}
 							title={isCollapsed ? item.label : undefined}
-							class="flex items-center rounded-xl text-xs tracking-wider uppercase transition-colors text-zinc-900 {isCollapsed
+							class="flex items-center rounded-xl text-xs font-medium tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {isCollapsed
 								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
 								: 'gap-3 px-3 py-2.5'} {active
-								? 'bg-zinc-100 font-semibold'
-								: 'hover:bg-zinc-100/80 font-normal'}"
+								? 'bg-zinc-100'
+								: 'hover:bg-zinc-100'}"
 						>
 							<UiIcon
 								icon={NavIcon}
@@ -141,7 +141,7 @@
 								strokeWidth={ICONS.strokeWidth}
 								class={ICONS.navClass}
 							/>
-							<span class={isCollapsed ? 'lg:hidden' : ''}>{item.label}</span>
+							<span class="text-zinc-900 {isCollapsed ? 'lg:hidden' : ''}">{item.label}</span>
 						</a>
 					{/each}
 				</nav>
@@ -156,7 +156,7 @@
 				<button
 					type="button"
 					onclick={toggleCollapsed}
-					class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+					class="w-10 h-10 flex items-center justify-center rounded-xl text-zinc-900 hover:bg-zinc-100 transition-[background-color] duration-150 cursor-pointer"
 					aria-label={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
 					title={isCollapsed ? '展开侧边栏' : '折叠侧边栏'}
 				>
