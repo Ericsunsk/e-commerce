@@ -196,7 +196,7 @@
 							/>
 						</div>
 						<span
-							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 shrink-0 pl-1 transition-opacity {effectiveCollapsed
+							class="text-2xl font-display font-bold uppercase tracking-wider text-zinc-900 shrink-0 pl-1.5 transition-opacity {effectiveCollapsed
 								? 'opacity-0 duration-100 delay-0 pointer-events-none'
 								: 'opacity-100 duration-150 delay-75'}"
 						>
@@ -287,7 +287,7 @@
 							class="w-7 h-7 shrink-0"
 							iconSize={14}
 						/>
-						<span class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate">
+						<span class="text-xl font-display font-bold uppercase tracking-wider text-zinc-900 truncate">
 							{data.siteName || 'JEVARIE'}
 						</span>
 					</div>
@@ -310,7 +310,7 @@
 								class="{ICONS.navClass} shrink-0"
 							/>
 							<span
-								class="text-sm font-medium tracking-wider uppercase text-zinc-900 truncate"
+								class="text-base font-semibold tracking-wider uppercase text-zinc-900 truncate"
 							>
 								{dynamicTitle || currentNav.label}
 							</span>
