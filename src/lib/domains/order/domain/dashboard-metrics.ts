@@ -6,6 +6,13 @@
  * each collection once, so no N+1 queries are possible by construction.
  */
 
+export interface MetricOrderItem {
+	productId?: string;
+	title?: string;
+	price?: number;
+	quantity?: number;
+}
+
 export interface MetricOrder {
 	id: string;
 	status: string;
@@ -13,6 +20,7 @@ export interface MetricOrder {
 	currency: string;
 	customerEmail: string;
 	date: string;
+	items?: MetricOrderItem[];
 }
 
 export interface MetricVariant {
@@ -76,6 +84,30 @@ export interface RangeSummary {
 
 export type TimeRangeKey = 'today' | '7d' | '30d' | 'all';
 
+export interface TopProductRow {
+	productId: string;
+	title: string;
+	unitsSold: number;
+	revenueCents: number;
+	sharePercent: number;
+}
+
+export interface CatalogHealth {
+	totalVariants: number;
+	healthyCount: number;
+	lowStockCount: number;
+	outOfStockCount: number;
+}
+
+export interface CustomerInsights {
+	totalCustomers: number;
+	newCustomers: number;
+	repeatCustomers: number;
+	repeatRatePercent: number;
+	repeatRevenueCents: number;
+	repeatRevenuePercent: number;
+}
+
 export interface DashboardMetrics {
 	/** Gross merchandise volume, in minor currency units (cents). */
 	gmvCents: number;
@@ -93,6 +125,9 @@ export interface DashboardMetrics {
 	totalOrdersCount: number;
 	totalCustomersCount: number;
 	overallAovCents: number;
+	topProducts: TopProductRow[];
+	catalogHealth: CatalogHealth;
+	customerInsights: CustomerInsights;
 }
 
 import { ORDER_STATUS_LABELS } from './models';
@@ -328,6 +363,92 @@ export function computeDashboardMetrics(
 	const totalCustomersCount = new Set(orders.map((o) => o.customerEmail).filter(Boolean)).size;
 	const overallAovCents = totalOrdersCount > 0 ? Math.round(gmvCents / totalOrdersCount) : 0;
 
+	// Top Products by Revenue & Volume
+	const productSales = new Map<string, { title: string; unitsSold: number; revenueCents: number }>();
+	for (const order of orders) {
+		if (Array.isArray(order.items) && order.items.length > 0) {
+			for (const item of order.items) {
+				const pId = item.productId || 'unknown';
+				const itemTitle = item.title || titleOf(pId);
+				const qty = Number(item.quantity) || 1;
+				const itemTotal = (Number(item.price) || 0) * qty;
+				const current = productSales.get(pId) ?? { title: itemTitle, unitsSold: 0, revenueCents: 0 };
+				current.unitsSold += qty;
+				current.revenueCents += itemTotal;
+				if (!current.title && itemTitle) current.title = itemTitle;
+				productSales.set(pId, current);
+			}
+		}
+	}
+
+	const totalItemsRevenue = [...productSales.values()].reduce((sum, p) => sum + p.revenueCents, 0) || gmvCents || 1;
+	const topProducts: TopProductRow[] = [...productSales.entries()]
+		.map(([productId, data]) => ({
+			productId,
+			title: data.title || titleOf(productId),
+			unitsSold: data.unitsSold,
+			revenueCents: data.revenueCents,
+			sharePercent: Math.min(100, Math.round((data.revenueCents / totalItemsRevenue) * 1000) / 10)
+		}))
+		.sort((a, b) => b.revenueCents - a.revenueCents || b.unitsSold - a.unitsSold)
+		.slice(0, 5);
+
+	// Catalog Health Breakdown
+	const totalVariants = variants.length;
+	const outOfStockCount = variants.filter((v) => v.stockQuantity === 0).length;
+	const catalogLowStockCount = variants.filter(
+		(v) => v.stockQuantity > 0 && v.stockQuantity <= LOW_STOCK_THRESHOLD
+	).length;
+	const healthyCount = variants.filter((v) => v.stockQuantity > LOW_STOCK_THRESHOLD).length;
+
+	const catalogHealth: CatalogHealth = {
+		totalVariants,
+		healthyCount,
+		lowStockCount: catalogLowStockCount,
+		outOfStockCount
+	};
+
+	// Customer Insights (New vs Repeat)
+	const customerOrders = new Map<string, { count: number; totalSpent: number }>();
+	for (const order of orders) {
+		const email = order.customerEmail?.trim().toLowerCase();
+		if (!email) continue;
+		const current = customerOrders.get(email) ?? { count: 0, totalSpent: 0 };
+		current.count += 1;
+		current.totalSpent += Number(order.amountTotal) || 0;
+		customerOrders.set(email, current);
+	}
+
+	const totalCustomers = customerOrders.size;
+	let newCustomers = 0;
+	let repeatCustomers = 0;
+	let repeatRevenueCents = 0;
+
+	for (const { count, totalSpent } of customerOrders.values()) {
+		if (count >= 2) {
+			repeatCustomers++;
+			repeatRevenueCents += totalSpent;
+		} else {
+			newCustomers++;
+		}
+	}
+
+	const repeatRatePercent = totalCustomers > 0
+		? Math.round((repeatCustomers / totalCustomers) * 1000) / 10
+		: 0;
+	const repeatRevenuePercent = gmvCents > 0
+		? Math.round((repeatRevenueCents / gmvCents) * 1000) / 10
+		: 0;
+
+	const customerInsights: CustomerInsights = {
+		totalCustomers,
+		newCustomers,
+		repeatCustomers,
+		repeatRatePercent,
+		repeatRevenueCents,
+		repeatRevenuePercent
+	};
+
 	return {
 		gmvCents,
 		currency,
@@ -340,6 +461,9 @@ export function computeDashboardMetrics(
 		ranges,
 		totalOrdersCount,
 		totalCustomersCount,
-		overallAovCents
+		overallAovCents,
+		topProducts,
+		catalogHealth,
+		customerInsights
 	};
 }

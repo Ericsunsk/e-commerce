@@ -13,7 +13,11 @@ import {
 	type ProductVariantsResponse,
 	type TypedPocketBase
 } from '$shared/infrastructure';
-import { computeDashboardMetrics, type DashboardMetrics } from '../domain/dashboard-metrics';
+import {
+	computeDashboardMetrics,
+	type DashboardMetrics,
+	type MetricOrderItem
+} from '../domain/dashboard-metrics';
 
 async function fetchDashboardBatches(pb: TypedPocketBase) {
 	const orders = (await pb.collection(Collections.Orders).getFullList({
@@ -46,7 +50,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 				amountTotal: Number(order.amount_total) || 0,
 				currency: order.currency || 'usd',
 				customerEmail: order.customer_email || '',
-				date: order.placed_at_override || String(order.placed_at || '')
+				date: order.placed_at_override || String(order.placed_at || ''),
+				items: Array.isArray(order.items) ? (order.items as unknown as MetricOrderItem[]) : []
 			})),
 			variants.map((variant) => ({
 				id: variant.id,

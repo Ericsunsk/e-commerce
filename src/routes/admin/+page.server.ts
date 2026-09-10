@@ -46,6 +46,15 @@ export const load: PageServerLoad = async () => {
 		ranges: formattedRanges,
 		totalOrdersCount: metrics.totalOrdersCount,
 		totalCustomersCount: metrics.totalCustomersCount,
-		overallAov: fmt(metrics.overallAovCents)
+		overallAov: fmt(metrics.overallAovCents),
+		topProducts: metrics.topProducts.map((p) => ({
+			...p,
+			revenueFormatted: fmt(p.revenueCents)
+		})),
+		catalogHealth: metrics.catalogHealth,
+		customerInsights: {
+			...metrics.customerInsights,
+			repeatRevenueFormatted: fmt(metrics.customerInsights.repeatRevenueCents)
+		}
 	};
 };

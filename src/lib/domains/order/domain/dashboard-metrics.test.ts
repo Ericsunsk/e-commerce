@@ -131,4 +131,72 @@ describe('dashboard metrics', () => {
 		expect(metrics.ranges['30d'].trend).toHaveLength(30);
 		expect(metrics.ranges['7d'].sparkline).toHaveLength(7);
 	});
+
+	it('computes topProducts, catalogHealth, and customerInsights', () => {
+		const ordersWithItems = [
+			{
+				id: 'o1',
+				status: 'paid',
+				amountTotal: 10000,
+				currency: 'usd',
+				customerEmail: 'alice@x.com',
+				date: '2026-09-01',
+				items: [
+					{ productId: 'p1', title: 'Tee', price: 3000, quantity: 2 },
+					{ productId: 'p2', title: 'Cap', price: 4000, quantity: 1 }
+				]
+			},
+			{
+				id: 'o2',
+				status: 'paid',
+				amountTotal: 6000,
+				currency: 'usd',
+				customerEmail: 'alice@x.com', // repeat customer
+				date: '2026-09-02',
+				items: [{ productId: 'p1', title: 'Tee', price: 3000, quantity: 2 }]
+			},
+			{
+				id: 'o3',
+				status: 'paid',
+				amountTotal: 5000,
+				currency: 'usd',
+				customerEmail: 'bob@x.com', // single purchase customer
+				date: '2026-09-03',
+				items: [{ productId: 'p3', title: 'Hoodie', price: 5000, quantity: 1 }]
+			}
+		];
+
+		const testVariants = [
+			{ id: 'v1', productId: 'p1', sku: 'A', color: '', size: '', stockQuantity: 20 },
+			{ id: 'v2', productId: 'p2', sku: 'B', color: '', size: '', stockQuantity: 3 },
+			{ id: 'v3', productId: 'p3', sku: 'C', color: '', size: '', stockQuantity: 0 }
+		];
+
+		const metrics = computeDashboardMetrics(ordersWithItems, testVariants, {});
+
+		// Top Products: Tee sold 4 units for 12000 cents, Hoodie 1 unit for 5000, Cap 1 unit for 4000
+		expect(metrics.topProducts).toHaveLength(3);
+		expect(metrics.topProducts[0]).toMatchObject({
+			productId: 'p1',
+			title: 'Tee',
+			unitsSold: 4,
+			revenueCents: 12000
+		});
+		expect(metrics.topProducts[0].sharePercent).toBeGreaterThan(0);
+
+		// Catalog Health: 1 healthy (>5), 1 low stock (1-5), 1 out of stock (0)
+		expect(metrics.catalogHealth).toEqual({
+			totalVariants: 3,
+			healthyCount: 1,
+			lowStockCount: 1,
+			outOfStockCount: 1
+		});
+
+		// Customer Insights: 2 total customers (alice, bob), alice repeated (2 orders, 16000 spent)
+		expect(metrics.customerInsights.totalCustomers).toBe(2);
+		expect(metrics.customerInsights.newCustomers).toBe(1);
+		expect(metrics.customerInsights.repeatCustomers).toBe(1);
+		expect(metrics.customerInsights.repeatRatePercent).toBe(50);
+		expect(metrics.customerInsights.repeatRevenueCents).toBe(16000);
+	});
 });
