@@ -111,7 +111,7 @@
 							iconSize={16}
 						/>
 						<span
-							class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-900 truncate {isCollapsed
+							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate {isCollapsed
 								? 'lg:hidden'
 								: ''}"
 						>
@@ -129,7 +129,7 @@
 							href={item.href}
 							onclick={() => (drawerOpen = false)}
 							title={isCollapsed ? item.label : undefined}
-							class="flex items-center rounded-xl text-xs font-light tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {isCollapsed
+							class="flex items-center rounded-xl text-xs font-normal tracking-wider uppercase transition-[background-color] duration-150 text-zinc-900 {isCollapsed
 								? 'lg:w-10 lg:h-10 lg:p-0 lg:justify-center mx-auto px-3 py-2.5 gap-3'
 								: 'gap-3 px-3 py-2.5'} {active
 								? 'bg-zinc-100'
@@ -198,7 +198,7 @@
 							class="w-7 h-7 shrink-0"
 							iconSize={14}
 						/>
-						<span class="text-xs font-medium uppercase tracking-[0.2em] text-zinc-900 truncate">
+						<span class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate">
 							{data.siteName || 'JEVARIE'}
 						</span>
 					</div>
