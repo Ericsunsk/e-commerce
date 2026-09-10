@@ -122,9 +122,9 @@
 							/>
 						</div>
 						<span
-							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 truncate pl-1 transition-[opacity,transform] duration-200 ease-out {effectiveCollapsed
-								? 'opacity-0 -translate-x-2 pointer-events-none'
-								: 'opacity-100 translate-x-0'}"
+							class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-900 shrink-0 pl-1 transition-opacity {effectiveCollapsed
+								? 'opacity-0 duration-100 delay-0 pointer-events-none'
+								: 'opacity-100 duration-150 delay-75'}"
 						>
 							{data.siteName || 'JEVARIE'}
 						</span>
@@ -156,9 +156,9 @@
 								/>
 							</div>
 							<span
-								class="text-zinc-900 pl-1 transition-[opacity,transform] duration-200 ease-out {effectiveCollapsed
-									? 'opacity-0 -translate-x-2 pointer-events-none'
-									: 'opacity-100 translate-x-0'}"
+								class="text-zinc-900 shrink-0 pl-1 transition-opacity {effectiveCollapsed
+									? 'opacity-0 duration-100 delay-0 pointer-events-none'
+									: 'opacity-100 duration-150 delay-75'}"
 							>
 								{item.label}
 							</span>
