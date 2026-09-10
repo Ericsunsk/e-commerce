@@ -41,6 +41,7 @@
 		"@tailwindcss/vite": "^4.1.18",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/svelte": "^5.3.1",
+		"@types/d3-shape": "^3.2.0",
 		"@types/node": "^25.1.0",
 		"@types/sanitize-html": "^2.16.0",
 		"@vitest/ui": "^4.0.17",

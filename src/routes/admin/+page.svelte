@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { AreaChart } from 'layerchart';
+	import { curveMonotoneX } from 'd3-shape';
 	import {
 		Wallet,
 		Truck,
@@ -376,7 +377,8 @@
 						grid={{ y: true }}
 						props={{
 							area: {
-								fillOpacity: 0.08
+								fillOpacity: 0.08,
+								curve: curveMonotoneX
 							}
 						}}
 					/>
