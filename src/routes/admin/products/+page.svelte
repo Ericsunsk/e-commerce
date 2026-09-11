@@ -1187,61 +1187,78 @@
 
 				<!-- Inline Create / Edit Subform -->
 				{#if showCategoryForm}
-					<div class="p-4 rounded-card bg-zinc-50 border border-zinc-200 space-y-3.5">
-						<div class="flex items-center justify-between pb-2 border-b border-zinc-200">
-							<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-								{categoryEditingId ? '编辑分类' : '新建分类'}
-							</span>
+					<div class="p-4 rounded-card bg-zinc-50/90 border border-zinc-200 space-y-3 animate-in fade-in duration-150">
+						<!-- Top row: Mode Title + Segmented Tier Selector + Close button -->
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<div class="flex items-center gap-2.5">
+								<span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+									{categoryEditingId ? '编辑分类' : '新建分类'}
+								</span>
+								<div class="inline-flex p-0.5 bg-zinc-200/60 rounded-card border border-zinc-200/80">
+									{#each [
+										{ id: 'gender', label: '一级类目' },
+										{ id: 'primary', label: '二级类目' },
+										{ id: 'subcategory', label: '三级类目' }
+									] as opt}
+										<button
+											type="button"
+											onclick={() => onCategoryTierChange(opt.id as CategoryTierOption)}
+											class="px-2.5 py-1 rounded-card text-xs transition-all cursor-pointer {categoryForm.tier === opt.id
+												? 'bg-white text-zinc-900 font-semibold shadow-xs border border-zinc-200/60'
+												: 'text-zinc-500 hover:text-zinc-900'}"
+										>
+											{opt.label}
+										</button>
+									{/each}
+								</div>
+							</div>
+
 							<button
 								type="button"
 								onclick={() => (showCategoryForm = false)}
-								class="text-[11px] text-zinc-400 hover:text-zinc-700 cursor-pointer"
+								class="text-zinc-400 hover:text-zinc-700 transition-colors cursor-pointer p-1 rounded-card"
+								title="取消"
+								aria-label="取消"
 							>
-								取消
+								<UiIcon icon={X} size={14} />
 							</button>
 						</div>
 
-						<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">类目层级 *</span>
-								<select
-									value={categoryForm.tier}
-									onchange={(e) => onCategoryTierChange(e.currentTarget.value as CategoryTierOption)}
-									class="w-full bg-white border border-zinc-300 rounded-card px-2.5 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900 cursor-pointer"
-								>
-									<option value="gender">一级类目</option>
-									<option value="primary">二级类目</option>
-									<option value="subcategory">三级类目</option>
-								</select>
-							</label>
-
-							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">分类名称 *</span>
+						<!-- Input & Action Row -->
+						<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+							<!-- Name input -->
+							<div class="relative flex-1">
 								<input
 									type="text"
 									bind:value={categoryForm.name}
-									placeholder="例如：男装 / 上装 / 连帽衫"
-									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900"
+									placeholder="输入分类名称（例如：连帽衫 / 短袖）"
+									onkeydown={(e) => {
+										if (e.key === 'Enter') {
+											e.preventDefault();
+											saveCategory();
+										}
+									}}
+									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 transition-colors"
 								/>
-							</label>
+							</div>
 
-							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">排序权重 (同类目下越小越靠前)</span>
+							<!-- Sort input -->
+							<div class="flex items-center gap-1.5 bg-white border border-zinc-300 rounded-card px-2.5 py-1.5 shrink-0">
+								<span class="text-[11px] text-zinc-400 font-medium">排序</span>
 								<input
 									type="number"
 									min="1"
 									bind:value={categoryForm.sort_order}
-									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
+									class="w-12 text-center text-xs font-mono font-bold text-zinc-900 outline-none"
 								/>
-								<span class="block text-[10px] text-zinc-400">同层级若重复将自动顺延已有分类</span>
-							</label>
-						</div>
+							</div>
 
-						<div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-200/60">
+							<!-- Action Buttons -->
+							<div class="flex items-center gap-1.5 shrink-0">
 								<button
 									type="button"
 									onclick={() => (showCategoryForm = false)}
-									class={ADMIN_BUTTONS.secondary}
+									class={ADMIN_BUTTONS.secondarySm}
 								>
 									取消
 								</button>
@@ -1249,17 +1266,27 @@
 									type="button"
 									onclick={saveCategory}
 									disabled={categorySaving || !categoryForm.name.trim()}
-									class={ADMIN_BUTTONS.primary}
+									class={ADMIN_BUTTONS.primarySm}
 								>
 									{#if categorySaving}
 										<span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
 										<span>保存中...</span>
 									{:else}
-										<span>保存分类</span>
+										<UiIcon icon={Check} size={13} />
+										<span>{categoryEditingId ? '保存修改' : '确认创建'}</span>
 									{/if}
 								</button>
 							</div>
 						</div>
+
+						<!-- Micro hint row -->
+						<div class="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
+							<span>同层级若权重重复将自动顺延已有分类 · 回车可快捷提交</span>
+							<span class="font-mono text-[10px]">
+								当前所选：{categoryForm.tier === 'gender' ? '一级类目' : categoryForm.tier === 'primary' ? '二级类目' : '三级类目'}
+							</span>
+						</div>
+					</div>
 				{/if}
 
 				<!-- Categories Table -->
