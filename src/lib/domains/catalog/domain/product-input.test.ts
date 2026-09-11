@@ -19,6 +19,8 @@ describe('product input', () => {
 			description: 'Soft cotton',
 			price: 49.99,
 			currency: 'USD',
+			is_featured: true,
+			category: ['cat_tops', 'cat_new'],
 			variants: [{ color: 'Red', size: 'M', sku: 'TEE-R-M', stockQuantity: 5 }]
 		});
 		expect(created).toMatchObject({
@@ -26,7 +28,9 @@ describe('product input', () => {
 			slug: 'classic-tee',
 			unitAmountCents: 4999,
 			currency: 'usd',
-			isActive: true
+			isActive: true,
+			isFeatured: true,
+			category: ['cat_tops', 'cat_new']
 		});
 
 		for (const bad of [
@@ -60,6 +64,15 @@ describe('product input', () => {
 	it('validates partial edits', () => {
 		expect(normalizeProductEdit({})).toEqual({});
 		expect(normalizeProductEdit({ price: 20 })).toMatchObject({ unitAmountCents: 2000 });
+		expect(
+			normalizeProductEdit({
+				is_featured: true,
+				category: ['cat_1', 'cat_2']
+			})
+		).toEqual({
+			isFeatured: true,
+			category: ['cat_1', 'cat_2']
+		});
 		try {
 			normalizeProductEdit({ title: 'x' });
 			expect.unreachable();

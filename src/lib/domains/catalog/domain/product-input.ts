@@ -87,6 +87,30 @@ function normalizeCurrency(raw: unknown): string {
 	return currency.toLowerCase();
 }
 
+function normalizeCategoryIds(raw: unknown): string[] {
+	if (raw === undefined || raw === null) return [];
+	let arr: unknown[] = [];
+	if (Array.isArray(raw)) {
+		arr = raw;
+	} else if (typeof raw === 'string') {
+		const trimmed = raw.trim();
+		if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+			try {
+				const parsed = JSON.parse(trimmed);
+				if (Array.isArray(parsed)) arr = parsed;
+			} catch {
+				arr = trimmed ? [trimmed] : [];
+			}
+		} else if (trimmed) {
+			arr = [trimmed];
+		}
+	}
+	const clean = arr
+		.map((item) => (typeof item === 'string' ? item.trim() : ''))
+		.filter((id) => id.length > 0);
+	return Array.from(new Set(clean));
+}
+
 export interface NormalizedProductCreate {
 	title: string;
 	slug: string;
@@ -94,6 +118,8 @@ export interface NormalizedProductCreate {
 	unitAmountCents: number;
 	currency: string;
 	isActive: boolean;
+	isFeatured: boolean;
+	category: string[];
 	variants: NormalizedProductVariant[];
 }
 
@@ -114,6 +140,8 @@ export function normalizeProductCreate(input: unknown): NormalizedProductCreate 
 		unitAmountCents: normalizePriceDollars(data.price),
 		currency: normalizeCurrency(data.currency),
 		isActive: data.is_active === undefined ? true : data.is_active === true,
+		isFeatured: data.is_featured === true,
+		category: normalizeCategoryIds(data.category),
 		variants: normalizeVariants(data.variants)
 	};
 }
@@ -125,6 +153,8 @@ export interface NormalizedProductEdit {
 	unitAmountCents?: number;
 	currency?: string;
 	isActive?: boolean;
+	isFeatured?: boolean;
+	category?: string[];
 	variants?: NormalizedProductVariant[];
 }
 
@@ -146,6 +176,8 @@ export function normalizeProductEdit(input: unknown): NormalizedProductEdit {
 	if (data.price !== undefined) edit.unitAmountCents = normalizePriceDollars(data.price);
 	if (data.currency !== undefined) edit.currency = normalizeCurrency(data.currency);
 	if (data.is_active !== undefined) edit.isActive = data.is_active === true;
+	if (data.is_featured !== undefined) edit.isFeatured = data.is_featured === true;
+	if (data.category !== undefined) edit.category = normalizeCategoryIds(data.category);
 	if (data.variants !== undefined) edit.variants = normalizeVariants(data.variants);
 
 	return edit;

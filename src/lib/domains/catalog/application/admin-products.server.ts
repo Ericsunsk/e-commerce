@@ -7,6 +7,7 @@
  */
 import { withAdmin } from '$shared/infrastructure/server';
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
+import { getFileUrl } from '$shared/kernel';
 import { mapRecordToProduct } from '../infrastructure/product-mapper.server';
 import { enrichProductsBulk } from '../infrastructure/stripe-pricing.server';
 import {
@@ -126,7 +127,10 @@ async function syncVariantsWithClient(
  * Admin: create a product end-to-end (Stripe provisioning → PB record →
  * variants). Stripe artifacts are rolled back when persistence fails.
  */
-export async function createCatalogProduct(input: unknown): Promise<{ id: string; slug: string }> {
+export async function createCatalogProduct(
+	input: unknown,
+	mainImageFile?: File | null
+): Promise<{ id: string; slug: string }> {
 	const data: NormalizedProductCreate = normalizeProductCreate(input);
 	const client = await liveProvisioningClient();
 
@@ -143,14 +147,20 @@ export async function createCatalogProduct(input: unknown): Promise<{ id: string
 	try {
 		return await withAdmin(async (pb) => {
 			const slug = await ensureUniqueSlug(pb, data.slug);
-			const record = await pb.collection(Collections.Products).create({
+			const payload: Record<string, unknown> = {
 				title: data.title,
 				slug,
 				description: data.description,
 				is_active: data.isActive,
+				is_featured: data.isFeatured,
+				category: data.category,
 				stripe_product_id: stripeProductId,
 				stripe_price_id: stripePriceId
-			});
+			};
+			if (mainImageFile) {
+				payload.main_image = mainImageFile;
+			}
+			const record = await pb.collection(Collections.Products).create(payload);
 			await syncVariantsWithClient(pb, record.id, data.variants);
 			return { id: record.id, slug };
 		});
@@ -172,6 +182,9 @@ export interface AdminProductEdit {
 	priceDollars: number;
 	currency: string;
 	isActive: boolean;
+	isFeatured: boolean;
+	mainImage?: string;
+	categoryIds: string[];
 	stripeProductId?: string;
 	stripePriceId?: string;
 	variants: Array<{
@@ -215,6 +228,11 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 				priceDollars,
 				currency,
 				isActive: record.is_active !== false,
+				isFeatured: record.is_featured === true,
+				mainImage: record.main_image
+					? getFileUrl(record.collectionId || 'products', record.id, record.main_image)
+					: undefined,
+				categoryIds: Array.isArray(record.category) ? record.category : [],
 				stripeProductId: record.stripe_product_id || undefined,
 				stripePriceId,
 				variants: variants.map((v) => ({
@@ -237,7 +255,8 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
  */
 export async function updateCatalogProduct(
 	productId: string,
-	input: unknown
+	input: unknown,
+	mainImageFile?: File | null | 'CLEAR'
 ): Promise<{ id: string; slug: string; priceRolled: boolean }> {
 	const edit: NormalizedProductEdit = normalizeProductEdit(input);
 	const client = await liveProvisioningClient();
@@ -303,6 +322,17 @@ export async function updateCatalogProduct(
 		}
 		if (edit.description !== undefined) payload.description = edit.description;
 		if (edit.isActive !== undefined) payload.is_active = edit.isActive;
+		if (edit.isFeatured !== undefined) payload.is_featured = edit.isFeatured;
+		if (edit.category !== undefined) payload.category = edit.category;
+
+		if (
+			mainImageFile === 'CLEAR' ||
+			(input && typeof input === 'object' && (input as Record<string, unknown>).main_image_clear === true)
+		) {
+			payload.main_image = null;
+		} else if (mainImageFile instanceof File) {
+			payload.main_image = mainImageFile;
+		}
 
 		const updated = await pb.collection(Collections.Products).update(productId, payload);
 		if (edit.variants !== undefined) {
