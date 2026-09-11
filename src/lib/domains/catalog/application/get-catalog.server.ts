@@ -4,6 +4,7 @@ import type { TypedPocketBase, CategoriesResponse, ProductsResponse } from '$sha
 import { Collections } from '$shared/infrastructure';
 import type { Product, Category } from '../domain/models';
 import { filterVisibleProducts, isStorefrontVisible } from '../domain/product-visibility';
+import { sortCategoriesByHierarchy } from '../domain/category-hierarchy';
 import {
 	mapRecordToProduct,
 	mapRecordToCategory,
@@ -38,7 +39,7 @@ export async function getCategories(): Promise<Category[]> {
 			sort: 'sort_order'
 		});
 
-		return records.map((r) => mapRecordToCategory(r));
+		return sortCategoriesByHierarchy(records.map((r) => mapRecordToCategory(r)));
 	}, []);
 }
 

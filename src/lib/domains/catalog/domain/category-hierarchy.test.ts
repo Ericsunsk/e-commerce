@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
 	getCategoryTier,
-	groupCategoriesByHierarchy
+	groupCategoriesByHierarchy,
+	sortCategoriesByHierarchy
 } from './category-hierarchy';
 
 describe('category hierarchy domain', () => {
@@ -70,4 +71,32 @@ describe('category hierarchy domain', () => {
 		expect(groups[2].label).toBe('三级类目');
 		expect(groups[2].categories.map((c) => c.slug)).toEqual(['pants', 'hoodies', 'shoes']);
 	});
+
+	it('sorts categories by Tier first, then by tier-specific sort order allowing same weights in different tiers', () => {
+		const rawCategories = [
+			{ id: 'sub-2', slug: 'hoodies', name: '连帽衫', sort_order: 2 },
+			{ id: 'sub-1', slug: 't-shirts', name: 'T恤', sort_order: 1 },
+			{ id: 'l2-2', slug: 'bottoms', name: '下装', sort_order: 2 },
+			{ id: 'l2-1', slug: 'tops', name: '上装', sort_order: 1 },
+			{ id: 'l1-2', slug: 'womens', name: '女士', sort_order: 2 },
+			{ id: 'l1-1', slug: 'mens', name: '男士', sort_order: 1 },
+			{ id: 'other-1', slug: 'custom-promo', name: '特惠专区', sort_order: 1 }
+		];
+
+		const sorted = sortCategoriesByHierarchy(rawCategories);
+		expect(sorted.map((c) => `${c.slug}:${c.sort_order}`)).toEqual([
+			// 一级类目 (sort_order 1, 2)
+			'mens:1',
+			'womens:2',
+			// 二级类目 (sort_order 1, 2)
+			'tops:1',
+			'bottoms:2',
+			// 三级类目 (sort_order 1, 2)
+			't-shirts:1',
+			'hoodies:2',
+			// 其他类目 (sort_order 1)
+			'custom-promo:1'
+		]);
+	});
 });
+

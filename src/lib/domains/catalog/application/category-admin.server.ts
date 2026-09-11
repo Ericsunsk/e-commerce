@@ -4,6 +4,7 @@
 import { withAdmin } from '$shared/infrastructure/server';
 import { Collections, type CategoriesResponse, type TypedPocketBase } from '$shared/infrastructure';
 import { normalizeCategory, toCategoryRow, type CategoryRow } from '../domain/category-admin';
+import { sortCategoriesByHierarchy } from '../domain/category-hierarchy';
 
 async function countProductsWithClient(pb: TypedPocketBase, categoryId: string): Promise<number> {
 	try {
@@ -37,7 +38,7 @@ export async function listAdminCategories(): Promise<CategoryRow[]> {
 				)
 			);
 		}
-		return rows;
+		return sortCategoriesByHierarchy(rows);
 	}, []);
 }
 

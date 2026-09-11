@@ -242,3 +242,31 @@ export function groupCategoriesByHierarchy<
 
 	return result;
 }
+
+/**
+ * Comparator to order categories by Tier (一级 -> 二级 -> 三级 -> 其他),
+ * and within each tier by their individual sort order (sort_order / sortOrder).
+ */
+export function compareCategoriesByTierAndOrder(
+	a: { slug?: string; name?: string; parent?: string; sortOrder?: number; sort_order?: number },
+	b: { slug?: string; name?: string; parent?: string; sortOrder?: number; sort_order?: number }
+): number {
+	const tierA = CATEGORY_TIER_DEFINITIONS[getCategoryTier(a)].order;
+	const tierB = CATEGORY_TIER_DEFINITIONS[getCategoryTier(b)].order;
+	if (tierA !== tierB) return tierA - tierB;
+	const orderA = a.sortOrder ?? a.sort_order ?? 0;
+	const orderB = b.sortOrder ?? b.sort_order ?? 0;
+	if (orderA !== orderB) return orderA - orderB;
+	return (a.name || a.slug || '').localeCompare(b.name || b.slug || '');
+}
+
+/**
+ * Returns a sorted copy of categories ordered by hierarchical tier first,
+ * then by their tier-specific numeric sort order.
+ */
+export function sortCategoriesByHierarchy<
+	T extends { slug?: string; name?: string; parent?: string; sortOrder?: number; sort_order?: number }
+>(categories: T[]): T[] {
+	if (!categories || categories.length === 0) return [];
+	return categories.slice().sort(compareCategoriesByTierAndOrder);
+}

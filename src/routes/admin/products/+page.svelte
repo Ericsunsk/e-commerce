@@ -32,7 +32,7 @@
 		ADMIN_DRAWER
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
-	import { getCategoryTier, type AdminProductRow } from '$domains/catalog';
+	import { getCategoryTier, sortCategoriesByHierarchy, type AdminProductRow } from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
 
@@ -328,7 +328,7 @@
 		categoryForm = {
 			name: '',
 			slug: '',
-			sort_order: categories.length + 1,
+			sort_order: 1,
 			description: '',
 			is_visible: true
 		};
@@ -617,7 +617,7 @@
 								<p class="text-xs text-zinc-400">暂无分类数据</p>
 							{:else}
 								<div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
-									{#each categories as cat (cat.id)}
+									{#each sortCategoriesByHierarchy(categories) as cat (cat.id)}
 										{@const isSelected = selectedCategoryIds.includes(cat.id)}
 										{@const count = rows.filter((r) => r.categories?.some((c: { id: string }) => c.id === cat.id)).length}
 										<button
@@ -1182,7 +1182,7 @@
 							</label>
 
 							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">排序权重 (越小越靠前)</span>
+								<span class="text-[11px] font-semibold text-zinc-700">排序权重 (同类目下越小越靠前)</span>
 								<input
 									type="number"
 									min="0"
@@ -1273,7 +1273,7 @@
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-zinc-100">
-								{#each categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as cat (cat.id)}
+								{#each sortCategoriesByHierarchy(categories) as cat (cat.id)}
 									{@const tier = getTierBadge(cat)}
 									<tr class="hover:bg-zinc-50/60 transition-colors">
 										<td class="py-2.5 px-3 font-mono text-zinc-400 text-center text-[11px]">
