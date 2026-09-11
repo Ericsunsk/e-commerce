@@ -407,7 +407,7 @@
 	{#if error}
 		<div
 			role="alert"
-			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium shadow-2xs"
+			class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-xs font-medium"
 		>
 			<UiIcon icon={CircleAlert} size={16} class="shrink-0" />
 			<span>{error}</span>
@@ -779,7 +779,7 @@
 										<img
 											src={row.image}
 											alt=""
-											class="w-11 h-13 object-cover rounded-lg border border-zinc-200 shrink-0 bg-zinc-100 shadow-2xs"
+											class="w-11 h-13 object-cover rounded-lg border border-zinc-200 shrink-0 bg-zinc-100"
 											loading="lazy"
 										/>
 									{:else}

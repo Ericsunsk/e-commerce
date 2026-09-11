@@ -607,7 +607,7 @@
 					class="w-full py-10 px-6 border-2 border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl bg-zinc-50/50 hover:bg-zinc-50 transition-all text-center flex flex-col items-center justify-center cursor-pointer group"
 				>
 					<div
-						class="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:border-zinc-400 transition-colors shadow-xs mb-3"
+						class="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:border-zinc-400 transition-colors mb-3"
 					>
 						<UiIcon icon={Upload} size={20} />
 					</div>
@@ -652,7 +652,7 @@
 							min="0"
 							step="0.01"
 							placeholder="120.00"
-							class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl pl-7 pr-3 py-2 text-sm font-mono font-medium text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs"
+							class={ADMIN_FORMS.priceInput}
 						/>
 					</div>
 					<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
@@ -678,7 +678,7 @@
 							min="0"
 							step="0.01"
 							placeholder="150.00"
-							class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl pl-7 pr-3 py-2 text-sm font-mono font-medium text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs"
+							class={ADMIN_FORMS.priceInput}
 						/>
 					</div>
 					<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
@@ -691,7 +691,7 @@
 					<select
 						id="edit-curr"
 						bind:value={currency}
-						class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-3 py-2 text-sm font-medium text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs cursor-pointer"
+						class={ADMIN_FORMS.currencySelect}
 					>
 						<option value="USD">USD - 美元 ($)</option>
 						<option value="EUR">EUR - 欧元 (€)</option>

@@ -438,7 +438,7 @@
 					type="button"
 					onclick={regenerateAllSkus}
 					title="根据产品代号重新生成所有规格 SKU"
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 text-xs font-medium transition-colors cursor-pointer"
 				>
 					<UiIcon icon={RefreshCw} size={12} />
 					<span>重整 SKU</span>
@@ -448,7 +448,7 @@
 			<button
 				type="button"
 				onclick={() => (showGenerator = !showGenerator)}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors shadow-2xs cursor-pointer {showGenerator ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'}"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer {showGenerator ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'}"
 			>
 				<UiIcon icon={Wand2} size={12} />
 				<span>预设批量生成</span>
@@ -462,7 +462,7 @@
 			<button
 				type="button"
 				onclick={addColor}
-				class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+				class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors cursor-pointer"
 			>
 				<UiIcon icon={Plus} size={13} />
 				<span>添加颜色</span>
@@ -472,7 +472,7 @@
 
 	<!-- Collapsible Batch Generator Panel -->
 	{#if showGenerator}
-		<div class="p-4 rounded-xl bg-zinc-50/80 border border-zinc-200 space-y-3.5 shadow-2xs">
+		<div class={ADMIN_MATRIX.generatorCard}>
 			<div class="flex items-center justify-between border-b border-zinc-200/80 pb-2.5">
 				<div>
 					<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
@@ -504,7 +504,7 @@
 							type="button"
 							onclick={() => toggleColorPreset(preset)}
 							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors cursor-pointer {isSelected
-								? 'bg-zinc-900 border-zinc-900 text-white shadow-2xs'
+								? 'bg-zinc-900 border-zinc-900 text-white'
 								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'}"
 						>
 							<span
@@ -539,7 +539,7 @@
 							type="button"
 							onclick={() => toggleSizePreset(size)}
 							class="min-w-9 px-2.5 py-1 rounded-lg border text-xs font-mono font-bold transition-colors cursor-pointer {isSelected
-								? 'bg-zinc-900 border-zinc-900 text-white shadow-2xs'
+								? 'bg-zinc-900 border-zinc-900 text-white'
 								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'}"
 						>
 							{size}
@@ -599,14 +599,14 @@
 	{#if colorGroups.length > 0}
 		<div class="space-y-4">
 			{#each colorGroups as group (group.key)}
-				<div class="bg-white border border-zinc-200/90 rounded-xl overflow-hidden shadow-2xs transition-all hover:border-zinc-300">
+				<div class={ADMIN_MATRIX.colorCard}>
 					<!-- Color Banner Header -->
 					<div class="bg-zinc-50/70 border-b border-zinc-200/80 px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
 						<!-- Left: Color Swatch + Color Name + SKU Prefix -->
 						<div class="flex items-center gap-3 flex-wrap">
 							<!-- Color swatch circle with native picker -->
 							<label
-								class="relative w-6 h-6 rounded-full border border-black/15 shadow-2xs cursor-pointer overflow-hidden flex items-center justify-center shrink-0 hover:scale-105 transition-transform"
+								class="relative w-6 h-6 rounded-full border border-black/15 cursor-pointer overflow-hidden flex items-center justify-center shrink-0 hover:scale-105 transition-transform"
 								title="点击修改色值"
 							>
 								<input
@@ -636,7 +636,7 @@
 							/>
 
 							<!-- SKU Prefix Input -->
-							<div class="flex items-center gap-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-mono shadow-2xs">
+							<div class="flex items-center gap-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-mono">
 								<span class="text-[10px] uppercase font-bold text-zinc-400">SKU前缀:</span>
 								<input
 									value={skuPrefixOf(group)}
@@ -653,7 +653,7 @@
 							<div class="flex items-center gap-1.5 pl-2 border-l border-zinc-200" title="该颜色专属图集（前台选中该颜色时联动）">
 								{#each group.gallery.slice(0, MAX_GALLERY_PER_VARIANT) as name (name)}
 									{@const owner = group.entries[0]}
-									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-zinc-200 bg-zinc-100 group/thumb shadow-2xs shrink-0">
+									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-zinc-200 bg-zinc-100 group/thumb shrink-0">
 										{#if owner?.row.id}
 											<img
 												src={galleryUrl(owner.row.id, name)}
@@ -678,7 +678,7 @@
 								{/each}
 
 								{#each group.pendingFiles as item (item.file.name + item.file.size + item.file.lastModified)}
-									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-dashed border-zinc-400 bg-zinc-50 group/thumb shadow-2xs shrink-0">
+									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-dashed border-zinc-400 bg-zinc-50 group/thumb shrink-0">
 										<img src={previewOf(item.file)} alt="" class="w-full h-full object-cover" />
 										<button
 											type="button"
@@ -693,7 +693,7 @@
 
 								{#if group.gallery.length + group.pendingFiles.length < MAX_GALLERY_PER_VARIANT}
 									<label
-										class="w-7 h-7 rounded-md border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white shadow-2xs"
+										class="w-7 h-7 rounded-md border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white"
 										title="上传颜色图集（最多 4 张）"
 									>
 										<UiIcon icon={ImagePlus} size={12} />
@@ -808,7 +808,7 @@
 													type="button"
 													onclick={() => modifyRowStock(entry.index, -1)}
 													disabled={Number(entry.row.stockQuantity) <= 0}
-													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer shadow-2xs transition-colors"
+													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer transition-colors"
 													title="库存 -1"
 												>
 													-
@@ -831,7 +831,7 @@
 												<button
 													type="button"
 													onclick={() => modifyRowStock(entry.index, 1)}
-													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs cursor-pointer shadow-2xs transition-colors"
+													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
 													title="库存 +1"
 												>
 													+
@@ -955,7 +955,7 @@
 						showGenerator = true;
 						selectApparelSizes();
 					}}
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium cursor-pointer shadow-2xs transition-colors"
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium cursor-pointer transition-colors"
 				>
 					<UiIcon icon={Wand2} size={12} />
 					<span>快速填充服装常用码 (S-XL)</span>
@@ -963,7 +963,7 @@
 				<button
 					type="button"
 					onclick={addColor}
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:text-zinc-900 text-xs font-medium cursor-pointer shadow-2xs transition-colors"
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:text-zinc-900 text-xs font-medium cursor-pointer transition-colors"
 				>
 					<UiIcon icon={Plus} size={12} />
 					<span>添加新颜色</span>

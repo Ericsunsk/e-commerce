@@ -131,7 +131,7 @@ export const ADMIN_PAGE = {
 
 export const ADMIN_SEGMENTED = {
 	wrapper: 'flex items-center bg-zinc-100 p-1 rounded-card border border-zinc-200/70 self-start sm:self-auto',
-	itemActive: 'px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer bg-white text-zinc-900 font-semibold shadow-xs',
+	itemActive: 'px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer bg-white text-zinc-900 font-semibold',
 	itemInactive: 'px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer text-zinc-500 hover:text-zinc-900 font-normal'
 } as const;
 
@@ -143,15 +143,18 @@ export const ADMIN_BADGES = {
 	neutral: 'inline-flex items-center gap-1 text-[10px] font-medium text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-full border border-zinc-200/60 font-mono'
 } as const;
 
-/** Shared base for compact matrix inputs (single height rhythm, clean white theme). */
+/** Shared base for compact matrix inputs (single height rhythm, clean white theme, flat without shadow). */
 const MATRIX_INPUT_BASE =
-	'bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2.5 py-1 text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors shadow-2xs';
+	'bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2.5 py-1 text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors';
 
 export const ADMIN_FORMS = {
 	label: 'block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5',
-	input: 'w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:bg-white transition-all',
-	select: 'w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-xs text-zinc-900 outline-none focus:border-zinc-900',
-	textarea: 'w-full bg-white border border-zinc-300 rounded-xl p-3 text-xs text-zinc-900 font-mono outline-none focus:border-zinc-900',
+	input: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 transition-colors',
+	inputSm: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-3 py-2 text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors',
+	priceInput: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl pl-7 pr-3 py-2 text-sm font-mono font-medium text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors',
+	currencySelect: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-3 py-2 text-sm font-medium text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors cursor-pointer',
+	select: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-3 py-2 text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors',
+	textarea: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl p-3 text-xs text-zinc-900 font-mono outline-none focus:border-zinc-900 transition-colors',
 	help: 'block text-[11px] text-zinc-400 mt-1',
 	counter: 'text-[11px] text-zinc-400 font-mono',
 	switchBase: 'relative inline-flex w-10 h-6 items-center rounded-full transition-colors',
@@ -164,6 +167,10 @@ export const ADMIN_FORMS = {
 } as const;
 
 export const ADMIN_MATRIX = {
+	/** Color card wrapper (flat, clean, no shadow). */
+	colorCard: 'bg-white border border-zinc-200 rounded-xl overflow-hidden transition-all hover:border-zinc-300',
+	/** Generator card wrapper (flat, clean, no shadow). */
+	generatorCard: 'p-4 rounded-xl bg-zinc-50/80 border border-zinc-200 space-y-3.5',
 	/** Color name field in the matrix row / banner. */
 	colorName: `${MATRIX_INPUT_BASE} font-bold w-28 shrink-0`,
 	/** SKU prefix field in the matrix row / banner. */
@@ -173,24 +180,24 @@ export const ADMIN_MATRIX = {
 	/** Alias for size input field. */
 	sizeName: `${MATRIX_INPUT_BASE} font-bold w-24 shrink-0`,
 	/** Stock number field in the size row or stepper. */
-	stock: 'w-16 h-7 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg text-center font-mono font-bold text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors shadow-2xs shrink-0',
+	stock: 'w-16 h-7 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg text-center font-mono font-bold text-xs text-zinc-900 outline-none focus:border-zinc-900 transition-colors shrink-0',
 	/** Quick add size name input field. */
 	newSize: `${MATRIX_INPUT_BASE} font-bold w-24 shrink-0`,
 	/** Quick add size stock input field. */
-	newStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 text-center outline-none focus:border-zinc-900 transition-colors shadow-2xs shrink-0',
+	newStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 text-center outline-none focus:border-zinc-900 transition-colors shrink-0',
 	/** Generator default stock input field. */
-	generatorStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors text-center shadow-2xs shrink-0'
+	generatorStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors text-center shrink-0'
 } as const;
 
 export const ADMIN_BUTTONS = {
 	primary:
-		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-zinc-900 border border-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 hover:border-zinc-800 disabled:opacity-50 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-zinc-900 border border-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 hover:border-zinc-800 disabled:opacity-50 transition-colors cursor-pointer',
 	primarySm:
-		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-zinc-900 border border-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 hover:border-zinc-800 disabled:opacity-50 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-zinc-900 border border-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 hover:border-zinc-800 disabled:opacity-50 transition-colors cursor-pointer',
 	secondary:
-		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-white border border-zinc-200 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-white border border-zinc-200 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 hover:text-zinc-900 transition-colors cursor-pointer',
 	secondarySm:
-		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-white border border-zinc-200 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-white border border-zinc-200 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 hover:text-zinc-900 transition-colors cursor-pointer',
 	ghost:
 		'inline-flex items-center justify-center gap-2 h-9 px-3 rounded-card text-xs font-semibold uppercase tracking-wider text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
 	ghostSm:
@@ -198,11 +205,11 @@ export const ADMIN_BUTTONS = {
 	danger:
 		'inline-flex items-center justify-center w-8 h-8 rounded-card text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
 	dangerSolid:
-		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-rose-600 border border-rose-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-rose-700 hover:border-rose-700 disabled:opacity-50 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card bg-rose-600 border border-rose-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-rose-700 hover:border-rose-700 disabled:opacity-50 transition-colors cursor-pointer',
 	dangerSolidSm:
-		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-rose-600 border border-rose-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-rose-700 hover:border-rose-700 disabled:opacity-50 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-card bg-rose-600 border border-rose-600 text-white text-xs font-semibold uppercase tracking-wider hover:bg-rose-700 hover:border-rose-700 disabled:opacity-50 transition-colors cursor-pointer',
 	dangerSecondary:
-		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 transition-colors cursor-pointer',
 	icon:
 		'inline-flex items-center justify-center w-8 h-8 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
 	iconActive:
@@ -218,7 +225,7 @@ export const ADMIN_BUTTONS = {
 	iconBadge:
 		'absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-zinc-900 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white leading-none',
 	miniAction:
-		'inline-flex items-center justify-center h-8 px-2.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 text-[11px] font-mono font-semibold hover:border-zinc-900 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer shrink-0',
+		'inline-flex items-center justify-center h-8 px-2.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 text-[11px] font-mono font-semibold hover:border-zinc-900 hover:text-zinc-900 transition-colors cursor-pointer shrink-0',
 	miniIconAction:
 		'w-8 h-8 inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer shrink-0',
 	pill:
