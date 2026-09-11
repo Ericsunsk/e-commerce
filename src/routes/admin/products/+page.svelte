@@ -1278,14 +1278,6 @@
 								</button>
 							</div>
 						</div>
-
-						<!-- Micro hint row -->
-						<div class="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
-							<span>同层级若权重重复将自动顺延已有分类 · 回车可快捷提交</span>
-							<span class="font-mono text-[10px]">
-								当前所选：{categoryForm.tier === 'gender' ? '一级类目' : categoryForm.tier === 'primary' ? '二级类目' : '三级类目'}
-							</span>
-						</div>
 					</div>
 				{/if}
 
