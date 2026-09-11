@@ -35,6 +35,19 @@ export interface NormalizedProductVariant {
 	size: string;
 	sku: string;
 	stockQuantity: number;
+	price?: number;
+	compareAt?: number;
+	/** Retained gallery filenames (uploaded files arrive out-of-band). */
+	gallery: string[];
+}
+
+function normalizeGallery(raw: unknown, index: number): string[] {
+	if (raw === undefined) return [];
+	if (!Array.isArray(raw)) throwProductIssue(`规格 ${index + 1}：图集必须是数组`);
+	if (raw.length > 4) throwProductIssue(`规格 ${index + 1}：图集最多 4 张`);
+	const names = raw.map((name) => (typeof name === 'string' ? name.trim() : ''));
+	if (names.some((name) => !name)) throwProductIssue(`规格 ${index + 1}：图集文件名无效`);
+	return names;
 }
 
 function normalizeVariant(raw: unknown, index: number): NormalizedProductVariant {
@@ -58,13 +71,31 @@ function normalizeVariant(raw: unknown, index: number): NormalizedProductVariant
 	}
 	const id = readString(item.id);
 	const colorSwatch = readString(item.colorSwatch ?? item.color_swatch);
+
+	const priceRaw = item.price;
+	let price: number | undefined;
+	if (priceRaw !== undefined && priceRaw !== null && priceRaw !== '') {
+		const p = typeof priceRaw === 'number' ? priceRaw : Number(priceRaw);
+		if (Number.isFinite(p) && p >= 0) price = Math.round(p * 100) / 100;
+	}
+
+	const compareAtRaw = item.compareAt ?? item.compare_at ?? item.compare_at_price;
+	let compareAt: number | undefined;
+	if (compareAtRaw !== undefined && compareAtRaw !== null && compareAtRaw !== '') {
+		const cp = typeof compareAtRaw === 'number' ? compareAtRaw : Number(compareAtRaw);
+		if (Number.isFinite(cp) && cp >= 0) compareAt = Math.round(cp * 100) / 100;
+	}
+
 	return {
 		...(id ? { id } : {}),
 		color,
 		...(colorSwatch ? { colorSwatch } : {}),
 		size,
 		sku,
-		stockQuantity
+		stockQuantity,
+		...(price !== undefined ? { price } : {}),
+		...(compareAt !== undefined ? { compareAt } : {}),
+		gallery: normalizeGallery(item.gallery, index)
 	};
 }
 
@@ -88,12 +119,44 @@ function normalizePriceDollars(raw: unknown, field = 'price'): number {
 	return Math.round(value * 100);
 }
 
+/**
+ * Compare-at price in cents; null clears it. Zero/empty means "no strikethrough".
+ * Upper bound intentionally loose — the storefront only badges when it sits
+ * strictly above the selling price.
+ */
+function normalizeCompareAtCents(raw: unknown): number | null {
+	if (raw === undefined || raw === null || raw === '') return null;
+	const value = typeof raw === 'number' ? raw : Number(raw);
+	if (!Number.isFinite(value) || value < 0 || value > 1_000_000) {
+		throwProductIssue('划线原价必须是不小于 0 的金额');
+	}
+	return Math.round(value * 100);
+}
+
 function normalizeCurrency(raw: unknown): string {
 	const currency = readString(raw).toUpperCase() || 'USD';
 	if (!(ADMIN_PRODUCT_CURRENCIES as readonly string[]).includes(currency)) {
 		throwProductIssue(`币种必须是 ${ADMIN_PRODUCT_CURRENCIES.join('、')} 之一`);
 	}
 	return currency.toLowerCase();
+}
+
+function normalizeMaterialField(raw: unknown, field: string, max: number): string {
+	const value = readString(raw);
+	if (value.length > max) throwProductIssue(`${field}最多 ${max} 个字符`);
+	return value;
+}
+
+/** Detail bullets: trimmed, empties dropped, capped at 20 items. */
+function normalizeDetailBullets(raw: unknown): string[] {
+	if (raw === undefined || raw === null || raw === '') return [];
+	const arr = Array.isArray(raw) ? raw : [raw];
+	const items = arr
+		.map((item) => (typeof item === 'string' ? item.trim() : ''))
+		.filter((item) => item.length > 0);
+	if (items.length > 20) throwProductIssue('细节条目最多 20 条');
+	if (items.some((item) => item.length > 300)) throwProductIssue('单条细节最多 300 个字符');
+	return items;
 }
 
 function normalizeCategoryIds(raw: unknown): string[] {
@@ -124,7 +187,11 @@ export interface NormalizedProductCreate {
 	title: string;
 	slug: string;
 	description: string;
+	material: string;
+	care: string;
+	details: string[];
 	unitAmountCents: number;
+	compareAtCents: number | null;
 	currency: string;
 	isActive: boolean;
 	isFeatured: boolean;
@@ -142,16 +209,38 @@ export function normalizeProductCreate(input: unknown): NormalizedProductCreate 
 		throwProductIssue('标题长度需为 2–120 个字符');
 	}
 
+	const variants = normalizeVariants(data.variants);
+	const fallbackPrice = variants.reduce<number | undefined>((min, v) => {
+		if (v.price === undefined) return min;
+		return min === undefined ? v.price : Math.min(min, v.price);
+	}, undefined);
+	const effectivePriceRaw =
+		data.price !== undefined && data.price !== null && data.price !== ''
+			? data.price
+			: fallbackPrice;
+	const fallbackCompareAt = variants.reduce<number | undefined>((min, v) => {
+		if (v.compareAt === undefined) return min;
+		return min === undefined ? v.compareAt : Math.min(min, v.compareAt);
+	}, undefined);
+	const effectiveCompareAtRaw =
+		data.compare_at_price !== undefined && data.compare_at_price !== null && data.compare_at_price !== ''
+			? data.compare_at_price
+			: fallbackCompareAt;
+
 	return {
 		title,
 		slug: slugifyTitle(title),
 		description: readString(data.description),
-		unitAmountCents: normalizePriceDollars(data.price),
+		material: normalizeMaterialField(data.material, '面料材质', 300),
+		care: normalizeMaterialField(data.care, '护理说明', 500),
+		details: normalizeDetailBullets(data.details),
+		unitAmountCents: normalizePriceDollars(effectivePriceRaw),
+		compareAtCents: normalizeCompareAtCents(effectiveCompareAtRaw),
 		currency: normalizeCurrency(data.currency),
 		isActive: data.is_active === undefined ? true : data.is_active === true,
 		isFeatured: data.is_featured === true,
 		category: normalizeCategoryIds(data.category),
-		variants: normalizeVariants(data.variants)
+		variants
 	};
 }
 
@@ -159,7 +248,11 @@ export interface NormalizedProductEdit {
 	title?: string;
 	slug?: string;
 	description?: string;
+	material?: string;
+	care?: string;
+	details?: string[];
 	unitAmountCents?: number;
+	compareAtCents?: number | null;
 	currency?: string;
 	isActive?: boolean;
 	isFeatured?: boolean;
@@ -182,12 +275,40 @@ export function normalizeProductEdit(input: unknown): NormalizedProductEdit {
 		edit.slug = slugifyTitle(title);
 	}
 	if (data.description !== undefined) edit.description = readString(data.description);
-	if (data.price !== undefined) edit.unitAmountCents = normalizePriceDollars(data.price);
+	if (data.material !== undefined)
+		edit.material = normalizeMaterialField(data.material, '面料材质', 300);
+	if (data.care !== undefined) edit.care = normalizeMaterialField(data.care, '护理说明', 500);
+	if (data.details !== undefined) edit.details = normalizeDetailBullets(data.details);
+	if (data.variants !== undefined) edit.variants = normalizeVariants(data.variants);
+
+	if (data.price !== undefined) {
+		edit.unitAmountCents = normalizePriceDollars(data.price);
+	} else if (edit.variants && edit.variants.length > 0) {
+		const variantPrice = edit.variants.reduce<number | undefined>((min, v) => {
+			if (v.price === undefined) return min;
+			return min === undefined ? v.price : Math.min(min, v.price);
+		}, undefined);
+		if (variantPrice !== undefined) {
+			edit.unitAmountCents = normalizePriceDollars(variantPrice);
+		}
+	}
+
+	if (data.compare_at_price !== undefined) {
+		edit.compareAtCents = normalizeCompareAtCents(data.compare_at_price);
+	} else if (edit.variants && edit.variants.length > 0) {
+		const variantCompareAt = edit.variants.reduce<number | undefined>((min, v) => {
+			if (v.compareAt === undefined) return min;
+			return min === undefined ? v.compareAt : Math.min(min, v.compareAt);
+		}, undefined);
+		if (variantCompareAt !== undefined) {
+			edit.compareAtCents = normalizeCompareAtCents(variantCompareAt);
+		}
+	}
+
 	if (data.currency !== undefined) edit.currency = normalizeCurrency(data.currency);
 	if (data.is_active !== undefined) edit.isActive = data.is_active === true;
 	if (data.is_featured !== undefined) edit.isFeatured = data.is_featured === true;
 	if (data.category !== undefined) edit.category = normalizeCategoryIds(data.category);
-	if (data.variants !== undefined) edit.variants = normalizeVariants(data.variants);
 
 	return edit;
 }

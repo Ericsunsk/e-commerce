@@ -72,6 +72,8 @@ export interface VariantMatrixItem {
 	size: string;
 	sku: string;
 	stockQuantity: number;
+	price?: number;
+	compareAt?: number;
 }
 
 export interface GenerateVariantsOptions {
@@ -79,13 +81,15 @@ export interface GenerateVariantsOptions {
 	colors: Array<{ name: string; slug?: string; swatch?: string }>;
 	sizes: string[];
 	defaultStock?: number;
+	defaultPrice?: number;
+	defaultCompareAt?: number;
 }
 
 /**
  * Generate a cartesian product of colors x sizes with auto-formatted SKUs.
  */
 export function generateVariantMatrix(options: GenerateVariantsOptions): VariantMatrixItem[] {
-	const { productSlug, colors, sizes, defaultStock = 10 } = options;
+	const { productSlug, colors, sizes, defaultStock = 10, defaultPrice, defaultCompareAt } = options;
 	const results: VariantMatrixItem[] = [];
 
 	if (colors.length === 0 && sizes.length === 0) {
@@ -110,7 +114,9 @@ export function generateVariantMatrix(options: GenerateVariantsOptions): Variant
 				colorSwatch: color.swatch,
 				size,
 				sku,
-				stockQuantity: defaultStock
+				stockQuantity: defaultStock,
+				...(defaultPrice !== undefined ? { price: defaultPrice } : {}),
+				...(defaultCompareAt !== undefined ? { compareAt: defaultCompareAt } : {})
 			});
 		}
 	}

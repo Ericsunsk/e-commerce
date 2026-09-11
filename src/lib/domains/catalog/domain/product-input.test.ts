@@ -64,6 +64,13 @@ describe('product input', () => {
 	it('validates partial edits', () => {
 		expect(normalizeProductEdit({})).toEqual({});
 		expect(normalizeProductEdit({ price: 20 })).toMatchObject({ unitAmountCents: 2000 });
+		expect(normalizeProductEdit({ compare_at_price: 99.99 })).toMatchObject({
+			compareAtCents: 9999
+		});
+		expect(normalizeProductEdit({ compare_at_price: '' })).toMatchObject({ compareAtCents: null });
+		expect(
+			normalizeProductEdit({ material: '  棉  ', care: '手洗', details: ['A', ''] })
+		).toMatchObject({ material: '棉', care: '手洗', details: ['A'] });
 		expect(
 			normalizeProductEdit({
 				is_featured: true,
@@ -73,11 +80,80 @@ describe('product input', () => {
 			isFeatured: true,
 			category: ['cat_1', 'cat_2']
 		});
+		expect(
+			normalizeProductCreate({
+				title: 'Launch Tee',
+				price: 49.99,
+				compare_at_price: 79.99
+			})
+		).toMatchObject({ compareAtCents: 7999 });
+		expect(normalizeProductCreate({ title: 'Launch Tee', price: 49.99 })).toMatchObject({
+			compareAtCents: null
+		});
+		expect(
+			normalizeProductCreate({
+				title: 'Launch Tee',
+				price: 49.99,
+				material: '100% 亚麻',
+				care: '冷水机洗',
+				details: ['法式剪裁', '', '  ', '预缩处理']
+			})
+		).toMatchObject({
+			material: '100% 亚麻',
+			care: '冷水机洗',
+			details: ['法式剪裁', '预缩处理']
+		});
+		expect(normalizeProductCreate({ title: 'Launch Tee', price: 49.99 })).toMatchObject({
+			material: '',
+			care: '',
+			details: []
+		});
+		try {
+			normalizeProductCreate({ title: 'Launch Tee', price: 49.99, material: 'x'.repeat(301) });
+			expect.unreachable();
+		} catch (err) {
+			expect(err).toMatchObject({ status: 400 });
+		}
+		try {
+			normalizeProductCreate({
+				title: 'Launch Tee',
+				price: 49.99,
+				details: Array.from({ length: 21 }, (_, i) => `d${i}`)
+			});
+			expect.unreachable();
+		} catch (err) {
+			expect(err).toMatchObject({ status: 400 });
+		}
 		try {
 			normalizeProductEdit({ title: 'x' });
 			expect.unreachable();
 		} catch (err) {
 			expect(err).toMatchObject({ status: 400 });
+		}
+		try {
+			normalizeProductEdit({ compare_at_price: -5 });
+			expect.unreachable();
+		} catch (err) {
+			expect(err).toMatchObject({ status: 400 });
+		}
+	});
+
+	it('validates variant gallery lists', () => {
+		const base = { color: '红', size: 'M', sku: 'SKU-1', stockQuantity: 1 };
+		expect(
+			normalizeProductEdit({ variants: [{ ...base, gallery: ['a.jpg', 'b.jpg'] }] }).variants
+		).toMatchObject([{ gallery: ['a.jpg', 'b.jpg'] }]);
+		for (const bad of [
+			{ ...base, gallery: 'nope' },
+			{ ...base, gallery: [''] },
+			{ ...base, gallery: Array.from({ length: 5 }, (_, i) => `${i}.jpg`) }
+		]) {
+			try {
+				normalizeProductEdit({ variants: [bad] });
+				expect.unreachable();
+			} catch (err) {
+				expect(err).toMatchObject({ status: 400 });
+			}
 		}
 	});
 

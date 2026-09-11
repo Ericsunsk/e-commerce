@@ -186,7 +186,9 @@ export const ADMIN_MATRIX = {
 	/** Quick add size stock input field. */
 	newStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 text-center outline-none focus:border-zinc-900 transition-colors shrink-0',
 	/** Generator default stock input field. */
-	generatorStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors text-center shrink-0'
+	generatorStock: 'w-16 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 transition-colors text-center shrink-0',
+	/** Variant selling & compare-at price input in table row. */
+	variantPrice: 'w-full bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg pl-5 pr-1.5 py-1 text-xs font-mono font-medium text-zinc-900 outline-none transition-colors'
 } as const;
 
 export const ADMIN_BUTTONS = {

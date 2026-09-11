@@ -9,7 +9,9 @@ import {
 	ADMIN_BUTTONS,
 	ADMIN_TABLE,
 	ADMIN_FLOATING_BAR,
-	ADMIN_DRAWER
+	ADMIN_DRAWER,
+	ADMIN_POPOVER,
+	ADMIN_MATRIX
 } from './design-tokens';
 
 describe('Admin Design Tokens', () => {
@@ -23,6 +25,8 @@ describe('Admin Design Tokens', () => {
 		expect(ADMIN_TOKENS.table).toBe(ADMIN_TABLE);
 		expect(ADMIN_TOKENS.floatingBar).toBe(ADMIN_FLOATING_BAR);
 		expect(ADMIN_TOKENS.drawer).toBe(ADMIN_DRAWER);
+		expect(ADMIN_TOKENS.popover).toBe(ADMIN_POPOVER);
+		expect(ADMIN_TOKENS.matrix).toBe(ADMIN_MATRIX);
 	});
 
 	it('ensures all token values are non-empty strings', () => {

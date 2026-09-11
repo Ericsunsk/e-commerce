@@ -98,10 +98,18 @@
 				size: v.size,
 				sku: v.sku,
 				stockQuantity: Number(v.stockQuantity),
+				price: v.price,
+				compareAt: v.compareAt,
 				gallery: [...(v.gallery ?? [])].sort()
 			}))
 		)
 	};
+
+	let effectivePrice = $derived(
+		price !== ''
+			? Number(price)
+			: (variants.find((v) => v.price !== undefined && Number(v.price) > 0)?.price ?? 0)
+	);
 
 	let isDirty = $derived(
 		title !== initialSnapshot.title ||
@@ -121,6 +129,8 @@
 					size: v.size,
 					sku: v.sku,
 					stockQuantity: Number(v.stockQuantity),
+					price: v.price,
+					compareAt: v.compareAt,
 					gallery: [...(v.gallery ?? [])].sort()
 				}))
 			) !== initialSnapshot.variantsJson ||
@@ -191,6 +201,15 @@
 		saveSuccess = false;
 
 		try {
+			const fallbackVariantPrice = variants.reduce<number | undefined>((min, v) => {
+				if (v.price === undefined) return min;
+				return min === undefined ? v.price : Math.min(min, v.price);
+			}, undefined);
+			const fallbackVariantCompareAt = variants.reduce<number | undefined>((min, v) => {
+				if (v.compareAt === undefined) return min;
+				return min === undefined ? v.compareAt : Math.min(min, v.compareAt);
+			}, undefined);
+
 			const payload = {
 				title,
 				description,
@@ -200,8 +219,8 @@
 					.split('\n')
 					.map((line) => line.trim())
 					.filter((line) => line.length > 0),
-				price: price === '' ? undefined : Number(price),
-				compare_at_price: compareAt === '' ? null : Number(compareAt),
+				price: price !== '' ? Number(price) : fallbackVariantPrice,
+				compare_at_price: compareAt !== '' ? Number(compareAt) : (fallbackVariantCompareAt ?? null),
 				currency,
 				is_active: isActive,
 				is_featured: isFeatured,
@@ -213,6 +232,8 @@
 					size: v.size,
 					sku: v.sku,
 					stockQuantity: Number(v.stockQuantity),
+					...(v.price !== undefined ? { price: Number(v.price) } : {}),
+					...(v.compareAt !== undefined ? { compareAt: Number(v.compareAt) } : {}),
 					gallery: v.gallery ?? []
 				})),
 				...(imageCleared ? { main_image_clear: true } : {})
@@ -343,7 +364,7 @@
 				<button
 					type="button"
 					onclick={submit}
-					disabled={saving || (!isDirty && !rolled) || !title.trim() || !price}
+					disabled={saving || (!isDirty && !rolled) || !title.trim() || effectivePrice <= 0}
 					class={ADMIN_BUTTONS.primary}
 				>
 					{#if saving}
@@ -728,87 +749,35 @@
 	<!-- Bottom Section: 售价与规格矩阵 (通栏满屏宽) -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class={ADMIN_CARDS.sectionHeader}>
-				<span class={ADMIN_CARDS.sectionIconWrap}>
-					<UiIcon icon={Layers} size={ICONS.sizeXl} />
-				</span>
-				<div>
-					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-					<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
-				</div>
-			</div>
-		</div>
-
-		<div class="space-y-6 pt-5">
-			<!-- Pricing fields: Clean & Minimalist -->
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
-				<div>
-					<label for="edit-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
-						当前售价 <span class="text-rose-500">*</span>
-					</label>
-					<div class="relative">
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-						<input
-							id="edit-price"
-							bind:value={price}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="120.00"
-							class={ADMIN_FORMS.priceInput}
-						/>
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+				<div class={ADMIN_CARDS.sectionHeader}>
+					<span class={ADMIN_CARDS.sectionIconWrap}>
+						<UiIcon icon={Layers} size={ICONS.sizeXl} />
+					</span>
+					<div>
+						<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
+						<p class={ADMIN_CARDS.subtitle}>支持按颜色和尺码独立定价与库存管理，基础价自动同步 Stripe</p>
 					</div>
-					<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
 				</div>
 
-				<div>
-					<div class="flex items-center justify-between mb-1.5">
-						<label for="edit-compare-at" class="block text-xs font-bold text-zinc-900">
-							划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
-						</label>
-						{#if compareAt && price && Number(compareAt) > Number(price)}
-							<span class="text-[10px] font-mono font-semibold text-emerald-700">
-								省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
-							</span>
-						{/if}
-					</div>
-					<div class="relative">
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-						<input
-							id="edit-compare-at"
-							bind:value={compareAt}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="150.00"
-							class={ADMIN_FORMS.priceInput}
-						/>
-					</div>
-					<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
-				</div>
-
-				<div>
-					<label for="edit-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
-						结算货币
-					</label>
+				<div class="flex items-center gap-2 shrink-0">
+					<label for="edit-curr" class="text-xs font-semibold text-zinc-600">结算货币:</label>
 					<select
 						id="edit-curr"
 						bind:value={currency}
-						class={ADMIN_FORMS.currencySelect}
+						class="bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-900 focus:outline-none focus:border-zinc-900"
 					>
 						<option value="USD">USD - 美元 ($)</option>
 						<option value="EUR">EUR - 欧元 (€)</option>
 						<option value="GBP">GBP - 英镑 (£)</option>
 						<option value="CAD">CAD - 加元 ($)</option>
 					</select>
-					<p class="text-[11px] text-zinc-400 mt-1">Stripe 支付网关计费法定货币</p>
 				</div>
 			</div>
+		</div>
 
-			<!-- Variant Matrix -->
-			<div>
-				<VariantMatrix bind:variants productSlug={data.product.slug} />
-			</div>
+		<div class="pt-5">
+			<VariantMatrix bind:variants productSlug={data.product.slug} />
 		</div>
 	</section>
 

@@ -38,6 +38,8 @@
 		size: string;
 		sku: string;
 		stockQuantity: number;
+		price?: number;
+		compareAt?: number;
 		/** Retained gallery filenames (server-stored). */
 		gallery?: string[];
 		/** Pending uploads (never serialized; sent as multipart). */
@@ -131,6 +133,8 @@
 	let selectedColorPresets = $state<ColorPreset[]>([]);
 	let selectedSizes = $state<string[]>([]);
 	let generatorDefaultStock = $state(15);
+	let generatorDefaultPrice = $state<number | string>('');
+	let generatorDefaultCompareAt = $state<number | string>('');
 	// svelte-ignore state_referenced_locally
 	let generatorPrefix = $state(productSlug || 'PROD');
 
@@ -145,6 +149,8 @@
 	let addingSizeFor = $state<string | null>(null);
 	let newSizeName = $state('');
 	let newSizeStock = $state(10);
+	let newSizePrice = $state<number | string>('');
+	let newSizeCompareAt = $state<number | string>('');
 
 	// Aggregates
 	let totalStock = $derived(variants.reduce((acc, v) => acc + (Number(v.stockQuantity) || 0), 0));
@@ -189,6 +195,7 @@
 
 	function addColor() {
 		const base = productSlug || generatorPrefix || 'PROD';
+		const firstVariant = variants[0];
 		variants = [
 			...variants,
 			{
@@ -197,6 +204,8 @@
 				size: 'ONE SIZE',
 				sku: generateSku(base, '新颜色', 'ONE-SIZE'),
 				stockQuantity: 10,
+				...(firstVariant?.price !== undefined ? { price: firstVariant.price } : {}),
+				...(firstVariant?.compareAt !== undefined ? { compareAt: firstVariant.compareAt } : {}),
 				gallery: []
 			}
 		];
@@ -236,6 +245,8 @@
 			size: entry.row.size,
 			sku: generateSku(base, finalColor, entry.row.size || 'STD'),
 			stockQuantity: Number(entry.row.stockQuantity) || 0,
+			...(entry.row.price !== undefined ? { price: entry.row.price } : {}),
+			...(entry.row.compareAt !== undefined ? { compareAt: entry.row.compareAt } : {}),
 			gallery: [...(entry.row.gallery ?? [])]
 		}));
 		const insertAt = Math.max(...group.entries.map((entry) => entry.index)) + 1;
@@ -247,6 +258,9 @@
 		if (!size) return;
 		if (group.entries.some((entry) => entry.row.size === size)) return;
 		const base = productSlug || generatorPrefix || 'PROD';
+		const firstRow = group.entries[0]?.row;
+		const p = newSizePrice !== '' ? Number(newSizePrice) : firstRow?.price;
+		const cp = newSizeCompareAt !== '' ? Number(newSizeCompareAt) : firstRow?.compareAt;
 		variants = [
 			...variants,
 			{
@@ -255,12 +269,16 @@
 				size,
 				sku: generateSku(base, group.color, size),
 				stockQuantity: Math.max(0, Math.floor(Number(newSizeStock) || 0)),
+				...(p !== undefined && Number.isFinite(p) ? { price: p } : {}),
+				...(cp !== undefined && Number.isFinite(cp) ? { compareAt: cp } : {}),
 				gallery: [...group.gallery]
 			}
 		];
 		addingSizeFor = null;
 		newSizeName = '';
 		newSizeStock = 10;
+		newSizePrice = '';
+		newSizeCompareAt = '';
 	}
 
 	function removeSize(index: number) {
@@ -434,11 +452,21 @@
 
 	function applyGeneratedMatrix(mode: 'append' | 'replace') {
 		const base = productSlug || generatorPrefix || 'PROD';
+		const parsedPrice =
+			generatorDefaultPrice !== '' && !isNaN(Number(generatorDefaultPrice))
+				? Number(generatorDefaultPrice)
+				: undefined;
+		const parsedCompareAt =
+			generatorDefaultCompareAt !== '' && !isNaN(Number(generatorDefaultCompareAt))
+				? Number(generatorDefaultCompareAt)
+				: undefined;
 		const generated = generateVariantMatrix({
 			productSlug: base,
 			colors: selectedColorPresets,
 			sizes: selectedSizes,
-			defaultStock: generatorDefaultStock
+			defaultStock: generatorDefaultStock,
+			defaultPrice: parsedPrice,
+			defaultCompareAt: parsedCompareAt
 		});
 
 		if (mode === 'replace') {
@@ -591,7 +619,37 @@
 
 			<!-- Step 3: Generator Footer -->
 			<div class="pt-2.5 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-3 flex-wrap">
+					<div class="flex items-center gap-1.5">
+						<span class="text-xs text-zinc-600 font-medium">默认售价:</span>
+						<div class="relative w-20">
+							<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+							<input
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="0.00"
+								bind:value={generatorDefaultPrice}
+								class="w-full bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg pl-5 pr-1.5 py-0.5 text-xs font-mono font-medium text-zinc-900 outline-none transition-colors"
+							/>
+						</div>
+					</div>
+
+					<div class="flex items-center gap-1.5">
+						<span class="text-xs text-zinc-600 font-medium">划线原价:</span>
+						<div class="relative w-20">
+							<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+							<input
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="选填"
+								bind:value={generatorDefaultCompareAt}
+								class="w-full bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg pl-5 pr-1.5 py-0.5 text-xs font-mono font-medium text-zinc-900 outline-none transition-colors"
+							/>
+						</div>
+					</div>
+
 					<div class="flex items-center gap-1.5">
 						<span class="text-xs text-zinc-600 font-medium">初始库存:</span>
 						<input
@@ -813,10 +871,12 @@
 						<table class={ADMIN_TABLE.table}>
 							<thead>
 								<tr class={ADMIN_TABLE.headerRow}>
-									<th class="{ADMIN_TABLE.headerCell} w-36">尺码 (Size)</th>
+									<th class="{ADMIN_TABLE.headerCell} w-28">尺码 (Size)</th>
+									<th class="{ADMIN_TABLE.headerCell} w-32">当前售价 ($)</th>
+									<th class="{ADMIN_TABLE.headerCell} w-32">划线原价 ($)</th>
 									<th class={ADMIN_TABLE.headerCell}>完整 SKU 编码</th>
-									<th class="{ADMIN_TABLE.headerCell} w-64">在库库存 (Stock)</th>
-									<th class="{ADMIN_TABLE.headerCell} w-16 text-right">操作</th>
+									<th class="{ADMIN_TABLE.headerCell} w-56">在库库存 (Stock)</th>
+									<th class="{ADMIN_TABLE.headerCell} w-14 text-right">操作</th>
 								</tr>
 							</thead>
 							<tbody class={ADMIN_TABLE.body}>
@@ -834,6 +894,56 @@
 												class={ADMIN_MATRIX.size}
 												placeholder="尺码"
 											/>
+										</td>
+
+										<!-- Current Price ($) Input -->
+										<td class={ADMIN_TABLE.cell}>
+											<div class="relative w-28">
+												<span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+												<input
+													type="number"
+													min="0"
+													step="0.01"
+													value={entry.row.price ?? ''}
+													oninput={(e) => {
+														const raw = (e.target as HTMLInputElement).value;
+														const row = variants[entry.index];
+														if (row)
+															variants[entry.index] = {
+																...row,
+																price: raw === '' ? undefined : Number(raw)
+															};
+													}}
+													placeholder="0.00"
+													class={ADMIN_MATRIX.variantPrice}
+													title="此规格实付售价"
+												/>
+											</div>
+										</td>
+
+										<!-- Compare At Price ($) Input -->
+										<td class={ADMIN_TABLE.cell}>
+											<div class="relative w-28">
+												<span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+												<input
+													type="number"
+													min="0"
+													step="0.01"
+													value={entry.row.compareAt ?? ''}
+													oninput={(e) => {
+														const raw = (e.target as HTMLInputElement).value;
+														const row = variants[entry.index];
+														if (row)
+															variants[entry.index] = {
+																...row,
+																compareAt: raw === '' ? undefined : Number(raw)
+															};
+													}}
+													placeholder="选填"
+													class={ADMIN_MATRIX.variantPrice}
+													title="划线建议原价（选填）"
+												/>
+											</div>
 										</td>
 
 										<!-- SKU Display + Refresh -->
@@ -914,7 +1024,7 @@
 
 								<!-- Quick Add Size Row inside the table -->
 								<tr class="bg-zinc-50/30">
-									<td colspan="4" class={ADMIN_TABLE.cell}>
+									<td colspan="6" class={ADMIN_TABLE.cell}>
 										{#if addingSizeFor === group.key}
 											<div class="flex items-center gap-2 py-0.5 flex-wrap">
 												<span class="text-xs font-semibold text-zinc-700">新尺码:</span>
@@ -927,6 +1037,30 @@
 														if (e.key === 'Escape') addingSizeFor = null;
 													}}
 												/>
+												<span class="text-xs font-medium text-zinc-500 ml-1">售价:</span>
+												<div class="relative w-20">
+													<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+													<input
+														type="number"
+														min="0"
+														step="0.01"
+														bind:value={newSizePrice}
+														placeholder="售价"
+														class="w-full bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg pl-5 pr-1 py-1 text-xs font-mono text-zinc-900 outline-none"
+													/>
+												</div>
+												<span class="text-xs font-medium text-zinc-500 ml-1">原价:</span>
+												<div class="relative w-20">
+													<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+													<input
+														type="number"
+														min="0"
+														step="0.01"
+														bind:value={newSizeCompareAt}
+														placeholder="选填"
+														class="w-full bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 rounded-lg pl-5 pr-1 py-1 text-xs font-mono text-zinc-900 outline-none"
+													/>
+												</div>
 												<span class="text-xs font-medium text-zinc-500 ml-1">初始库存:</span>
 												<input
 													type="number"
@@ -970,6 +1104,9 @@
 													addingSizeFor = group.key;
 													newSizeName = '';
 													newSizeStock = 10;
+													const first = group.entries[0]?.row;
+													newSizePrice = first?.price !== undefined ? first.price : '';
+													newSizeCompareAt = first?.compareAt !== undefined ? first.compareAt : '';
 												}}
 												class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 cursor-pointer transition-colors py-0.5"
 											>

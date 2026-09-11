@@ -30,6 +30,23 @@ const PRODUCT_EXPAND = 'category,product_variants(product)';
 
 export type { AdminProductRow };
 
+/**
+ * Collect per-variant gallery uploads from multipart fields named
+ * `gallery:<sku>` (repeated fields accumulate).
+ */
+export function extractGalleryUploads(formData: FormData): Map<string, File[]> {
+	const uploads = new Map<string, File[]>();
+	for (const [key, value] of formData.entries()) {
+		if (!key.startsWith('gallery:')) continue;
+		const sku = key.slice('gallery:'.length);
+		if (!sku || !(value instanceof File) || value.size === 0) continue;
+		const list = uploads.get(sku) ?? [];
+		list.push(value);
+		uploads.set(sku, list);
+	}
+	return uploads;
+}
+
 async function fetchAllProductsWithClient(pb: TypedPocketBase): Promise<ProductsResponse[]> {
 	return pb.collection(Collections.Products).getFullList({ expand: PRODUCT_EXPAND });
 }
@@ -107,16 +124,24 @@ async function ensureUniqueSlug(pb: TypedPocketBase, base: string): Promise<stri
 async function syncVariantsWithClient(
 	pb: TypedPocketBase,
 	productId: string,
-	variants: NormalizedProductCreate['variants']
+	variants: NormalizedProductCreate['variants'],
+	galleryUploads?: Map<string, File[]>
 ): Promise<void> {
 	for (const variant of variants) {
+		const uploads = galleryUploads?.get(variant.sku) ?? [];
+		if (variant.gallery.length + uploads.length > 4) {
+			throw { status: 400, message: `规格 ${variant.sku} 图集最多 4 张` };
+		}
 		const payload: Record<string, unknown> = {
 			product: productId,
 			color: variant.color,
 			size: variant.size,
 			sku: variant.sku,
 			stock_quantity: variant.stockQuantity,
-			...(variant.colorSwatch ? { color_swatch: variant.colorSwatch } : {})
+			...(variant.colorSwatch ? { color_swatch: variant.colorSwatch } : {}),
+			// Retained filenames + fresh uploads ride one update; the SDK
+			// converts File objects to multipart automatically.
+			gallery_images: [...variant.gallery, ...uploads]
 		};
 		if (variant.id) {
 			await pb.collection(Collections.ProductVariants).update(variant.id, payload);
@@ -132,7 +157,8 @@ async function syncVariantsWithClient(
  */
 export async function createCatalogProduct(
 	input: unknown,
-	mainImageFile?: File | null
+	mainImageFile?: File | null,
+	galleryUploads?: Map<string, File[]>
 ): Promise<{ id: string; slug: string }> {
 	const data: NormalizedProductCreate = normalizeProductCreate(input);
 	const client = await liveProvisioningClient();
@@ -160,11 +186,31 @@ export async function createCatalogProduct(
 				stripe_product_id: stripeProductId,
 				stripe_price_id: stripePriceId
 			};
+			const attrs: Record<string, unknown> = {};
+			if (data.compareAtCents) attrs.compare_at_price = data.compareAtCents / 100;
+			if (data.material) attrs.material = data.material;
+			if (data.care) attrs.care = data.care;
+			if (data.details.length > 0) attrs.details = data.details;
+
+			const variantPricing: Record<string, { price?: number; compareAt?: number }> = {};
+			for (const v of data.variants) {
+				if (v.price !== undefined || v.compareAt !== undefined) {
+					variantPricing[v.sku] = {
+						...(v.price !== undefined ? { price: v.price } : {}),
+						...(v.compareAt !== undefined ? { compareAt: v.compareAt } : {})
+					};
+				}
+			}
+			if (Object.keys(variantPricing).length > 0) {
+				attrs.variant_pricing = variantPricing;
+			}
+
+			if (Object.keys(attrs).length > 0) payload.attributes = attrs;
 			if (mainImageFile) {
 				payload.main_image = mainImageFile;
 			}
 			const record = await pb.collection(Collections.Products).create(payload);
-			await syncVariantsWithClient(pb, record.id, data.variants);
+			await syncVariantsWithClient(pb, record.id, data.variants, galleryUploads);
 			return { id: record.id, slug };
 		});
 	} catch (err: unknown) {
@@ -182,7 +228,11 @@ export interface AdminProductEdit {
 	title: string;
 	slug: string;
 	description: string;
+	material: string;
+	care: string;
+	details: string[];
 	priceDollars: number;
+	compareAtDollars: number | null;
 	currency: string;
 	isActive: boolean;
 	isFeatured: boolean;
@@ -197,7 +247,19 @@ export interface AdminProductEdit {
 		size: string;
 		sku: string;
 		stockQuantity: number;
+		price?: number;
+		compareAt?: number;
+		gallery: string[];
 	}>;
+}
+
+/** Read the compare-at price (dollars) from the attributes JSON blob. */
+function readCompareAtDollars(attributes: unknown): number | null {
+	if (!attributes || typeof attributes !== 'object') return null;
+	const raw = (attributes as Record<string, unknown>).compare_at_price;
+	const value = typeof raw === 'number' ? raw : Number(raw);
+	if (!Number.isFinite(value) || value <= 0) return null;
+	return value;
 }
 
 /** Admin: load one product with editable fields and current Stripe money. */
@@ -213,6 +275,10 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 
 			let priceDollars = 0;
 			let currency = 'usd';
+			const attrs =
+				record.attributes && typeof record.attributes === 'object'
+					? (record.attributes as Record<string, unknown>)
+					: ({} as Record<string, unknown>);
 			const stripePriceId = record.stripe_price_id || undefined;
 			if (stripePriceId) {
 				try {
@@ -224,12 +290,23 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 				}
 			}
 
+			const variantPricing =
+				attrs.variant_pricing && typeof attrs.variant_pricing === 'object'
+					? (attrs.variant_pricing as Record<string, { price?: number; compareAt?: number }>)
+					: {};
+
 			return {
 				id: record.id,
 				title: record.title,
 				slug: record.slug,
 				description: typeof record.description === 'string' ? record.description : '',
+				material: typeof attrs.material === 'string' ? attrs.material : '',
+				care: typeof attrs.care === 'string' ? attrs.care : '',
+				details: Array.isArray(attrs.details)
+					? (attrs.details as unknown[]).filter((d): d is string => typeof d === 'string')
+					: [],
 				priceDollars,
+				compareAtDollars: readCompareAtDollars(record.attributes),
 				currency,
 				isActive: record.is_active !== false,
 				isFeatured: record.is_featured === true,
@@ -239,14 +316,20 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 				categoryIds: Array.isArray(record.category) ? record.category : [],
 				stripeProductId: record.stripe_product_id || undefined,
 				stripePriceId,
-				variants: variants.map((v) => ({
-					id: v.id,
-					color: v.color,
-					colorSwatch: v.color_swatch || undefined,
-					size: v.size,
-					sku: v.sku,
-					stockQuantity: v.stock_quantity
-				}))
+				variants: variants.map((v) => {
+					const vp = variantPricing[v.sku];
+					return {
+						id: v.id,
+						color: v.color,
+						colorSwatch: v.color_swatch || undefined,
+						size: v.size,
+						sku: v.sku,
+						stockQuantity: v.stock_quantity,
+						price: vp?.price !== undefined ? vp.price : priceDollars || undefined,
+						compareAt: vp?.compareAt !== undefined ? vp.compareAt : (readCompareAtDollars(record.attributes) ?? undefined),
+						gallery: Array.isArray(v.gallery_images) ? v.gallery_images.filter(Boolean) : []
+					};
+				})
 			};
 		} catch {
 			return null;
@@ -261,7 +344,8 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 export async function updateCatalogProduct(
 	productId: string,
 	input: unknown,
-	mainImageFile?: File | null | 'CLEAR'
+	mainImageFile?: File | null | 'CLEAR',
+	galleryUploads?: Map<string, File[]>
 ): Promise<{ id: string; slug: string; priceRolled: boolean }> {
 	const edit: NormalizedProductEdit = normalizeProductEdit(input);
 	const client = await liveProvisioningClient();
@@ -329,10 +413,60 @@ export async function updateCatalogProduct(
 		if (edit.isActive !== undefined) payload.is_active = edit.isActive;
 		if (edit.isFeatured !== undefined) payload.is_featured = edit.isFeatured;
 		if (edit.category !== undefined) payload.category = edit.category;
+		if (
+			edit.compareAtCents !== undefined ||
+			edit.material !== undefined ||
+			edit.care !== undefined ||
+			edit.details !== undefined ||
+			edit.variants !== undefined
+		) {
+			const attrs =
+				record.attributes && typeof record.attributes === 'object'
+					? { ...(record.attributes as Record<string, unknown>) }
+					: {};
+			if (edit.compareAtCents !== undefined) {
+				if (edit.compareAtCents === null || edit.compareAtCents <= 0) {
+					delete attrs.compare_at_price;
+				} else {
+					attrs.compare_at_price = edit.compareAtCents / 100;
+				}
+			}
+			if (edit.material !== undefined) {
+				if (edit.material) attrs.material = edit.material;
+				else delete attrs.material;
+			}
+			if (edit.care !== undefined) {
+				if (edit.care) attrs.care = edit.care;
+				else delete attrs.care;
+			}
+			if (edit.details !== undefined) {
+				if (edit.details.length > 0) attrs.details = edit.details;
+				else delete attrs.details;
+			}
+			if (edit.variants !== undefined) {
+				const variantPricing: Record<string, { price?: number; compareAt?: number }> = {};
+				for (const v of edit.variants) {
+					if (v.price !== undefined || v.compareAt !== undefined) {
+						variantPricing[v.sku] = {
+							...(v.price !== undefined ? { price: v.price } : {}),
+							...(v.compareAt !== undefined ? { compareAt: v.compareAt } : {})
+						};
+					}
+				}
+				if (Object.keys(variantPricing).length > 0) {
+					attrs.variant_pricing = variantPricing;
+				} else {
+					delete attrs.variant_pricing;
+				}
+			}
+			payload.attributes = attrs;
+		}
 
 		if (
 			mainImageFile === 'CLEAR' ||
-			(input && typeof input === 'object' && (input as Record<string, unknown>).main_image_clear === true)
+			(input &&
+				typeof input === 'object' &&
+				(input as Record<string, unknown>).main_image_clear === true)
 		) {
 			payload.main_image = null;
 		} else if (mainImageFile instanceof File) {
@@ -341,8 +475,52 @@ export async function updateCatalogProduct(
 
 		const updated = await pb.collection(Collections.Products).update(productId, payload);
 		if (edit.variants !== undefined) {
-			await syncVariantsWithClient(pb, productId, edit.variants);
+			await syncVariantsWithClient(pb, productId, edit.variants, galleryUploads);
 		}
 		return { id: updated.id, slug: (updated as ProductsResponse).slug, priceRolled };
+	});
+}
+
+/**
+ * Admin: delete a product end-to-end. Variants are removed first (PB has no
+ * cascade), then the product record; the Stripe product is deactivated
+ * best-effort so it stops being purchasable while history stays intact.
+ */
+export async function deleteCatalogProduct(productId: string): Promise<{ id: string }> {
+	return withAdmin(async (pb) => {
+		let stripeProductId: string | undefined;
+		try {
+			const record = (await pb
+				.collection(Collections.Products)
+				.getOne(productId)) as ProductsResponse;
+			stripeProductId = record.stripe_product_id || undefined;
+		} catch {
+			throw { status: 404, message: '商品不存在' };
+		}
+
+		const variants = (await pb.collection(Collections.ProductVariants).getFullList({
+			filter: `product="${productId}"`,
+			fields: 'id'
+		})) as ProductVariantsResponse[];
+		for (const variant of variants) {
+			try {
+				await pb.collection(Collections.ProductVariants).delete(variant.id);
+			} catch (err: unknown) {
+				console.error('[deleteCatalogProduct] variant delete failed:', variant.id);
+				throw err;
+			}
+		}
+
+		await pb.collection(Collections.Products).delete(productId);
+
+		if (stripeProductId) {
+			try {
+				const client = await liveProvisioningClient();
+				await client.products.update(stripeProductId, { active: false });
+			} catch {
+				// Best-effort: PB record is already gone; Stripe cleanup is manual.
+			}
+		}
+		return { id: productId };
 	});
 }

@@ -5,6 +5,7 @@
 // Models & Schemas
 export * from './domain/models';
 export * from './domain/stock-status';
+export * from './domain/pricing';
 export * from './domain/filters';
 export * from './domain/query-keys';
 export * from './domain/admin-product-row';

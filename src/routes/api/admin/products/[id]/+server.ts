@@ -1,6 +1,10 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { updateCatalogProduct } from '$domains/catalog/server';
+import {
+	updateCatalogProduct,
+	deleteCatalogProduct,
+	extractGalleryUploads
+} from '$domains/catalog/server';
 import { getErrorStatus } from '$shared/infrastructure/server';
 
 export const PATCH: RequestHandler = async ({ locals, params, request }) => {
@@ -11,6 +15,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	const contentType = request.headers.get('content-type') || '';
 	let body: unknown;
 	let mainImageFile: File | null | 'CLEAR' = undefined as unknown as null;
+	let galleryUploads = new Map<string, File[]>();
 
 	if (contentType.includes('multipart/form-data')) {
 		const formData = await request.formData();
@@ -32,6 +37,8 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 				mainImageFile = 'CLEAR';
 			}
 		}
+		// Per-variant gallery uploads: fields named `gallery:<sku>`.
+		galleryUploads = extractGalleryUploads(formData);
 	} else {
 		try {
 			body = await request.json();
@@ -41,7 +48,7 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 	}
 
 	try {
-		const product = await updateCatalogProduct(params.id, body, mainImageFile);
+		const product = await updateCatalogProduct(params.id, body, mainImageFile, galleryUploads);
 		return json({ success: true, product });
 	} catch (err: unknown) {
 		const status = getErrorStatus(err) ?? 500;
@@ -49,6 +56,23 @@ export const PATCH: RequestHandler = async ({ locals, params, request }) => {
 			typeof err === 'object' && err !== null && 'message' in err
 				? String((err as { message: unknown }).message)
 				: '保存商品失败';
+		throw error(status, message);
+	}
+};
+
+export const DELETE: RequestHandler = async ({ locals, params }) => {
+	if (!locals.admin) {
+		throw error(401, '需要管理员登录');
+	}
+	try {
+		const result = await deleteCatalogProduct(params.id);
+		return json({ success: true, ...result });
+	} catch (err: unknown) {
+		const status = getErrorStatus(err) ?? 500;
+		const message =
+			typeof err === 'object' && err !== null && 'message' in err
+				? String((err as { message: unknown }).message)
+				: '删除商品失败';
 		throw error(status, message);
 	}
 };

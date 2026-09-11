@@ -49,6 +49,27 @@ describe('variant-matrix domain logic', () => {
 		});
 	});
 
+	it('generates variant matrix with custom default prices', () => {
+		const variants = generateVariantMatrix({
+			productSlug: 'hoodie',
+			colors: [{ name: '曜石黑', slug: 'BLK', swatch: '#18181b' }],
+			sizes: ['S', 'M'],
+			defaultStock: 10,
+			defaultPrice: 89.99,
+			defaultCompareAt: 129.99
+		});
+
+		expect(variants).toHaveLength(2);
+		expect(variants[0]).toMatchObject({
+			price: 89.99,
+			compareAt: 129.99
+		});
+		expect(variants[1]).toMatchObject({
+			price: 89.99,
+			compareAt: 129.99
+		});
+	});
+
 	it('handles empty colors or sizes gracefully', () => {
 		const withOnlySizes = generateVariantMatrix({
 			productSlug: 'hat',

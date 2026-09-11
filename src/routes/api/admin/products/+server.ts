@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { createCatalogProduct } from '$domains/catalog/server';
+import { createCatalogProduct, extractGalleryUploads } from '$domains/catalog/server';
 import { getErrorStatus } from '$shared/infrastructure/server';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
@@ -11,6 +11,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const contentType = request.headers.get('content-type') || '';
 	let body: unknown;
 	let mainImageFile: File | null = null;
+	let galleryUploads = new Map<string, File[]>();
 
 	if (contentType.includes('multipart/form-data')) {
 		const formData = await request.formData();
@@ -28,6 +29,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 		if (file instanceof File && file.size > 0) {
 			mainImageFile = file;
 		}
+		galleryUploads = extractGalleryUploads(formData);
 	} else {
 		try {
 			body = await request.json();
@@ -37,7 +39,7 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	try {
-		const product = await createCatalogProduct(body, mainImageFile);
+		const product = await createCatalogProduct(body, mainImageFile, galleryUploads);
 		return json({ success: true, product }, { status: 201 });
 	} catch (err: unknown) {
 		const status = getErrorStatus(err) ?? 500;

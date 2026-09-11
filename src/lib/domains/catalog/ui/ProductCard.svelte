@@ -5,6 +5,8 @@
 	import { Heart } from 'lucide-svelte';
 	import { toastStore, Badge, UiIcon } from '$shared/ui';
 	import CoverImageLayer from './CoverImageLayer.svelte';
+	import { getCompareAtPrice, getDiscountPercent } from '../domain/pricing';
+	import { formatCurrency } from '$shared/kernel';
 	import type { Product } from '../domain/models';
 
 	interface Props {
@@ -18,6 +20,8 @@
 	const wishlist = useWishlist();
 	let inWishlist = $derived(wishlist.has(product.id));
 	let linkHref = $derived(href || `/shop/${product.id}`);
+	let discountPercent = $derived(getDiscountPercent(product));
+	let compareAtPrice = $derived(getCompareAtPrice(product));
 
 	function quickAdd() {
 		if (product.hasVariants && product.variants && product.variants.length > 0) {
@@ -51,6 +55,15 @@
 		{#if isFeature && product.tag}
 			<Badge variant="accent" className="absolute top-4 left-4 z-[var(--z-overlay-content)]">
 				{product.tag}
+			</Badge>
+		{/if}
+
+		{#if discountPercent !== null}
+			<Badge
+				variant="accent"
+				className="absolute top-4 right-4 z-[var(--z-overlay-content)] bg-red-600 text-white border-red-600"
+			>
+				-{discountPercent}% OFF
 			</Badge>
 		{/if}
 
@@ -92,6 +105,11 @@
 		</a>
 		<p class="text-xs text-primary/60 dark:text-white/60 font-medium tracking-wider">
 			{product.price}
+			{#if compareAtPrice !== null}
+				<span class="line-through opacity-70 ml-1.5">
+					{formatCurrency(compareAtPrice, { currency: cart.currencyCode, locale: 'en-US' })}
+				</span>
+			{/if}
 		</p>
 	</div>
 </div>
