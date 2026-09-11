@@ -20,8 +20,7 @@
 		ADMIN_CARDS,
 		ADMIN_BADGES,
 		ADMIN_FORMS,
-		ADMIN_BUTTONS,
-		ADMIN_FLOATING_BAR
+		ADMIN_BUTTONS
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -210,7 +209,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class={ADMIN_PAGE.container}>
+<div class="space-y-8 pb-12">
 	<!-- Back link & Header -->
 	<div class="space-y-3">
 		<a
@@ -252,7 +251,7 @@
 				</div>
 			</div>
 
-			<div class="flex items-center gap-2.5">
+			<div class="flex items-center gap-2.5 flex-wrap">
 				{#if isActive}
 					<a
 						href="/shop/{data.product.slug}"
@@ -264,6 +263,33 @@
 						预览店铺前台
 					</a>
 				{/if}
+
+				{#if isDirty}
+					<button
+						type="button"
+						onclick={resetForm}
+						disabled={saving}
+						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
+					>
+						放弃重置
+					</button>
+				{/if}
+
+				<button
+					type="button"
+					onclick={submit}
+					disabled={saving || (!isDirty && !rolled) || !title.trim() || !price}
+					class={ADMIN_BUTTONS.primary}
+				>
+					{#if saving}
+						<span
+							class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+						></span>
+						<span>保存中...</span>
+					{:else}
+						<span>保存修改</span>
+					{/if}
+				</button>
 			</div>
 		</div>
 	</div>
@@ -464,9 +490,6 @@
 									<UiIcon icon={Check} size={13} class="text-white" />
 								{/if}
 								<span>{cat.name}</span>
-								<span class="text-[10px] font-mono {checked ? 'text-zinc-300' : 'text-zinc-400'}">
-									({cat.slug})
-								</span>
 							</button>
 						{/each}
 					</div>
@@ -651,66 +674,42 @@
 				</div>
 			</div>
 
-			<div class="p-3.5 rounded-xl border border-amber-200/70 bg-amber-50/50 text-[11px] text-amber-800 flex items-start gap-2.5">
-				<UiIcon icon={CircleAlert} size={15} class="shrink-0 mt-0.5 text-amber-600" />
-				<div class="leading-relaxed">
-					<strong>Stripe 价格安全保证：</strong>Stripe 平台 Price 对象创建后不可篡改。更改基础售价或币种时，系统会自动滚动开通全新的 Price 实体并归档旧价格，既往已支付订单的明细凭单不受任何影响。
-				</div>
-			</div>
-
 			<!-- Variant Matrix -->
 			<div>
 				<VariantMatrix bind:variants productSlug={data.product.slug} />
 			</div>
+
+			<!-- Bottom Actions in normal flow -->
+			<div class="pt-5 border-t border-zinc-100 flex items-center justify-between gap-3">
+				{#if isDirty}
+					<button
+						type="button"
+						onclick={resetForm}
+						disabled={saving}
+						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
+					>
+						放弃重置
+					</button>
+				{:else}
+					<span class="text-xs text-zinc-400">商品数据与云端已同步</span>
+				{/if}
+
+				<button
+					type="button"
+					onclick={submit}
+					disabled={saving || (!isDirty && !rolled) || !title.trim() || !price}
+					class={ADMIN_BUTTONS.primary}
+				>
+					{#if saving}
+						<span
+							class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+						></span>
+						<span>正在保存...</span>
+					{:else}
+						<span>保存修改</span>
+					{/if}
+				</button>
+			</div>
 		</div>
 	</section>
-</div>
-
-<!-- Floating Action Bar (ADMIN_FLOATING_BAR) -->
-<div class={ADMIN_FLOATING_BAR.container}>
-	<div class="flex items-center gap-2.5">
-		{#if isDirty}
-			<span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
-			<span class="text-xs font-semibold text-zinc-900">
-				检测到未保存的变更
-			</span>
-			<span class="hidden sm:inline text-[11px] text-zinc-400 font-mono">
-				(已修改商品属性)
-			</span>
-		{:else}
-			<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-			<span class="text-xs font-medium text-zinc-500">
-				数据与云端完全同步
-			</span>
-		{/if}
-	</div>
-
-	<div class="flex items-center gap-3">
-		{#if isDirty}
-			<button
-				type="button"
-				onclick={resetForm}
-				disabled={saving}
-				class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
-			>
-				放弃重置
-			</button>
-		{/if}
-
-		<button
-			type="button"
-			onclick={submit}
-			disabled={saving || (!isDirty && !rolled) || !title.trim() || !price}
-			class={ADMIN_BUTTONS.primary}
-		>
-			{#if saving}
-				<span
-					class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
-				></span>
-				<span>正在持久化保存...</span>
-			{:else}
-				<span>保存修改</span>
-			{/if}
-		</button>
-	</div>
 </div>

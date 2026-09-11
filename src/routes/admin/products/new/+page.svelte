@@ -18,8 +18,7 @@
 		ADMIN_CARDS,
 		ADMIN_BADGES,
 		ADMIN_FORMS,
-		ADMIN_BUTTONS,
-		ADMIN_FLOATING_BAR
+		ADMIN_BUTTONS
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -135,7 +134,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class={ADMIN_PAGE.container}>
+<div class="space-y-8 pb-12">
 	<!-- Back link & Header -->
 	<div class="space-y-3">
 		<a
@@ -164,6 +163,35 @@
 				<p class={ADMIN_PAGE.subtitle}>
 					录入商品核心资料、绑定分类与主图，提交时将自动在 Stripe 开通 Product 与统一计费 Price。
 				</p>
+			</div>
+
+			<div class="flex items-center gap-2.5 flex-wrap">
+				{#if title || price || description || variants.length > 0}
+					<button
+						type="button"
+						onclick={resetForm}
+						disabled={saving}
+						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
+					>
+						清空重置
+					</button>
+				{/if}
+
+				<button
+					type="button"
+					onclick={submit}
+					disabled={saving || !isFormValid}
+					class={ADMIN_BUTTONS.primary}
+				>
+					{#if saving}
+						<span
+							class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+						></span>
+						<span>正在保存...</span>
+					{:else}
+						<span>创建商品</span>
+					{/if}
+				</button>
 			</div>
 		</div>
 	</div>
@@ -345,9 +373,6 @@
 									<UiIcon icon={Check} size={13} class="text-white" />
 								{/if}
 								<span>{cat.name}</span>
-								<span class="text-[10px] font-mono {checked ? 'text-zinc-300' : 'text-zinc-400'}">
-									({cat.slug})
-								</span>
 							</button>
 						{/each}
 					</div>
@@ -530,66 +555,42 @@
 				</div>
 			</div>
 
-			<div class="p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/50 text-[11px] text-zinc-600 flex items-start gap-2.5">
-				<UiIcon icon={Layers} size={15} class="shrink-0 mt-0.5 text-zinc-500" />
-				<div class="leading-relaxed">
-					提交后系统将通过 Stripe SDK 实时开通 Product 实体与默认 Price 价格对象，无需手动在 Stripe 控制台重复配置。
-				</div>
-			</div>
-
 			<!-- Variant Matrix -->
 			<div>
 				<VariantMatrix bind:variants productSlug={title} />
 			</div>
+
+			<!-- Bottom Actions in normal flow -->
+			<div class="pt-5 border-t border-zinc-100 flex items-center justify-between gap-3">
+				{#if title || price || description || variants.length > 0}
+					<button
+						type="button"
+						onclick={resetForm}
+						disabled={saving}
+						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
+					>
+						清空重置
+					</button>
+				{:else}
+					<div></div>
+				{/if}
+
+				<button
+					type="button"
+					onclick={submit}
+					disabled={saving || !isFormValid}
+					class={ADMIN_BUTTONS.primary}
+				>
+					{#if saving}
+						<span
+							class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+						></span>
+						<span>正在保存...</span>
+					{:else}
+						<span>创建商品</span>
+					{/if}
+				</button>
+			</div>
 		</div>
 	</section>
-</div>
-
-<!-- Floating Action Bar (ADMIN_FLOATING_BAR) -->
-<div class={ADMIN_FLOATING_BAR.container}>
-	<div class="flex items-center gap-2.5">
-		{#if isFormValid}
-			<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
-			<span class="text-xs font-semibold text-zinc-900">
-				商品核心参数已完备
-			</span>
-			<span class="hidden sm:inline text-[11px] text-zinc-400 font-mono">
-				({selectedCategories.length} 个分类, {variants.length} 个规格)
-			</span>
-		{:else}
-			<span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
-			<span class="text-xs font-medium text-zinc-500">
-				请填写商品标题与基础售价
-			</span>
-		{/if}
-	</div>
-
-	<div class="flex items-center gap-3">
-		{#if title || price || description || variants.length > 0}
-			<button
-				type="button"
-				onclick={resetForm}
-				disabled={saving}
-				class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
-			>
-				清空重置
-			</button>
-		{/if}
-
-		<button
-			type="button"
-			onclick={submit}
-			disabled={saving || !isFormValid}
-			class={ADMIN_BUTTONS.primary}
-		>
-			{#if saving}
-				<span
-					class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
-				></span>
-				<span>正在开通 Stripe 并保存...</span>
-			{:else}
-				<span>创建商品</span>
-			{/if}
-		</button>
-	</div>
 </div>
