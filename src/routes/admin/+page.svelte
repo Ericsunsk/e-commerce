@@ -91,7 +91,7 @@
 </script>
 
 <svelte:head>
-	<title>运营仪表盘 | 管理后台</title>
+	<title>数据概览 | 管理后台</title>
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 

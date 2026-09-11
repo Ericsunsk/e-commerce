@@ -7,6 +7,7 @@
 		Package,
 		ReceiptText,
 		Tag,
+		Tags,
 		KeyRound,
 		Database,
 		FileText,
@@ -23,18 +24,36 @@
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
 
-	const nav = [
-		{ href: '/admin', label: '仪表盘', icon: LayoutDashboard },
-		{ href: '/admin/products', label: '商品', icon: Package },
-		{ href: '/admin/orders', label: '订单', icon: ReceiptText },
-		{ href: '/admin/coupons', label: '优惠券', icon: Tag },
-		{ href: '/admin/customers', label: '客户', icon: Users },
-		{ href: '/admin/content', label: '内容', icon: Newspaper },
-		{ href: '/admin/auth', label: '认证', icon: KeyRound },
-		{ href: '/admin/backups', label: '备份', icon: Database },
-		{ href: '/admin/logs', label: '日志', icon: FileText },
-		{ href: '/admin/settings', label: '设置', icon: Settings }
+	const navGroups = [
+		{
+			title: '业务中心',
+			items: [
+				{ href: '/admin', label: '数据概览', icon: LayoutDashboard },
+				{ href: '/admin/products', label: '商品管理', icon: Package },
+				{ href: '/admin/products/categories', label: '分类管理', icon: Tags },
+				{ href: '/admin/orders', label: '订单中心', icon: ReceiptText }
+			]
+		},
+		{
+			title: '运营推广',
+			items: [
+				{ href: '/admin/coupons', label: '营销卡券', icon: Tag },
+				{ href: '/admin/customers', label: '客户管理', icon: Users },
+				{ href: '/admin/content', label: '内容管理', icon: Newspaper }
+			]
+		},
+		{
+			title: '系统平台',
+			items: [
+				{ href: '/admin/settings', label: '系统设置', icon: Settings },
+				{ href: '/admin/auth', label: '安全认证', icon: KeyRound },
+				{ href: '/admin/backups', label: '数据备份', icon: Database },
+				{ href: '/admin/logs', label: '操作日志', icon: FileText }
+			]
+		}
 	];
+
+	const allNavItems = navGroups.flatMap((g) => g.items);
 
 	let drawerOpen = $state(false);
 	let isCollapsed = $state(false);
@@ -47,12 +66,12 @@
 
 	const currentNav = $derived.by(() => {
 		const pathname = $page.url.pathname;
-		if (pathname === '/admin') return nav[0];
+		if (pathname === '/admin') return allNavItems[0];
 		return (
-			nav
+			allNavItems
 				.slice(1)
 				.filter((item) => pathname === item.href || pathname.startsWith(item.href + '/'))
-				.sort((a, b) => b.href.length - a.href.length)[0] || nav[0]
+				.sort((a, b) => b.href.length - a.href.length)[0] || allNavItems[0]
 		);
 	});
 
@@ -137,8 +156,7 @@
 	}
 
 	function isActive(href: string): boolean {
-		const pathname = $page.url.pathname;
-		return href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+		return currentNav.href === href;
 	}
 </script>
 
@@ -205,37 +223,50 @@
 					</a>
 				</div>
 
-				<!-- Navigation links -->
-				<nav class="flex flex-col gap-1.5 p-2 overflow-x-hidden overflow-y-auto min-h-0 flex-1">
-					{#each nav as item (item.href)}
-						{@const active = isActive(item.href)}
-						{@const NavIcon = item.icon}
-						<a
-							href={item.href}
-							onclick={() => {
-								drawerOpen = false;
-							}}
-							title={effectiveCollapsed ? item.label : undefined}
-							class="flex items-center h-10 w-full rounded-xl text-sm font-medium tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
-								? 'bg-zinc-100'
-								: 'hover:bg-zinc-100'}"
-						>
-							<div class="w-10 h-10 shrink-0 flex items-center justify-center">
-								<UiIcon
-									icon={NavIcon}
-									size={ICONS.sizeNav}
-									strokeWidth={ICONS.strokeWidth}
-									class={ICONS.navClass}
-								/>
-							</div>
-							<span
-								class="text-zinc-900 shrink-0 pl-1 transition-opacity {effectiveCollapsed
-									? 'opacity-0 duration-100 delay-0 pointer-events-none'
-									: 'opacity-100 duration-150 delay-75'}"
-							>
-								{item.label}
-							</span>
-						</a>
+				<!-- Navigation groups -->
+				<nav class="flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto min-h-0 flex-1">
+					{#each navGroups as group, groupIndex (group.title)}
+						<div class="flex flex-col gap-1">
+							{#if groupIndex > 0}
+								<!-- 分组间分割线：折叠态显示微细分割线，展开态提供轻微区隔 -->
+								<div class="h-px bg-zinc-200/80 my-1 mx-2"></div>
+							{/if}
+							{#if !effectiveCollapsed}
+								<div class="px-3 pt-1.5 pb-0.5 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+									{group.title}
+								</div>
+							{/if}
+							{#each group.items as item (item.href)}
+								{@const active = isActive(item.href)}
+								{@const NavIcon = item.icon}
+								<a
+									href={item.href}
+									onclick={() => {
+										drawerOpen = false;
+									}}
+									title={effectiveCollapsed ? `${group.title} · ${item.label}` : undefined}
+									class="flex items-center h-10 w-full rounded-xl text-sm font-medium tracking-wider uppercase transition-colors duration-150 text-zinc-900 whitespace-nowrap overflow-hidden {active
+										? 'bg-zinc-100 font-semibold'
+										: 'hover:bg-zinc-100'}"
+								>
+									<div class="w-10 h-10 shrink-0 flex items-center justify-center">
+										<UiIcon
+											icon={NavIcon}
+											size={ICONS.sizeNav}
+											strokeWidth={ICONS.strokeWidth}
+											class={active ? 'text-zinc-900' : ICONS.navClass}
+										/>
+									</div>
+									<span
+										class="text-zinc-900 shrink-0 pl-1 transition-opacity {effectiveCollapsed
+											? 'opacity-0 duration-100 delay-0 pointer-events-none'
+											: 'opacity-100 duration-150 delay-75'}"
+									>
+										{item.label}
+									</span>
+								</a>
+							{/each}
+						</div>
 					{/each}
 				</nav>
 			</div>

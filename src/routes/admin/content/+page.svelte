@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Newspaper } from 'lucide-svelte';
+	import { Newspaper, ExternalLink } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import type { PageData } from './$types';
 
@@ -54,20 +54,35 @@
 		<p class="text-xs text-zinc-500 mt-1">global_settings 站点级配置（图片类请前往 PB 后台）</p>
 	</div>
 
-	<nav class="flex gap-2" aria-label="内容管理">
-		{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<nav class="flex flex-wrap gap-2" aria-label="内容管理">
+			{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
+				<a
+					href={tab.href}
+					aria-current={tab.href === '/admin/content' ? 'page' : undefined}
+					class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border {tab.href ===
+					'/admin/content'
+						? 'bg-zinc-900 text-white border-zinc-900'
+						: 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}"
+				>
+					{tab.label}
+				</a>
+			{/each}
+		</nav>
+
+		{#if data.pocketbaseUrl}
 			<a
-				href={tab.href}
-				aria-current={tab.href === '/admin/content' ? 'page' : undefined}
-				class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border {tab.href ===
-				'/admin/content'
-					? 'bg-zinc-900 text-white border-zinc-900'
-					: 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}"
+				href={`${data.pocketbaseUrl}/_/`}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors shrink-0"
+				title="在新窗口打开 PocketBase 官方数据管理后台"
 			>
-				{tab.label}
+				<UiIcon icon={ExternalLink} size={14} />
+				<span>PB 数据后台</span>
 			</a>
-		{/each}
-	</nav>
+		{/if}
+	</div>
 
 	{#if error}
 		<p role="alert" class="text-xs text-rose-600">{error}</p>
