@@ -13,10 +13,10 @@
 		EyeOff,
 		AlertTriangle,
 		ExternalLink,
-		SlidersHorizontal,
 		X,
 		Layers,
 		Sparkles,
+		RotateCcw,
 		Pencil,
 		Trash2
 	} from 'lucide-svelte';
@@ -380,55 +380,30 @@
 		</div>
 	</div>
 
-	<!-- Multi-Dimensional Search & Filters Console -->
-	<section class="{ADMIN_CARDS.base} space-y-4">
-		<div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-			<!-- Search box -->
-			<div class="relative flex-1 max-w-md">
+	<!-- Search & Filters Toolbar (Single Row directly above table, without outer card) -->
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+		<div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
+			<!-- 1. Search Box at first position -->
+			<div class="relative w-full sm:w-64 md:w-72 shrink-0">
 				<UiIcon
 					icon={Search}
-					size={16}
-					class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+					size={15}
+					class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
 				/>
 				<input
 					type="search"
-					placeholder="搜索商品标题、Slug 或变体 SKU..."
+					placeholder="搜索商品标题或变体 SKU..."
 					bind:value={search}
 					aria-label="搜索商品"
-					class="w-full bg-zinc-50 border border-zinc-200 rounded-xl pl-10 pr-4 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:bg-white focus:border-zinc-900 transition-all"
+					class="w-full h-9 bg-white border border-zinc-200 rounded-card pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 shadow-2xs transition-colors"
 				/>
 			</div>
 
-			<!-- Filter count & Featured toggle -->
-			<div class="flex items-center gap-3 self-end md:self-auto">
-				<button
-					type="button"
-					onclick={() => (onlyFeatured = !onlyFeatured)}
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-medium border transition-colors cursor-pointer {onlyFeatured
-						? 'bg-amber-50 text-amber-800 border-amber-300'
-						: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100'}"
-				>
-					<UiIcon icon={Sparkles} size={13} class={onlyFeatured ? 'text-amber-600' : 'text-zinc-400'} />
-					<span>仅看精选推荐</span>
-				</button>
-
-				<span class="text-xs font-mono font-semibold text-zinc-400">
-					显示 {visibleRows.length} / {totalProducts}
-				</span>
-			</div>
-		</div>
-
-		<!-- Filter Selectors Bar -->
-		<div class="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-100 text-xs">
-			<div class="flex items-center gap-1.5 text-zinc-500 shrink-0 mr-1 font-medium text-[11px] uppercase tracking-wider">
-				<UiIcon icon={SlidersHorizontal} size={13} />
-				<span>筛选:</span>
-			</div>
-
-			<!-- Category Filter Dropdown -->
+			<!-- 2. Category Filter Dropdown -->
 			<select
 				bind:value={selectedCategory}
-				class="bg-zinc-50 border border-zinc-200 rounded-card px-2.5 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+				aria-label="按分类筛选"
+				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
 			>
 				<option value="all">全部分类 ({totalProducts})</option>
 				{#each categories as cat (cat.id)}
@@ -437,20 +412,22 @@
 				{/each}
 			</select>
 
-			<!-- Status Filter Dropdown -->
+			<!-- 3. Status Filter Dropdown -->
 			<select
 				bind:value={selectedStatus}
-				class="bg-zinc-50 border border-zinc-200 rounded-card px-2.5 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+				aria-label="按上架状态筛选"
+				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
 			>
 				<option value="all">全部上架状态</option>
 				<option value="active">在售在架 ({activeProducts})</option>
 				<option value="inactive">下架暂存 ({inactiveProducts})</option>
 			</select>
 
-			<!-- Stock Filter Dropdown -->
+			<!-- 4. Stock Filter Dropdown -->
 			<select
 				bind:value={selectedStock}
-				class="bg-zinc-50 border border-zinc-200 rounded-card px-2.5 py-1 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+				aria-label="按库存状态筛选"
+				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
 			>
 				<option value="all">全部库存状态</option>
 				<option value="in_stock">库存充足 (>5 件)</option>
@@ -458,6 +435,20 @@
 				<option value="out_of_stock">已售罄 (0 件)</option>
 			</select>
 
+			<!-- 5. Featured Toggle Icon Button -->
+			<button
+				type="button"
+				onclick={() => (onlyFeatured = !onlyFeatured)}
+				title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
+				aria-label="仅看精选推荐"
+				class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shadow-2xs shrink-0 {onlyFeatured
+					? 'bg-amber-50 text-amber-600 border-amber-300'
+					: 'bg-white text-zinc-500 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+			>
+				<UiIcon icon={Sparkles} size={15} />
+			</button>
+
+			<!-- 6. Reset Filters Icon Button -->
 			{#if search || selectedCategory !== 'all' || selectedStatus !== 'all' || selectedStock !== 'all' || onlyFeatured}
 				<button
 					type="button"
@@ -468,13 +459,20 @@
 						selectedStock = 'all';
 						onlyFeatured = false;
 					}}
-					class="text-[11px] text-zinc-500 hover:text-zinc-900 underline ml-auto cursor-pointer"
+					title="重置所有筛选"
+					aria-label="重置所有筛选"
+					class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-2xs shrink-0"
 				>
-					重置所有筛选
+					<UiIcon icon={RotateCcw} size={15} />
 				</button>
 			{/if}
 		</div>
-	</section>
+
+		<!-- Right Side: Item Count -->
+		<div class="text-xs font-mono font-semibold text-zinc-400 shrink-0 self-end sm:self-auto">
+			显示 {visibleRows.length} / {totalProducts}
+		</div>
+	</div>
 
 	<!-- Table Card -->
 	<div class={ADMIN_CARDS.table}>
