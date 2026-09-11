@@ -17,7 +17,8 @@
 		ADMIN_CARDS,
 		ADMIN_BADGES,
 		ADMIN_FORMS,
-		ADMIN_BUTTONS
+		ADMIN_BUTTONS,
+		ICONS
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -26,7 +27,11 @@
 
 	let title = $state('');
 	let description = $state('');
+	let material = $state('');
+	let care = $state('');
+	let detailsText = $state('');
 	let price = $state('');
+	let compareAt = $state('');
 	let currency = $state('USD');
 	let isActive = $state(true);
 	let isFeatured = $state(false);
@@ -42,6 +47,7 @@
 	let error = $state('');
 
 	let isFormValid = $derived(title.trim().length >= 2 && Number(price) > 0);
+	let totalStock = $derived(variants.reduce((acc, v) => acc + (Number(v.stockQuantity) || 0), 0));
 
 	function toggleCategory(catId: string) {
 		if (selectedCategories.includes(catId)) {
@@ -71,7 +77,11 @@
 	function resetForm() {
 		title = '';
 		description = '';
+		material = '';
+		care = '';
+		detailsText = '';
 		price = '';
+		compareAt = '';
 		currency = 'USD';
 		isActive = true;
 		isFeatured = false;
@@ -92,19 +102,41 @@
 			const payload = {
 				title,
 				description,
+				material,
+				care,
+				details: detailsText
+					.split('\n')
+					.map((line: string) => line.trim())
+					.filter((line: string) => line.length > 0),
 				price: Number(price),
+				compare_at_price: compareAt === '' ? null : Number(compareAt),
 				currency,
 				is_active: isActive,
 				is_featured: isFeatured,
 				category: selectedCategories,
-				variants: variants.map((v) => ({ ...v, stockQuantity: Number(v.stockQuantity) }))
+				variants: variants.map((v) => ({
+					color: v.color,
+					colorSwatch: v.colorSwatch,
+					size: v.size,
+					sku: v.sku,
+					stockQuantity: Number(v.stockQuantity),
+					gallery: v.gallery ?? []
+				}))
 			};
+			const hasGalleryUploads = variants.some((v) => (v.galleryFiles?.length ?? 0) > 0);
 
 			let res: Response;
-			if (newImageFile) {
+			if (newImageFile || hasGalleryUploads) {
 				const formData = new FormData();
 				formData.append('data', JSON.stringify(payload));
-				formData.append('main_image', newImageFile);
+				if (newImageFile) {
+					formData.append('main_image', newImageFile);
+				}
+				for (const v of variants) {
+					for (const file of v.galleryFiles ?? []) {
+						formData.append(`gallery:${v.sku}`, file);
+					}
+				}
 				res = await fetch('/api/admin/products', {
 					method: 'POST',
 					body: formData
@@ -147,9 +179,7 @@
 		<div class={ADMIN_PAGE.header}>
 			<div>
 				<div class="flex items-center gap-3 flex-wrap">
-					<h1 class={ADMIN_PAGE.title}>
-						新建商品
-					</h1>
+					<h1 class={ADMIN_PAGE.title}>新建商品</h1>
 					{#if isActive}
 						<span class={ADMIN_BADGES.success}>创建后立即上线</span>
 					{:else}
@@ -165,7 +195,7 @@
 			</div>
 
 			<div class="flex items-center gap-2.5 flex-wrap">
-				{#if title || price || description || variants.length > 0}
+				{#if title || price || compareAt || description || material || care || detailsText || variants.length > 0}
 					<button
 						type="button"
 						onclick={resetForm}
@@ -209,10 +239,10 @@
 	<!-- Section 1: Basic Information -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={FileText} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={FileText} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>基本信息</h2>
 					<p class={ADMIN_CARDS.subtitle}>设置商品面向顾客展示的核心标题与文案介绍</p>
@@ -223,9 +253,7 @@
 		<div class="space-y-5 pt-5">
 			<div>
 				<div class="flex items-center justify-between mb-1.5">
-					<label for="new-title" class={ADMIN_FORMS.label}>
-						商品标题 *
-					</label>
+					<label for="new-title" class={ADMIN_FORMS.label}> 商品标题 * </label>
 					<span class={ADMIN_FORMS.counter}>{title.length}/120</span>
 				</div>
 				<input
@@ -235,21 +263,64 @@
 					placeholder="例如：极简法式重磅亚麻西装"
 					class={ADMIN_FORMS.input}
 				/>
-				<span class={ADMIN_FORMS.help}>标题需为 2–120 字符，系统将自动基于标题派生前台 URL Slug</span>
+				<span class={ADMIN_FORMS.help}
+					>标题需为 2–120 字符，系统将自动基于标题派生前台 URL Slug</span
+				>
 			</div>
 
 			<div>
-				<label for="new-desc" class={ADMIN_FORMS.label}>
-					商品详细描述
-				</label>
+				<label for="new-desc" class={ADMIN_FORMS.label}> 商品详细描述 </label>
 				<textarea
 					id="new-desc"
 					bind:value={description}
 					rows="4"
-					placeholder="填写面料材质、版型剪裁、洗涤保养提示与推荐搭配..."
+					placeholder="填写版型剪裁、推荐搭配等面向顾客的整体介绍..."
 					class={ADMIN_FORMS.textarea}
 				></textarea>
 				<span class={ADMIN_FORMS.help}>支持详细段落叙述，在店铺详情页中完整展示</span>
+			</div>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="new-material" class={ADMIN_FORMS.label}> 面料材质 </label>
+						<span class={ADMIN_FORMS.counter}>{material.length}/300</span>
+					</div>
+					<input
+						id="new-material"
+						bind:value={material}
+						maxlength="300"
+						placeholder="例如：100% 重磅亚麻"
+						class={ADMIN_FORMS.input}
+					/>
+				</div>
+
+				<div>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="new-care" class={ADMIN_FORMS.label}> 护理说明 </label>
+						<span class={ADMIN_FORMS.counter}>{care.length}/500</span>
+					</div>
+					<input
+						id="new-care"
+						bind:value={care}
+						maxlength="500"
+						placeholder="例如：冷水机洗，平铺晾干"
+						class={ADMIN_FORMS.input}
+					/>
+				</div>
+			</div>
+
+			<div>
+				<label for="new-details" class={ADMIN_FORMS.label}>
+					细节条目 <span class="normal-case font-normal text-zinc-400">(一行一条，前台逐条展示)</span>
+				</label>
+				<textarea
+					id="new-details"
+					bind:value={detailsText}
+					rows="3"
+					placeholder="法式剪裁&#10;预缩处理&#10;天然贝壳扣"
+					class={ADMIN_FORMS.textarea}
+				></textarea>
 			</div>
 		</div>
 	</section>
@@ -257,10 +328,10 @@
 	<!-- Section 2: Categories & Display Status -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={Tag} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={Tag} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>分类与展示状态</h2>
 					<p class={ADMIN_CARDS.subtitle}>配置商品前台类目归属、销售状态与首页精选曝光</p>
@@ -301,10 +372,7 @@
 							? ADMIN_FORMS.switchTrackActive
 							: ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
 					>
-						<span
-							class="{ADMIN_FORMS.switchThumb} {isActive
-								? 'translate-x-5'
-								: 'translate-x-1'}"
+						<span class="{ADMIN_FORMS.switchThumb} {isActive ? 'translate-x-5' : 'translate-x-1'}"
 						></span>
 					</button>
 				</div>
@@ -339,10 +407,7 @@
 							? 'bg-amber-500'
 							: ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
 					>
-						<span
-							class="{ADMIN_FORMS.switchThumb} {isFeatured
-								? 'translate-x-5'
-								: 'translate-x-1'}"
+						<span class="{ADMIN_FORMS.switchThumb} {isFeatured ? 'translate-x-5' : 'translate-x-1'}"
 						></span>
 					</button>
 				</div>
@@ -350,21 +415,16 @@
 
 			<!-- Category Multi-Select -->
 			<div>
-				<div class="flex items-center justify-between mb-2">
-					<span class={ADMIN_FORMS.label}>所属分类关联</span>
-					<span class="text-[11px] text-zinc-500">
-						已选择 <strong class="font-mono text-zinc-900">{selectedCategories.length}</strong> 个分类
-					</span>
-				</div>
-
 				{#if data.categories && data.categories.length > 0}
-					<div class="flex flex-wrap gap-2 pt-1">
+					<div class="flex min-w-0 max-w-full flex-nowrap justify-start gap-2 overflow-x-auto px-0.5 py-1 -my-1">
 						{#each data.categories as cat (cat.id)}
 							{@const checked = selectedCategories.includes(cat.id)}
 							<button
 								type="button"
 								onclick={() => toggleCategory(cat.id)}
-								class={checked ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
+								class="{checked
+									? ADMIN_BUTTONS.pillActive
+									: ADMIN_BUTTONS.pillInactive} shrink-0 whitespace-nowrap"
 							>
 								<span>{cat.name}</span>
 							</button>
@@ -385,10 +445,10 @@
 	<!-- Section 3: Main Image & Media Assets -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={ImageIcon} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={ImageIcon} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>主图与媒体资产</h2>
 					<p class={ADMIN_CARDS.subtitle}>上传商品首屏主视觉与列表缩略图</p>
@@ -445,11 +505,7 @@
 								替换图片
 							</button>
 
-							<button
-								type="button"
-								onclick={removeImage}
-								class={ADMIN_BUTTONS.dangerSecondary}
-							>
+							<button type="button" onclick={removeImage} class={ADMIN_BUTTONS.dangerSecondary}>
 								<UiIcon icon={Trash2} size={14} />
 								移除主图
 							</button>
@@ -488,7 +544,7 @@
 				<div class="space-y-0.5 text-xs">
 					<span class="font-bold text-zinc-800">关于规格颜色图集 (Gallery Images)</span>
 					<p class="text-[11px] text-zinc-500 leading-relaxed">
-						商品创建成功后，每个变体规格均可在 PocketBase <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-700">product_variants</code> 集合中独立追加最多 10 张专属颜色图集，前台切换颜色时将同步展示。
+						每个颜色最多 4 张专属图集，直接在下方规格矩阵的色块行内上传管理，前台切换颜色时将同步展示。
 					</p>
 				</div>
 			</div>
@@ -498,54 +554,119 @@
 	<!-- Section 4: Pricing & Variant Matrix -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={Layers} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={Layers} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-					<p class={ADMIN_CARDS.subtitle}>统一基础零售价联动 Stripe 自动计费，录入多规格与库存初始值</p>
+					<p class={ADMIN_CARDS.subtitle}>
+						统一基础零售价联动 Stripe 自动计费，录入多规格与库存初始值
+					</p>
 				</div>
 			</div>
 		</div>
 
 		<div class="space-y-6 pt-5">
-			<!-- Pricing fields -->
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				<div>
-					<label for="new-price" class={ADMIN_FORMS.label}>
-						基础统一售价 *
-					</label>
-					<div class="relative">
-						<span
-							class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold"
-						>
-							$
-						</span>
-						<input
-							id="new-price"
-							bind:value={price}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="120.00"
-							class="{ADMIN_FORMS.input} pl-8 font-mono"
-						/>
+			<!-- Enhanced Pricing & Commercial Summary Deck -->
+			<div class="bg-zinc-50/80 border border-zinc-200/90 rounded-2xl p-5 space-y-4 shadow-2xs">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200/60 pb-3">
+					<div>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-800">
+							基础定价与商业参数
+						</h3>
+						<p class="text-[11px] text-zinc-500 mt-0.5">
+							统一基础售价联动 Stripe 自动计费，录入多规格与库存初始值
+						</p>
 					</div>
-					<span class={ADMIN_FORMS.help}>输入标准正数金额</span>
+
+					{#if price && Number(price) > 0}
+						<div class="flex items-center gap-2 self-start sm:self-auto">
+							<span class="text-[11px] text-zinc-500 font-medium">总库存估值:</span>
+							<span class="text-xs font-bold font-mono text-zinc-900 bg-white px-2.5 py-1 rounded-xl border border-zinc-200 shadow-2xs">
+								${(totalStock * Number(price)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+							</span>
+						</div>
+					{/if}
 				</div>
 
-				<div>
-					<label for="new-curr" class={ADMIN_FORMS.label}>
-						结算币种
-					</label>
-					<select id="new-curr" bind:value={currency} class={ADMIN_FORMS.select}>
-						<option value="USD">USD - 美元 ($)</option>
-						<option value="EUR">EUR - 欧元 (€)</option>
-						<option value="GBP">GBP - 英镑 (£)</option>
-						<option value="CAD">CAD - 加元 ($)</option>
-					</select>
-					<span class={ADMIN_FORMS.help}>Stripe 结账计费标准币种</span>
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<!-- Sale Price -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="new-price" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								基础统一售价 *
+							</label>
+							<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+								实付基准
+							</span>
+						</div>
+						<div class="relative flex items-center">
+							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
+							<input
+								id="new-price"
+								bind:value={price}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="120.00"
+								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
+							/>
+						</div>
+						<p class="text-[11px] text-zinc-400">买家结算实付金额，联动 Stripe 扣款</p>
+					</div>
+
+					<!-- Compare-at Price -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="new-compare-at" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								划线建议原价
+							</label>
+							{#if compareAt && price && Number(compareAt) > Number(price)}
+								<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+									省 ${(Number(compareAt) - Number(price)).toFixed(2)} ({Math.round((1 - Number(price) / Number(compareAt)) * 100)}% 折扣)
+								</span>
+							{:else}
+								<span class="text-[10px] text-zinc-400">选填</span>
+							{/if}
+						</div>
+						<div class="relative flex items-center">
+							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
+							<input
+								id="new-compare-at"
+								bind:value={compareAt}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="150.00"
+								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
+							/>
+						</div>
+						<p class="text-[11px] text-zinc-400">若高于现价，前台将展示划线折扣效果</p>
+					</div>
+
+					<!-- Currency -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="new-curr" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								结算货币
+							</label>
+							<span class="text-[10px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full">
+								ISO 4217
+							</span>
+						</div>
+						<select
+							id="new-curr"
+							bind:value={currency}
+							class="w-full bg-transparent border-none text-sm font-semibold text-zinc-900 outline-none py-1.5 cursor-pointer"
+						>
+							<option value="USD">USD - 美元 ($)</option>
+							<option value="EUR">EUR - 欧元 (€)</option>
+							<option value="GBP">GBP - 英镑 (£)</option>
+							<option value="CAD">CAD - 加元 ($)</option>
+						</select>
+						<p class="text-[11px] text-zinc-400">Stripe PaymentIntent 计费货币</p>
+					</div>
 				</div>
 			</div>
 
@@ -556,7 +677,7 @@
 
 			<!-- Bottom Actions in normal flow -->
 			<div class="pt-5 border-t border-zinc-100 flex items-center justify-between gap-3">
-				{#if title || price || description || variants.length > 0}
+				{#if title || price || compareAt || description || material || care || detailsText || variants.length > 0}
 					<button
 						type="button"
 						onclick={resetForm}

@@ -4,7 +4,6 @@
 		CircleAlert,
 		CircleCheck,
 		FileText,
-		Tag,
 		Image as ImageIcon,
 		Layers,
 		ExternalLink,
@@ -13,13 +12,14 @@
 		RefreshCw
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import {
 		ADMIN_PAGE,
 		ADMIN_CARDS,
 		ADMIN_BADGES,
 		ADMIN_FORMS,
-		ADMIN_BUTTONS
+		ADMIN_BUTTONS,
+		ICONS
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -31,7 +31,19 @@
 	// svelte-ignore state_referenced_locally
 	let description = $state(data.product.description);
 	// svelte-ignore state_referenced_locally
+	let material = $state(data.product.material);
+	// svelte-ignore state_referenced_locally
+	let care = $state(data.product.care);
+	// svelte-ignore state_referenced_locally
+	let detailsText = $state(data.product.details.join('\n'));
+	// svelte-ignore state_referenced_locally
 	let price = $state(String(data.product.priceDollars || ''));
+	// svelte-ignore state_referenced_locally
+	let compareAt = $state(
+		data.product.compareAtDollars !== null && data.product.compareAtDollars !== undefined
+			? String(data.product.compareAtDollars)
+			: ''
+	);
 	// svelte-ignore state_referenced_locally
 	let currency = $state(data.product.currency.toUpperCase());
 	// svelte-ignore state_referenced_locally
@@ -57,13 +69,25 @@
 	let error = $state('');
 	let rolled = $state(false);
 	let saveSuccess = $state(false);
+	let confirmDelete = $state(false);
+	let deleting = $state(false);
+	let allowLeave = $state(false);
+
+	let totalStock = $derived(variants.reduce((acc, v) => acc + (Number(v.stockQuantity) || 0), 0));
 
 	// Dirty detection
 	// svelte-ignore state_referenced_locally
 	const initialSnapshot = {
 		title: data.product.title,
 		description: data.product.description,
+		material: data.product.material,
+		care: data.product.care,
+		detailsText: data.product.details.join('\n'),
 		price: String(data.product.priceDollars || ''),
+		compareAt:
+			data.product.compareAtDollars !== null && data.product.compareAtDollars !== undefined
+				? String(data.product.compareAtDollars)
+				: '',
 		currency: data.product.currency.toUpperCase(),
 		isActive: data.product.isActive,
 		isFeatured: data.product.isFeatured,
@@ -73,7 +97,8 @@
 				color: v.color,
 				size: v.size,
 				sku: v.sku,
-				stockQuantity: Number(v.stockQuantity)
+				stockQuantity: Number(v.stockQuantity),
+				gallery: [...(v.gallery ?? [])].sort()
 			}))
 		)
 	};
@@ -81,7 +106,11 @@
 	let isDirty = $derived(
 		title !== initialSnapshot.title ||
 			description !== initialSnapshot.description ||
+			material !== initialSnapshot.material ||
+			care !== initialSnapshot.care ||
+			detailsText !== initialSnapshot.detailsText ||
 			price !== initialSnapshot.price ||
+			compareAt !== initialSnapshot.compareAt ||
 			currency !== initialSnapshot.currency ||
 			isActive !== initialSnapshot.isActive ||
 			isFeatured !== initialSnapshot.isFeatured ||
@@ -91,12 +120,19 @@
 					color: v.color,
 					size: v.size,
 					sku: v.sku,
-					stockQuantity: Number(v.stockQuantity)
+					stockQuantity: Number(v.stockQuantity),
+					gallery: [...(v.gallery ?? [])].sort()
 				}))
 			) !== initialSnapshot.variantsJson ||
+			variants.some((v) => (v.galleryFiles?.length ?? 0) > 0) ||
 			newImageFile !== null ||
 			imageCleared
 	);
+
+	beforeNavigate((nav) => {
+		if (!isDirty || allowLeave) return;
+		if (!confirm('有未保存的修改，确定要离开吗？')) nav.cancel();
+	});
 
 	function toggleCategory(catId: string) {
 		if (selectedCategories.includes(catId)) {
@@ -129,7 +165,11 @@
 	function resetForm() {
 		title = initialSnapshot.title;
 		description = initialSnapshot.description;
+		material = initialSnapshot.material;
+		care = initialSnapshot.care;
+		detailsText = initialSnapshot.detailsText;
 		price = initialSnapshot.price;
+		compareAt = initialSnapshot.compareAt;
 		currency = initialSnapshot.currency;
 		isActive = initialSnapshot.isActive;
 		isFeatured = initialSnapshot.isFeatured;
@@ -154,23 +194,44 @@
 			const payload = {
 				title,
 				description,
+				material,
+				care,
+				details: detailsText
+					.split('\n')
+					.map((line) => line.trim())
+					.filter((line) => line.length > 0),
 				price: price === '' ? undefined : Number(price),
+				compare_at_price: compareAt === '' ? null : Number(compareAt),
 				currency,
 				is_active: isActive,
 				is_featured: isFeatured,
 				category: selectedCategories,
-				variants: variants.map((v) => ({ ...v, stockQuantity: Number(v.stockQuantity) })),
+				variants: variants.map((v) => ({
+					id: v.id,
+					color: v.color,
+					colorSwatch: v.colorSwatch,
+					size: v.size,
+					sku: v.sku,
+					stockQuantity: Number(v.stockQuantity),
+					gallery: v.gallery ?? []
+				})),
 				...(imageCleared ? { main_image_clear: true } : {})
 			};
+			const hasGalleryUploads = variants.some((v) => (v.galleryFiles?.length ?? 0) > 0);
 
 			let res: Response;
-			if (newImageFile || imageCleared) {
+			if (newImageFile || imageCleared || hasGalleryUploads) {
 				const formData = new FormData();
 				formData.append('data', JSON.stringify(payload));
 				if (newImageFile) {
 					formData.append('main_image', newImageFile);
 				} else if (imageCleared) {
 					formData.append('main_image', '');
+				}
+				for (const v of variants) {
+					for (const file of v.galleryFiles ?? []) {
+						formData.append(`gallery:${v.sku}`, file);
+					}
 				}
 				res = await fetch(`/api/admin/products/${data.product.id}`, {
 					method: 'PATCH',
@@ -191,6 +252,7 @@
 				rolled = true;
 			} else {
 				saveSuccess = true;
+				allowLeave = true;
 				setTimeout(() => {
 					goto('/admin/products');
 				}, 600);
@@ -199,6 +261,29 @@
 			error = e instanceof Error ? e.message : '保存失败';
 		} finally {
 			saving = false;
+		}
+	}
+
+	async function removeProduct() {
+		if (!confirmDelete) {
+			confirmDelete = true;
+			return;
+		}
+		deleting = true;
+		error = '';
+		try {
+			const res = await fetch(`/api/admin/products/${data.product.id}`, {
+				method: 'DELETE'
+			});
+			const body = await res.json().catch(() => ({}));
+			if (!res.ok) throw new Error(body.error || `删除失败 (${res.status})`);
+			allowLeave = true;
+			await goto('/admin/products');
+		} catch (e: unknown) {
+			error = e instanceof Error ? e.message : '删除失败';
+			confirmDelete = false;
+		} finally {
+			deleting = false;
 		}
 	}
 </script>
@@ -222,27 +307,13 @@
 		<div class={ADMIN_PAGE.header}>
 			<div>
 				<div class="flex items-center gap-3 flex-wrap">
-					<h1 class={ADMIN_PAGE.title}>
-						编辑商品
-					</h1>
-					{#if isActive}
-						<span class={ADMIN_BADGES.success}>前台正常在售</span>
-					{:else}
-						<span class={ADMIN_BADGES.neutral}>已下架隐藏</span>
-					{/if}
+					<h1 class={ADMIN_PAGE.title}>编辑商品</h1>
 					{#if isFeatured}
 						<span class={ADMIN_BADGES.warning}>首页精选推荐</span>
 					{/if}
+					<span class={ADMIN_BADGES.neutral}>总库存: {totalStock} 件</span>
+					<span class={ADMIN_BADGES.neutral}>规格: {variants.length} 款</span>
 				</div>
-				{#if data.product.stripePriceId}
-					<div class="flex flex-wrap items-center gap-2 mt-2">
-						<span
-							class="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200"
-						>
-							{data.product.stripePriceId}
-						</span>
-					</div>
-				{/if}
 			</div>
 
 			<div class="flex items-center gap-2.5 flex-wrap">
@@ -319,26 +390,46 @@
 		</div>
 	{/if}
 
-	<!-- Section 1: Basic Information -->
+	<!-- Section 1: Product Information -->
 	<section class={ADMIN_CARDS.section}>
-		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={FileText} size={16} />
-				</div>
+		<div class="{ADMIN_CARDS.header} gap-4 flex-wrap">
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={FileText} size={ICONS.sizeXl} />
+				</span>
 				<div>
-					<h2 class={ADMIN_CARDS.title}>基本信息</h2>
-					<p class={ADMIN_CARDS.subtitle}>设置商品面向顾客展示的核心标题与文案介绍</p>
+					<h2 class={ADMIN_CARDS.title}>商品信息</h2>
+					<p class={ADMIN_CARDS.subtitle}>设置商品核心标题、文案介绍、所属类目与前台展示状态</p>
 				</div>
+			</div>
+			<div class="ml-auto flex min-w-0 max-w-full">
+				{#if data.categories && data.categories.length > 0}
+					<div
+						class="flex min-w-0 max-w-full flex-nowrap justify-start gap-1.5 overflow-x-auto px-0.5 py-1 -my-1"
+					>
+						{#each data.categories as cat (cat.id)}
+							{@const checked = selectedCategories.includes(cat.id)}
+							<button
+								type="button"
+								onclick={() => toggleCategory(cat.id)}
+								class="{checked
+									? ADMIN_BUTTONS.pillActive
+									: ADMIN_BUTTONS.pillInactive} shrink-0 whitespace-nowrap"
+							>
+								<span>{cat.name}</span>
+							</button>
+						{/each}
+					</div>
+				{:else}
+					<span class="text-[11px] text-zinc-400">暂无可用分类</span>
+				{/if}
 			</div>
 		</div>
 
 		<div class="space-y-5 pt-5">
 			<div>
 				<div class="flex items-center justify-between mb-1.5">
-					<label for="edit-title" class={ADMIN_FORMS.label}>
-						商品标题 *
-					</label>
+					<label for="edit-title" class={ADMIN_FORMS.label}> 商品标题 * </label>
 					<span class={ADMIN_FORMS.counter}>{title.length}/120</span>
 				</div>
 				<input
@@ -351,156 +442,95 @@
 			</div>
 
 			<div>
-				<label for="edit-desc" class={ADMIN_FORMS.label}>
-					商品详细描述
-				</label>
+				<label for="edit-desc" class={ADMIN_FORMS.label}> 商品详细描述 </label>
 				<textarea
 					id="edit-desc"
 					bind:value={description}
 					rows="4"
-					placeholder="填写面料特性、剪裁版型、保养说明及搭配建议..."
+					placeholder="填写剪裁版型、搭配建议等面向顾客的整体介绍..."
 					class={ADMIN_FORMS.textarea}
 				></textarea>
-				<span class={ADMIN_FORMS.help}>支持纯文本或简易段落说明，将完整呈现在商品详情页</span>
 			</div>
-		</div>
-	</section>
 
-	<!-- Section 2: Categories & Display Status -->
-	<section class={ADMIN_CARDS.section}>
-		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={Tag} size={16} />
-				</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				<div>
-					<h2 class={ADMIN_CARDS.title}>分类与展示状态</h2>
-					<p class={ADMIN_CARDS.subtitle}>控制商品所属类目、前台可见性与首页推荐位</p>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="edit-material" class={ADMIN_FORMS.label}> 面料材质 </label>
+						<span class={ADMIN_FORMS.counter}>{material.length}/300</span>
+					</div>
+					<input
+						id="edit-material"
+						bind:value={material}
+						maxlength="300"
+						placeholder="例如：100% 重磅亚麻"
+						class={ADMIN_FORMS.input}
+					/>
 				</div>
+
+				<div>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="edit-care" class={ADMIN_FORMS.label}> 护理说明 </label>
+						<span class={ADMIN_FORMS.counter}>{care.length}/500</span>
+					</div>
+					<input
+						id="edit-care"
+						bind:value={care}
+						maxlength="500"
+						placeholder="例如：冷水机洗，平铺晾干"
+						class={ADMIN_FORMS.input}
+					/>
+				</div>
+			</div>
+
+			<div>
+				<label for="edit-details" class={ADMIN_FORMS.label}>
+					细节条目 <span class="normal-case font-normal text-zinc-400">(一行一条，前台逐条展示)</span>
+				</label>
+				<textarea
+					id="edit-details"
+					bind:value={detailsText}
+					rows="3"
+					placeholder="法式剪裁&#10;预缩处理&#10;天然贝壳扣"
+					class={ADMIN_FORMS.textarea}
+				></textarea>
 			</div>
 		</div>
 
-		<div class="space-y-6 pt-5">
-			<!-- Switches -->
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<!-- is_active toggle -->
-				<div
-					class="p-4 rounded-xl border border-zinc-200/80 bg-zinc-50/50 flex items-start justify-between gap-4"
+		<div class="pt-6 mt-6 border-t border-zinc-100">
+			<!-- Status pills -->
+			<div class="flex items-center gap-2 flex-wrap">
+				<button
+					type="button"
+					role="switch"
+					aria-checked={isActive}
+					aria-label="发布到店铺前台开关"
+					onclick={() => (isActive = !isActive)}
+					class={isActive ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 				>
-					<div class="space-y-1">
-						<div class="flex items-center gap-2">
-							<span class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-								发布到店铺前台
-							</span>
-							{#if isActive}
-								<span class={ADMIN_BADGES.success}>在线可售</span>
-							{:else}
-								<span class={ADMIN_BADGES.neutral}>已下架</span>
-							{/if}
-						</div>
-						<p class="text-[11px] text-zinc-500 leading-relaxed">
-							开启后该商品在前台商城类目列表及检索中均正常对外展现；关闭则仅管理员后台可见。
-						</p>
-					</div>
+					<span>{isActive ? '在售' : '下架'}</span>
+				</button>
 
-					<button
-						type="button"
-						role="switch"
-						aria-checked={isActive}
-						aria-label="发布到店铺前台开关"
-						onclick={() => (isActive = !isActive)}
-						class="{ADMIN_FORMS.switchBase} {isActive
-							? ADMIN_FORMS.switchTrackActive
-							: ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
-					>
-						<span
-							class="{ADMIN_FORMS.switchThumb} {isActive
-								? 'translate-x-5'
-								: 'translate-x-1'}"
-						></span>
-					</button>
-				</div>
-
-				<!-- is_featured toggle -->
-				<div
-					class="p-4 rounded-xl border border-zinc-200/80 bg-zinc-50/50 flex items-start justify-between gap-4"
+				<button
+					type="button"
+					role="switch"
+					aria-checked={isFeatured}
+					aria-label="首页精选推荐开关"
+					onclick={() => (isFeatured = !isFeatured)}
+					class={isFeatured ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 				>
-					<div class="space-y-1">
-						<div class="flex items-center gap-2">
-							<span class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-								首页精选推荐 (Featured)
-							</span>
-							{#if isFeatured}
-								<span class={ADMIN_BADGES.warning}>精选展示</span>
-							{:else}
-								<span class={ADMIN_BADGES.neutral}>标准陈列</span>
-							{/if}
-						</div>
-						<p class="text-[11px] text-zinc-500 leading-relaxed">
-							开启后将在前台首页「精选产品 (Featured)」区域置顶曝光，提升主推单品转化率。
-						</p>
-					</div>
-
-					<button
-						type="button"
-						role="switch"
-						aria-checked={isFeatured}
-						aria-label="首页精选推荐开关"
-						onclick={() => (isFeatured = !isFeatured)}
-						class="{ADMIN_FORMS.switchBase} {isFeatured
-							? 'bg-amber-500'
-							: ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
-					>
-						<span
-							class="{ADMIN_FORMS.switchThumb} {isFeatured
-								? 'translate-x-5'
-								: 'translate-x-1'}"
-						></span>
-					</button>
-				</div>
-			</div>
-
-			<!-- Category Multi-Select -->
-			<div>
-				<div class="flex items-center justify-between mb-2">
-					<span class={ADMIN_FORMS.label}>所属分类关联</span>
-					<span class="text-[11px] text-zinc-500">
-						已绑定 <strong class="font-mono text-zinc-900">{selectedCategories.length}</strong> 个分类
-					</span>
-				</div>
-
-				{#if data.categories && data.categories.length > 0}
-					<div class="flex flex-wrap gap-2 pt-1">
-						{#each data.categories as cat (cat.id)}
-							{@const checked = selectedCategories.includes(cat.id)}
-							<button
-								type="button"
-								onclick={() => toggleCategory(cat.id)}
-								class={checked ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
-							>
-								<span>{cat.name}</span>
-							</button>
-						{/each}
-					</div>
-				{:else}
-					<div
-						class="py-4 px-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 text-center space-y-1"
-					>
-						<p class="text-xs text-zinc-500">暂无可用的商品分类</p>
-						<p class="text-[11px] text-zinc-400">可在 PocketBase 后台或分类管理中补充类目后再进行绑定。</p>
-					</div>
-				{/if}
+					<span>{isFeatured ? '精选' : '常规'}</span>
+				</button>
 			</div>
 		</div>
 	</section>
 
-	<!-- Section 3: Main Image & Media Assets -->
+	<!-- Section 2: Main Image & Media Assets -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={ImageIcon} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={ImageIcon} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>主图与媒体资产</h2>
 					<p class={ADMIN_CARDS.subtitle}>管理商品在列表封面与详情主视觉呈现的高清图</p>
@@ -559,11 +589,7 @@
 								替换图片
 							</button>
 
-							<button
-								type="button"
-								onclick={removeImage}
-								class={ADMIN_BUTTONS.dangerSecondary}
-							>
+							<button type="button" onclick={removeImage} class={ADMIN_BUTTONS.dangerSecondary}>
 								<UiIcon icon={Trash2} size={14} />
 								移除主图
 							</button>
@@ -593,29 +619,16 @@
 					</p>
 				</div>
 			{/if}
-
-			<!-- Multi-gallery shortcut guidance -->
-			<div class="p-3.5 rounded-xl border border-zinc-200 bg-white/60 flex items-start gap-3">
-				<div class="p-1.5 rounded-lg bg-zinc-100 text-zinc-600 shrink-0 mt-0.5">
-					<UiIcon icon={ImageIcon} size={14} />
-				</div>
-				<div class="space-y-0.5 text-xs">
-					<span class="font-bold text-zinc-800">关于多色多图集 (Gallery Images)</span>
-					<p class="text-[11px] text-zinc-500 leading-relaxed">
-						除单张主图外，每个颜色规格均可在 PocketBase <code class="font-mono bg-zinc-100 px-1 py-0.5 rounded text-zinc-700">product_variants</code> 集合中独立绑定最多 10 张高清轮播图集。系统在顾客切换颜色色块时会自动加载对应图集。
-					</p>
-				</div>
-			</div>
 		</div>
 	</section>
 
-	<!-- Section 4: Pricing & Variant Matrix -->
+	<!-- Section 3: Pricing & Variant Matrix -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex items-center gap-3">
-				<div class={ADMIN_CARDS.iconBox}>
-					<UiIcon icon={Layers} size={16} />
-				</div>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={Layers} size={ICONS.sizeXl} />
+				</span>
 				<div>
 					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
 					<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
@@ -624,42 +637,105 @@
 		</div>
 
 		<div class="space-y-6 pt-5">
-			<!-- Pricing fields -->
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				<div>
-					<label for="edit-price" class={ADMIN_FORMS.label}>
-						基础统一售价 *
-					</label>
-					<div class="relative">
-						<span
-							class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-sm font-semibold"
-						>
-							$
-						</span>
-						<input
-							id="edit-price"
-							bind:value={price}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="120.00"
-							class="{ADMIN_FORMS.input} pl-8 font-mono"
-						/>
+			<!-- Enhanced Pricing & Commercial Summary Deck -->
+			<div class="bg-zinc-50/80 border border-zinc-200/90 rounded-2xl p-5 space-y-4 shadow-2xs">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200/60 pb-3">
+					<div>
+						<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-800">
+							基础定价与商业参数
+						</h3>
+						<p class="text-[11px] text-zinc-500 mt-0.5">
+							现价为统一实付扣款基准，划线原价用于前台打折促销展示
+						</p>
 					</div>
-					<span class={ADMIN_FORMS.help}>支持两位小数货币输入</span>
+
+					{#if price && Number(price) > 0}
+						<div class="flex items-center gap-2 self-start sm:self-auto">
+							<span class="text-[11px] text-zinc-500 font-medium">总库存估值:</span>
+							<span class="text-xs font-bold font-mono text-zinc-900 bg-white px-2.5 py-1 rounded-xl border border-zinc-200 shadow-2xs">
+								${(totalStock * Number(price)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+							</span>
+						</div>
+					{/if}
 				</div>
 
-				<div>
-					<label for="edit-curr" class={ADMIN_FORMS.label}>
-						结算币种
-					</label>
-					<select id="edit-curr" bind:value={currency} class={ADMIN_FORMS.select}>
-						<option value="USD">USD - 美元 ($)</option>
-						<option value="EUR">EUR - 欧元 (€)</option>
-						<option value="GBP">GBP - 英镑 (£)</option>
-						<option value="CAD">CAD - 加元 ($)</option>
-					</select>
-					<span class={ADMIN_FORMS.help}>Stripe 结账计费标准币种</span>
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+					<!-- Sale Price -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="edit-price" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								当前售价 *
+							</label>
+							<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+								实付基准
+							</span>
+						</div>
+						<div class="relative flex items-center">
+							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
+							<input
+								id="edit-price"
+								bind:value={price}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="120.00"
+								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
+							/>
+						</div>
+						<p class="text-[11px] text-zinc-400">买家结算实付金额，联动 Stripe 扣款</p>
+					</div>
+
+					<!-- Compare-at Price -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="edit-compare-at" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								划线建议原价
+							</label>
+							{#if compareAt && price && Number(compareAt) > Number(price)}
+								<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+									省 ${(Number(compareAt) - Number(price)).toFixed(2)} ({Math.round((1 - Number(price) / Number(compareAt)) * 100)}% 折扣)
+								</span>
+							{:else}
+								<span class="text-[10px] text-zinc-400">选填</span>
+							{/if}
+						</div>
+						<div class="relative flex items-center">
+							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
+							<input
+								id="edit-compare-at"
+								bind:value={compareAt}
+								type="number"
+								min="0"
+								step="0.01"
+								placeholder="150.00"
+								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
+							/>
+						</div>
+						<p class="text-[11px] text-zinc-400">若高于现价，前台将展示划线折扣效果</p>
+					</div>
+
+					<!-- Currency -->
+					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
+						<div class="flex items-center justify-between">
+							<label for="edit-curr" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
+								结算货币
+							</label>
+							<span class="text-[10px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full">
+								ISO 4217
+							</span>
+						</div>
+						<select
+							id="edit-curr"
+							bind:value={currency}
+							class="w-full bg-transparent border-none text-sm font-semibold text-zinc-900 outline-none py-1.5 cursor-pointer"
+						>
+							<option value="USD">USD - 美元 ($)</option>
+							<option value="EUR">EUR - 欧元 (€)</option>
+							<option value="GBP">GBP - 英镑 (£)</option>
+							<option value="CAD">CAD - 加元 ($)</option>
+						</select>
+						<p class="text-[11px] text-zinc-400">Stripe PaymentIntent 计费货币</p>
+					</div>
 				</div>
 			</div>
 
@@ -667,38 +743,48 @@
 			<div>
 				<VariantMatrix bind:variants productSlug={data.product.slug} />
 			</div>
+		</div>
+	</section>
 
-			<!-- Bottom Actions in normal flow -->
-			<div class="pt-5 border-t border-zinc-100 flex items-center justify-between gap-3">
-				{#if isDirty}
+	<!-- Danger zone -->
+	<section class="rounded-xl border border-red-200 bg-red-50/50 p-5">
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+			<div class="space-y-1">
+				<h2 class="text-xs font-bold uppercase tracking-wider text-red-800">危险操作区</h2>
+				<p class="text-[11px] text-red-600/80 leading-relaxed">
+					删除将移除商品及其全部规格（含图集），Stripe
+					商品同步停用。历史订单快照不受影响，此操作不可撤销。
+				</p>
+			</div>
+			{#if confirmDelete}
+				<div class="flex items-center gap-2 shrink-0">
 					<button
 						type="button"
-						onclick={resetForm}
-						disabled={saving}
+						onclick={() => (confirmDelete = false)}
+						disabled={deleting}
 						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
 					>
-						放弃重置
+						取消
 					</button>
-				{:else}
-					<span class="text-xs text-zinc-400">商品数据与云端已同步</span>
-				{/if}
-
+					<button
+						type="button"
+						onclick={removeProduct}
+						disabled={deleting}
+						class="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 disabled:opacity-50"
+					>
+						{deleting ? '删除中...' : '确认删除'}
+					</button>
+				</div>
+			{:else}
 				<button
 					type="button"
-					onclick={submit}
-					disabled={saving || (!isDirty && !rolled) || !title.trim() || !price}
-					class={ADMIN_BUTTONS.primary}
+					onclick={removeProduct}
+					class="px-4 py-2 rounded-lg border border-red-300 text-red-700 text-xs font-bold uppercase tracking-wider hover:bg-red-100 shrink-0"
 				>
-					{#if saving}
-						<span
-							class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
-						></span>
-						<span>正在保存...</span>
-					{:else}
-						<span>保存修改</span>
-					{/if}
+					<UiIcon icon={Trash2} size={14} class="inline mr-1.5 -mt-0.5" />
+					删除此商品
 				</button>
-			</div>
+			{/if}
 		</div>
 	</section>
 </div>
