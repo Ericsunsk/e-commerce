@@ -21,6 +21,10 @@
 	--radius-card-inner: 0.375rem; /* 6px - nested element corner radius */
 	--radius-btn: 0.5rem; /* 8px - unified button corner radius matching card */
 
+	/* Spacing Design Tokens */
+	--spacing-card: 1.5rem; /* 24px - symmetric card padding & gap (vertical = horizontal) */
+	--spacing-card-sm: 1rem; /* 16px */
+
 	/* Fonts */
 	--font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
 	--font-serif: 'Cinzel', ui-serif, Georgia, serif;

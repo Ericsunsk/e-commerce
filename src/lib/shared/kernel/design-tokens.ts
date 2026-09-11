@@ -60,7 +60,11 @@ export const Z_INDEX = {
 
 export const SPACING = {
 	container: 'max-w-[1600px] mx-auto px-6 md:px-12',
-	section: 'py-24 px-6 md:px-12'
+	section: 'py-24 px-6 md:px-12',
+	card: 'p-6',
+	cardSm: 'p-4',
+	cardGap: 'gap-6',
+	cardGapSm: 'gap-4'
 } as const;
 
 export const LAYOUT = {
@@ -94,23 +98,34 @@ export const RADIUS = {
 } as const;
 
 export const ADMIN_CARDS = {
-	base: 'bg-white border border-zinc-200/80 rounded-card shadow-xs',
-	kpi: 'bg-white border border-zinc-200/80 rounded-card p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors',
+	base: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs',
+	kpi: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors',
 	section: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between',
 	table: 'bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden',
 	header: 'flex items-center justify-between border-b border-zinc-100 pb-4',
+	body: 'p-6 space-y-6',
+	padding: 'p-6',
+	paddingSm: 'p-4',
+	gap: 'gap-6',
+	gapSm: 'gap-4',
+	grid: 'grid gap-6',
+	grid2: 'grid grid-cols-1 lg:grid-cols-2 gap-6',
+	grid3: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6',
+	grid4: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6',
 	title: 'text-xs font-bold uppercase tracking-wider text-zinc-900',
 	subtitle: 'text-[11px] text-zinc-400',
 	iconBox: 'w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700 shrink-0'
 } as const;
 
 export const ADMIN_PAGE = {
-	container: 'space-y-8 pb-24',
+	container: 'space-y-6 pb-24',
 	header: 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4',
 	title: 'text-2xl font-display font-bold uppercase tracking-widest text-zinc-900',
 	subtitle: 'text-xs text-zinc-500 mt-1',
 	sectionTitle: 'text-lg font-display font-bold uppercase tracking-wider text-zinc-900',
-	sectionSubtitle: 'text-xs text-zinc-500'
+	sectionSubtitle: 'text-xs text-zinc-500',
+	cardGap: 'gap-6',
+	cardsGrid: 'grid gap-6'
 } as const;
 
 export const ADMIN_SEGMENTED = {

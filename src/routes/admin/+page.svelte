@@ -21,7 +21,7 @@
 		ShoppingBag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { ICONS, ADMIN_CARDS } from '$shared/kernel';
+	import { ICONS, ADMIN_CARDS, ADMIN_PAGE } from '$shared/kernel';
 	import { getOrderStatusBadgeClass, getOrderStatusLabel, type TimeRangeKey } from '$domains/order';
 	import type { PageData } from './$types';
 
@@ -95,7 +95,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="space-y-8">
+<div class={ADMIN_PAGE.container}>
 	<!-- Header with Time Range Switcher -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<div>
@@ -123,7 +123,7 @@
 	</div>
 
 	<!-- 4-Card KPI Row with Sparklines -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+	<div class={ADMIN_CARDS.grid4}>
 		<!-- KPI 1: GMV -->
 		<div class="{ADMIN_CARDS.kpi}">
 			<div class="flex items-center justify-between">
@@ -460,7 +460,7 @@
 	</div>
 
 	<!-- Bottom Section: Merchandising & Inventory + Customer Insights & Orders -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	<div class={ADMIN_CARDS.grid2}>
 		<!-- Left Card: Merchandising & Inventory Health -->
 		<section class="{ADMIN_CARDS.section}">
 			<div>

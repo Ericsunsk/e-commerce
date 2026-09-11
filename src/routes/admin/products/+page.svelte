@@ -306,7 +306,7 @@
 	{/if}
 
 	<!-- 4-Card KPI Overview -->
-	<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+	<div class={ADMIN_CARDS.grid4}>
 		<!-- KPI 1: 全部商品 -->
 		<div class={ADMIN_CARDS.kpi}>
 			<div class="flex items-center justify-between">
@@ -381,7 +381,7 @@
 	</div>
 
 	<!-- Multi-Dimensional Search & Filters Console -->
-	<section class="bg-white border border-zinc-200 rounded-card p-4 shadow-xs space-y-3.5">
+	<section class="{ADMIN_CARDS.base} space-y-4">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
 			<!-- Search box -->
 			<div class="relative flex-1 max-w-md">

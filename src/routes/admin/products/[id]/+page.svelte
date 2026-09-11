@@ -208,7 +208,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="space-y-8 pb-12">
+<div class={ADMIN_PAGE.container}>
 	<!-- Back link & Header -->
 	<div class="space-y-3">
 		<a
