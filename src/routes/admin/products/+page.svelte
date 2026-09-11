@@ -32,7 +32,7 @@
 		ADMIN_DRAWER
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
-	import type { AdminProductRow } from '$domains/catalog';
+	import { getCategoryTier, type AdminProductRow } from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
 
@@ -274,15 +274,23 @@
 	let categoryLoading = $state(false);
 	let categorySaving = $state(false);
 	let categoryModalError = $state('');
-	let categoryEditingId = $state<string | null>(null);
-	let categoryForm = $state({
-		name: '',
-		slug: '',
-		sort_order: 0,
-		description: '',
-		is_visible: true
-	});
-	let showCategoryForm = $state(false);
+	let newCategoryName = $state('');
+	let editingCatId = $state<string | null>(null);
+	let editingCatName = $state('');
+
+	function getTierBadge(cat: { name?: string; slug?: string }) {
+		const tier = getCategoryTier(cat);
+		switch (tier) {
+			case 'gender':
+				return { label: '人群/性别', cls: 'bg-sky-50 text-sky-700 border-sky-200/60' };
+			case 'primary':
+				return { label: '一级品类', cls: 'bg-purple-50 text-purple-700 border-purple-200/60' };
+			case 'subcategory':
+				return { label: '细分子类', cls: 'bg-zinc-100 text-zinc-600 border-zinc-200/60' };
+			default:
+				return { label: '其他', cls: 'bg-zinc-50 text-zinc-500 border-zinc-200' };
+		}
+	}
 
 	async function refreshCategories() {
 		categoryLoading = true;
@@ -304,60 +312,67 @@
 	function openCategoryModal() {
 		categoryModalOpen = true;
 		categoryModalError = '';
-		showCategoryForm = false;
-		categoryEditingId = null;
+		newCategoryName = '';
+		editingCatId = null;
+		editingCatName = '';
 		refreshCategories();
 	}
 
-	function openNewCategory() {
-		categoryEditingId = null;
-		categoryForm = {
-			name: '',
-			slug: '',
-			sort_order: categories.length + 1,
-			description: '',
-			is_visible: true
-		};
-		categoryModalError = '';
-		showCategoryForm = true;
-	}
-
-	function openEditCategory(cat: CategoryItem) {
-		categoryEditingId = cat.id;
-		categoryForm = {
-			name: cat.name,
-			slug: cat.slug,
-			sort_order: cat.sortOrder ?? 0,
-			description: cat.description ?? '',
-			is_visible: cat.isActive !== false
-		};
-		categoryModalError = '';
-		showCategoryForm = true;
-	}
-
-	async function saveCategory() {
-		if (!categoryForm.name.trim()) {
-			categoryModalError = '分类名称不能为空';
-			return;
-		}
+	async function quickAddCategory() {
+		const name = newCategoryName.trim();
+		if (!name) return;
 		categorySaving = true;
 		categoryModalError = '';
 		try {
-			const url = categoryEditingId
-				? `/api/admin/categories/${categoryEditingId}`
-				: '/api/admin/categories';
-			const res = await fetch(url, {
-				method: categoryEditingId ? 'PATCH' : 'POST',
+			const res = await fetch('/api/admin/categories', {
+				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(categoryForm)
+				body: JSON.stringify({
+					name,
+					sort_order: categories.length + 1,
+					is_visible: true
+				})
 			});
 			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存分类失败');
-			showCategoryForm = false;
-			categoryEditingId = null;
+			if (!res.ok) throw new Error(body.error || '创建分类失败');
+			newCategoryName = '';
 			await refreshCategories();
 		} catch (e: unknown) {
-			categoryModalError = e instanceof Error ? e.message : '保存分类失败';
+			categoryModalError = e instanceof Error ? e.message : '创建分类失败';
+		} finally {
+			categorySaving = false;
+		}
+	}
+
+	function startEditCategory(cat: CategoryItem) {
+		editingCatId = cat.id;
+		editingCatName = cat.name;
+		categoryModalError = '';
+	}
+
+	function cancelEditCategory() {
+		editingCatId = null;
+		editingCatName = '';
+	}
+
+	async function saveInlineEdit() {
+		const name = editingCatName.trim();
+		if (!name || !editingCatId) return;
+		categorySaving = true;
+		categoryModalError = '';
+		try {
+			const res = await fetch(`/api/admin/categories/${editingCatId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name })
+			});
+			const body = await res.json().catch(() => ({}));
+			if (!res.ok) throw new Error(body.error || '更新分类失败');
+			editingCatId = null;
+			editingCatName = '';
+			await refreshCategories();
+		} catch (e: unknown) {
+			categoryModalError = e instanceof Error ? e.message : '更新分类失败';
 		} finally {
 			categorySaving = false;
 		}
@@ -383,7 +398,7 @@
 
 	async function deleteCategory(cat: CategoryItem) {
 		if ((cat.productCount ?? 0) > 0) {
-			categoryModalError = `分类「${cat.name}」下仍有 ${cat.productCount} 个商品关联，无法直接删除。请先在商品编辑中解绑分类后再试。`;
+			categoryModalError = `分类「${cat.name}」下仍有 ${cat.productCount} 款关联商品，无法直接删除。请先在商品编辑中解绑分类后再试。`;
 			return;
 		}
 		if (!confirm(`确定彻底删除分类「${cat.name}」吗？`)) return;
@@ -1089,246 +1104,205 @@
 			onclick={() => (categoryModalOpen = false)}
 		></button>
 
-		<div class="relative bg-white rounded-card shadow-2xl border border-zinc-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+		<div class="relative bg-white rounded-card shadow-xl border border-zinc-200 w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
 			<!-- Modal Header -->
-			<div class="px-6 py-4 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between shrink-0">
+			<div class="px-5 py-4 border-b border-zinc-200 bg-zinc-50/70 flex items-center justify-between shrink-0">
 				<div class="flex items-center gap-2.5">
-					<div class="w-8 h-8 rounded-card bg-zinc-900 text-white flex items-center justify-center shadow-xs">
-						<UiIcon icon={Tags} size={16} />
+					<div class="w-7 h-7 rounded-lg bg-zinc-900 text-white flex items-center justify-center shrink-0">
+						<UiIcon icon={Tags} size={15} />
 					</div>
 					<div>
-						<h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
+						<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
 							分类管理
 						</h2>
 						<p class="text-[11px] text-zinc-500">
-							管理目录结构、排序权重与前台分类可见性
+							快速添加、重命名与设置前台分类显隐
 						</p>
 					</div>
 				</div>
 
-				<div class="flex items-center gap-2">
-					{#if !showCategoryForm}
-						<button
-							type="button"
-							onclick={openNewCategory}
-							class={ADMIN_BUTTONS.primarySm}
-						>
-							<UiIcon icon={Plus} size={14} />
-							<span>新建分类</span>
-						</button>
-					{/if}
-					<button
-						type="button"
-						onclick={() => (categoryModalOpen = false)}
-						class={ADMIN_BUTTONS.icon}
-						aria-label="关闭"
-					>
-						<UiIcon icon={X} size={18} />
-					</button>
-				</div>
+				<button
+					type="button"
+					onclick={() => (categoryModalOpen = false)}
+					class={ADMIN_BUTTONS.icon}
+					aria-label="关闭"
+				>
+					<UiIcon icon={X} size={16} />
+				</button>
 			</div>
 
-			<!-- Modal Body -->
-			<div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs text-zinc-700">
-				{#if categoryModalError}
-					<div
-						role="alert"
-						class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-card text-xs font-medium"
+			<!-- Quick Add Input Bar -->
+			<div class="p-4 border-b border-zinc-200 bg-white shrink-0">
+				<form
+					onsubmit={(e) => {
+						e.preventDefault();
+						quickAddCategory();
+					}}
+					class="flex items-center gap-2"
+				>
+					<input
+						type="text"
+						bind:value={newCategoryName}
+						placeholder="输入新分类名称（按回车添加）..."
+						class="flex-1 bg-zinc-50/70 border border-zinc-200 rounded-card px-3 py-2 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:bg-white focus:border-zinc-900 transition-all"
+					/>
+					<button
+						type="submit"
+						disabled={categorySaving || !newCategoryName.trim()}
+						class="{ADMIN_BUTTONS.primarySm} shrink-0 px-3.5 py-2 text-xs"
 					>
-						<UiIcon icon={CircleAlert} size={15} class="shrink-0" />
-						<span>{categoryModalError}</span>
-					</div>
-				{/if}
+						{#if categorySaving && !editingCatId}
+							<span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+						{:else}
+							<UiIcon icon={Plus} size={14} />
+						{/if}
+						<span>添加分类</span>
+					</button>
+				</form>
+			</div>
 
-				<!-- Inline Create / Edit Subform -->
-				{#if showCategoryForm}
-					<div class="p-4 rounded-card bg-zinc-50 border border-zinc-200 space-y-3.5">
-						<div class="flex items-center justify-between pb-2 border-b border-zinc-200">
-							<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-								{categoryEditingId ? '编辑分类' : '新建分类'}
-							</span>
-							<button
-								type="button"
-								onclick={() => (showCategoryForm = false)}
-								class="text-[11px] text-zinc-400 hover:text-zinc-700 cursor-pointer"
-							>
-								取消
-							</button>
-						</div>
-
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">分类名称 *</span>
-								<input
-									type="text"
-									bind:value={categoryForm.name}
-									placeholder="例如：男装系列"
-									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900"
-								/>
-							</label>
-
-							<label class="block space-y-1">
-								<span class="text-[11px] font-semibold text-zinc-700">排序权重 (越小越靠前)</span>
-								<input
-									type="number"
-									min="0"
-									bind:value={categoryForm.sort_order}
-									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
-								/>
-							</label>
-						</div>
-
-						<label class="block space-y-1">
-							<span class="text-[11px] font-semibold text-zinc-700">URL 路径标识 (Slug, 留空将自动生成)</span>
-							<input
-								type="text"
-								bind:value={categoryForm.slug}
-								placeholder="例如：mens-wear"
-								class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
-							/>
-						</label>
-
-						<label class="block space-y-1">
-							<span class="text-[11px] font-semibold text-zinc-700">分类描述 (可选)</span>
-							<textarea
-								bind:value={categoryForm.description}
-								rows="2"
-								placeholder="简要描述该分类定位..."
-								class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900 resize-none"
-							></textarea>
-						</label>
-
-						<div class="flex items-center justify-between pt-1">
-							<label class="flex items-center gap-2 cursor-pointer select-none">
-								<input
-									type="checkbox"
-									bind:checked={categoryForm.is_visible}
-									class="w-4 h-4 accent-zinc-900 rounded"
-								/>
-								<span class="text-xs font-medium text-zinc-700">允许前台展示</span>
-							</label>
-
-							<div class="flex items-center gap-2">
-								<button
-									type="button"
-									onclick={() => (showCategoryForm = false)}
-									class={ADMIN_BUTTONS.secondary}
-								>
-									取消
-								</button>
-								<button
-									type="button"
-									onclick={saveCategory}
-									disabled={categorySaving || !categoryForm.name.trim()}
-									class={ADMIN_BUTTONS.primary}
-								>
-									{#if categorySaving}
-										<span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-										<span>保存中...</span>
-									{:else}
-										<span>保存分类</span>
-									{/if}
-								</button>
-							</div>
-						</div>
-					</div>
-				{/if}
-
-				<!-- Categories Table -->
-				<div class="border border-zinc-200 rounded-card overflow-hidden">
-					{#if categoryLoading && categories.length === 0}
-						<div class="py-12 text-center text-zinc-400">
-							<span class="inline-block w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mb-2"></span>
-							<p class="text-xs">加载分类列表中...</p>
-						</div>
-					{:else if categories.length === 0}
-						<div class="py-12 text-center text-zinc-400 space-y-2">
-							<p class="text-xs">暂无任何商品分类</p>
-							<p class="text-[11px] text-zinc-400">点击上方「新建分类」即可添加首个分类</p>
-						</div>
-					{:else}
-						<table class="w-full text-left text-xs border-collapse">
-							<thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 text-[10px] uppercase font-semibold">
-								<tr>
-									<th class="py-2.5 px-3 w-14 text-center">排序</th>
-									<th class="py-2.5 px-3">分类名称</th>
-									<th class="py-2.5 px-3">标识 Slug</th>
-									<th class="py-2.5 px-3 text-center">关联商品</th>
-									<th class="py-2.5 px-3 text-center">前台状态</th>
-									<th class="py-2.5 px-3 text-right">操作</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-zinc-100">
-								{#each categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as cat (cat.id)}
-									<tr class="hover:bg-zinc-50/60 transition-colors">
-										<td class="py-2.5 px-3 font-mono text-zinc-400 text-center text-[11px]">
-											{cat.sortOrder ?? 0}
-										</td>
-										<td class="py-2.5 px-3 font-semibold text-zinc-900">
-											{cat.name}
-										</td>
-										<td class="py-2.5 px-3 font-mono text-zinc-500 text-[11px]">
-											/{cat.slug}
-										</td>
-										<td class="py-2.5 px-3 text-center">
-											<span class="inline-block px-2 py-0.5 rounded-card bg-zinc-100 text-zinc-700 font-mono text-[11px] font-medium">
-												{cat.productCount ?? 0} 款
-											</span>
-										</td>
-										<td class="py-2.5 px-3 text-center">
-											<button
-												type="button"
-												onclick={() => toggleCategoryVisibility(cat)}
-												title={cat.isActive !== false ? '点击隐藏分类' : '点击显示分类'}
-												class="inline-flex items-center gap-1 px-2 py-0.5 rounded-card border text-[11px] transition-colors cursor-pointer {cat.isActive !== false
-													? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-													: 'bg-zinc-100 text-zinc-500 border-zinc-200'}"
-											>
-												<UiIcon icon={cat.isActive !== false ? Eye : EyeOff} size={12} />
-												<span>{cat.isActive !== false ? '显示' : '隐藏'}</span>
-											</button>
-										</td>
-										<td class="py-2.5 px-3 text-right">
-											<div class="flex items-center justify-end gap-1">
-												<button
-													type="button"
-													onclick={() => openEditCategory(cat)}
-													title="编辑分类"
-													aria-label="编辑{cat.name}"
-													class={ADMIN_BUTTONS.icon}
-												>
-													<UiIcon icon={Pencil} size={13} />
-												</button>
-												<button
-													type="button"
-													onclick={() => deleteCategory(cat)}
-													title="删除分类"
-													aria-label="删除{cat.name}"
-													class={ADMIN_BUTTONS.danger}
-												>
-													<UiIcon icon={Trash2} size={13} />
-												</button>
-											</div>
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					{/if}
+			<!-- Error alert if any -->
+			{#if categoryModalError}
+				<div
+					role="alert"
+					class="mx-4 mt-3 flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-3 py-2 rounded-card text-xs font-medium shrink-0"
+				>
+					<UiIcon icon={CircleAlert} size={14} class="shrink-0" />
+					<span class="flex-1">{categoryModalError}</span>
+					<button
+						type="button"
+						onclick={() => (categoryModalError = '')}
+						class="text-rose-400 hover:text-rose-700"
+					>
+						<UiIcon icon={X} size={13} />
+					</button>
 				</div>
+			{/if}
+
+			<!-- Categories List -->
+			<div class="p-4 overflow-y-auto space-y-2 flex-1 text-xs">
+				{#if categoryLoading && categories.length === 0}
+					<div class="py-12 text-center text-zinc-400">
+						<span class="inline-block w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mb-2"></span>
+						<p class="text-xs">加载分类列表中...</p>
+					</div>
+				{:else if categories.length === 0}
+					<div class="py-12 text-center text-zinc-400 space-y-1">
+						<p class="text-xs font-medium">暂无任何商品分类</p>
+						<p class="text-[11px]">在上方输入名称并点击「添加分类」即可创建</p>
+					</div>
+				{:else}
+					{#each categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as cat (cat.id)}
+						{@const tier = getTierBadge(cat)}
+						{@const isEditing = editingCatId === cat.id}
+						{@const hasProducts = (cat.productCount ?? 0) > 0}
+
+						<div class="p-3 rounded-card border border-zinc-200 bg-white hover:border-zinc-300 transition-all flex items-center justify-between gap-3">
+							{#if isEditing}
+								<!-- Inline Edit Form -->
+								<div class="flex-1 flex items-center gap-2">
+									<input
+										type="text"
+										bind:value={editingCatName}
+										onkeydown={(e) => {
+											if (e.key === 'Enter') saveInlineEdit();
+											if (e.key === 'Escape') cancelEditCategory();
+										}}
+										class="flex-1 bg-white border border-zinc-300 rounded-card px-2.5 py-1 text-xs text-zinc-900 outline-none focus:border-zinc-900"
+									/>
+									<button
+										type="button"
+										onclick={saveInlineEdit}
+										disabled={categorySaving || !editingCatName.trim()}
+										class="{ADMIN_BUTTONS.primarySm} text-[11px] py-1 px-2.5"
+									>
+										{#if categorySaving}
+											<span class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+										{:else}
+											<span>保存</span>
+										{/if}
+									</button>
+									<button
+										type="button"
+										onclick={cancelEditCategory}
+										class="{ADMIN_BUTTONS.secondarySm} text-[11px] py-1 px-2.5"
+									>
+										取消
+									</button>
+								</div>
+							{:else}
+								<!-- Category Info -->
+								<div class="flex items-center gap-2 min-w-0 flex-1">
+									<span class="font-semibold text-zinc-900 truncate text-xs">
+										{cat.name}
+									</span>
+									<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border shrink-0 {tier.cls}">
+										{tier.label}
+									</span>
+									<span class="text-[11px] font-mono text-zinc-400 shrink-0">
+										{cat.productCount ?? 0} 款商品
+									</span>
+								</div>
+
+								<!-- Category Actions -->
+								<div class="flex items-center gap-1.5 shrink-0">
+									<!-- Visibility Toggle Button -->
+									<button
+										type="button"
+										role="switch"
+										aria-checked={cat.isActive !== false}
+										onclick={() => toggleCategoryVisibility(cat)}
+										title={cat.isActive !== false ? '前台展示中 (点击隐藏)' : '已隐藏 (点击显示)'}
+										class="inline-flex items-center gap-1 px-2 py-0.5 rounded-card border text-[11px] transition-colors cursor-pointer {cat.isActive !== false
+											? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+											: 'bg-zinc-100 text-zinc-400 border-zinc-200'}"
+									>
+										<UiIcon icon={cat.isActive !== false ? Eye : EyeOff} size={12} />
+										<span>{cat.isActive !== false ? '显示' : '隐藏'}</span>
+									</button>
+
+									<!-- Inline Edit Button -->
+									<button
+										type="button"
+										onclick={() => startEditCategory(cat)}
+										title="重命名分类"
+										aria-label="重命名{cat.name}"
+										class="{ADMIN_BUTTONS.icon} text-zinc-500 hover:text-zinc-900"
+									>
+										<UiIcon icon={Pencil} size={13} />
+									</button>
+
+									<!-- Delete Button (Disabled if has products) -->
+									<button
+										type="button"
+										onclick={() => deleteCategory(cat)}
+										disabled={hasProducts}
+										title={hasProducts ? `仍有 ${cat.productCount} 款商品使用中，无法直接删除` : '彻底删除分类'}
+										aria-label="删除{cat.name}"
+										class="w-7 h-7 flex items-center justify-center rounded-card transition-colors {hasProducts
+											? 'text-zinc-300 cursor-not-allowed'
+											: 'text-zinc-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer'}"
+									>
+										<UiIcon icon={Trash2} size={13} />
+									</button>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				{/if}
 			</div>
 
 			<!-- Modal Footer -->
-			<div class="px-6 py-3.5 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between shrink-0">
+			<div class="px-5 py-3 border-t border-zinc-200 bg-zinc-50 flex items-center justify-between shrink-0">
 				<span class="text-[11px] text-zinc-400 font-medium">
-					共 <strong class="font-mono text-zinc-700">{categories.length}</strong> 个分类 · 修改将即时同步至筛选栏
+					共 <strong class="font-mono text-zinc-700">{categories.length}</strong> 个分类
 				</span>
 				<button
 					type="button"
 					onclick={() => (categoryModalOpen = false)}
-					class={ADMIN_BUTTONS.secondary}
+					class={ADMIN_BUTTONS.secondarySm}
 				>
-					关闭
+					完成关闭
 				</button>
 			</div>
 		</div>
