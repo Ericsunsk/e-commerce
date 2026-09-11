@@ -585,15 +585,10 @@
 										<button
 											type="button"
 											onclick={() => toggleCategoryFilter(cat.id)}
-											class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {isSelected
-												? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-												: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+											class={isSelected ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 										>
-											{#if isSelected}
-												<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-											{/if}
 											<span>{cat.name || cat.slug}</span>
-											<span class="text-[10px] {isSelected ? 'text-zinc-300' : 'text-zinc-400'}">({count})</span>
+											<span class={isSelected ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({count})</span>
 										</button>
 									{/each}
 								</div>
@@ -618,29 +613,19 @@
 								<button
 									type="button"
 									onclick={() => toggleStatusFilter('active')}
-									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStatuses.includes('active')
-										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+									class={selectedStatuses.includes('active') ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 								>
-									{#if selectedStatuses.includes('active')}
-										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-									{/if}
 									<span>在售在架</span>
-									<span class="text-[10px] {selectedStatuses.includes('active') ? 'text-zinc-300' : 'text-zinc-400'}">({activeProducts})</span>
+									<span class={selectedStatuses.includes('active') ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({activeProducts})</span>
 								</button>
 
 								<button
 									type="button"
 									onclick={() => toggleStatusFilter('inactive')}
-									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStatuses.includes('inactive')
-										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+									class={selectedStatuses.includes('inactive') ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 								>
-									{#if selectedStatuses.includes('inactive')}
-										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-									{/if}
 									<span>下架暂存</span>
-									<span class="text-[10px] {selectedStatuses.includes('inactive') ? 'text-zinc-300' : 'text-zinc-400'}">({inactiveProducts})</span>
+									<span class={selectedStatuses.includes('inactive') ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({inactiveProducts})</span>
 								</button>
 							</div>
 						</div>
@@ -663,43 +648,28 @@
 								<button
 									type="button"
 									onclick={() => toggleStockFilter('in_stock')}
-									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('in_stock')
-										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+									class={selectedStocks.includes('in_stock') ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 								>
-									{#if selectedStocks.includes('in_stock')}
-										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-									{/if}
 									<span>库存充足</span>
-									<span class="text-[10px] {selectedStocks.includes('in_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({inStockProducts})</span>
+									<span class={selectedStocks.includes('in_stock') ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({inStockProducts})</span>
 								</button>
 
 								<button
 									type="button"
 									onclick={() => toggleStockFilter('low_stock')}
-									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('low_stock')
-										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+									class={selectedStocks.includes('low_stock') ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 								>
-									{#if selectedStocks.includes('low_stock')}
-										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-									{/if}
 									<span>库存紧张</span>
-									<span class="text-[10px] {selectedStocks.includes('low_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({lowStockProducts})</span>
+									<span class={selectedStocks.includes('low_stock') ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({lowStockProducts})</span>
 								</button>
 
 								<button
 									type="button"
 									onclick={() => toggleStockFilter('out_of_stock')}
-									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('out_of_stock')
-										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+									class={selectedStocks.includes('out_of_stock') ? ADMIN_BUTTONS.filterPillActive : ADMIN_BUTTONS.filterPillInactive}
 								>
-									{#if selectedStocks.includes('out_of_stock')}
-										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
-									{/if}
 									<span>已售罄</span>
-									<span class="text-[10px] {selectedStocks.includes('out_of_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({outOfStockProducts})</span>
+									<span class={selectedStocks.includes('out_of_stock') ? ADMIN_BUTTONS.filterPillCountActive : ADMIN_BUTTONS.filterPillCountInactive}>({outOfStockProducts})</span>
 								</button>
 							</div>
 						</div>

@@ -195,7 +195,13 @@ export const ADMIN_BUTTONS = {
 	pillActive:
 		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold transition-colors cursor-pointer',
 	pillInactive:
-		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs transition-colors cursor-pointer'
+		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs transition-colors cursor-pointer',
+	filterPillActive:
+		'px-2.5 py-1 text-xs rounded-lg border border-zinc-900 bg-zinc-900 text-white font-medium transition-all flex items-center gap-1.5 cursor-pointer',
+	filterPillInactive:
+		'px-2.5 py-1 text-xs rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-zinc-100 transition-all flex items-center gap-1.5 cursor-pointer',
+	filterPillCountActive: 'text-[10px] text-zinc-300',
+	filterPillCountInactive: 'text-[10px] text-zinc-400'
 } as const;
 
 export const ADMIN_TABLE = {
