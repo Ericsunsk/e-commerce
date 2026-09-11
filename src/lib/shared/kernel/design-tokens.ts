@@ -139,10 +139,10 @@ export const ADMIN_FORMS = {
 } as const;
 
 export const ADMIN_BUTTONS = {
-	primary: 'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
-	secondary: 'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
-	danger: 'p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
-	icon: 'p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer'
+	primary: 'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-card bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	secondary: 'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+	danger: 'p-1.5 rounded-card text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
+	icon: 'p-1.5 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer'
 } as const;
 
 export const ADMIN_TABLE = {

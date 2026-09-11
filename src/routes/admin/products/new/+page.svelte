@@ -8,8 +8,7 @@
 		Layers,
 		Upload,
 		Trash2,
-		RefreshCw,
-		Check
+		RefreshCw
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { goto } from '$app/navigation';
@@ -365,13 +364,10 @@
 							<button
 								type="button"
 								onclick={() => toggleCategory(cat.id)}
-								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs transition-all cursor-pointer {checked
+								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs transition-all cursor-pointer {checked
 									? 'bg-zinc-900 text-white border-zinc-900 font-semibold shadow-xs'
 									: 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50'}"
 							>
-								{#if checked}
-									<UiIcon icon={Check} size={13} class="text-white" />
-								{/if}
 								<span>{cat.name}</span>
 							</button>
 						{/each}
@@ -454,7 +450,7 @@
 							<button
 								type="button"
 								onclick={removeImage}
-								class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 transition-colors cursor-pointer shadow-xs"
+								class="inline-flex items-center gap-1.5 px-3 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 transition-colors cursor-pointer shadow-xs"
 							>
 								<UiIcon icon={Trash2} size={14} />
 								移除主图

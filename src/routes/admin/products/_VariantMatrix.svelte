@@ -178,7 +178,7 @@
 					type="button"
 					onclick={regenerateAllSkus}
 					title="根据当前前缀统一重整所有规格条码"
-					class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white border border-zinc-200 text-zinc-600 text-xs font-medium hover:text-zinc-900 hover:bg-zinc-100 transition-colors shadow-xs cursor-pointer"
+					class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-card bg-white border border-zinc-200 text-zinc-600 text-xs font-medium hover:text-zinc-900 hover:bg-zinc-100 transition-colors shadow-xs cursor-pointer"
 				>
 					<UiIcon icon={RefreshCw} size={13} />
 					统一重排 SKU
@@ -188,7 +188,7 @@
 			<button
 				type="button"
 				onclick={() => (showGenerator = !showGenerator)}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer {showGenerator
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer {showGenerator
 					? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
 					: 'bg-white border-zinc-300 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 shadow-xs'}"
 			>
@@ -204,7 +204,7 @@
 			<button
 				type="button"
 				onclick={addRow}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
 			>
 				<UiIcon icon={Plus} size={13} />
 				添加单行
@@ -253,7 +253,7 @@
 						<button
 							type="button"
 							onclick={() => toggleColorPreset(preset)}
-							class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer {isSelected
+							class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-card border text-xs transition-all cursor-pointer {isSelected
 								? 'bg-zinc-900 text-white border-zinc-900 font-semibold shadow-xs'
 								: 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100'}"
 						>
@@ -289,7 +289,7 @@
 						<button
 							type="button"
 							onclick={() => toggleSizePreset(size)}
-							class="px-3 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer {isSelected
+							class="px-3 py-1.5 rounded-card border text-xs font-mono transition-all cursor-pointer {isSelected
 								? 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-xs'
 								: 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100'}"
 						>
@@ -446,7 +446,7 @@
 								onclick={() => modifyRowStock(index, -1)}
 								disabled={row.stockQuantity <= 0}
 								aria-label="减少库存"
-								class="w-7 h-7 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 disabled:opacity-40 flex items-center justify-center text-zinc-600 transition-colors cursor-pointer"
+								class="w-7 h-7 rounded-card border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 disabled:opacity-40 flex items-center justify-center text-zinc-600 transition-colors cursor-pointer"
 							>
 								<UiIcon icon={Minus} size={12} />
 							</button>
@@ -457,14 +457,14 @@
 								step="1"
 								bind:value={row.stockQuantity}
 								aria-label="规格库存数量"
-								class="w-16 bg-white border border-zinc-300 rounded-lg py-1 px-1 text-xs font-mono text-center text-zinc-900 outline-none focus:border-zinc-900"
+								class="w-16 bg-white border border-zinc-300 rounded-card py-1 px-1 text-xs font-mono text-center text-zinc-900 outline-none focus:border-zinc-900"
 							/>
 
 							<button
 								type="button"
 								onclick={() => modifyRowStock(index, 1)}
 								aria-label="增加 1 件库存"
-								class="w-7 h-7 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 flex items-center justify-center text-zinc-600 transition-colors cursor-pointer"
+								class="w-7 h-7 rounded-card border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 flex items-center justify-center text-zinc-600 transition-colors cursor-pointer"
 							>
 								<UiIcon icon={Plus} size={12} />
 							</button>
@@ -473,7 +473,7 @@
 								type="button"
 								onclick={() => modifyRowStock(index, 10)}
 								title="快捷补货 +10"
-								class="px-1.5 h-7 rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-[10px] font-mono text-zinc-600 transition-colors cursor-pointer"
+								class="px-1.5 h-7 rounded-card border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-[10px] font-mono text-zinc-600 transition-colors cursor-pointer"
 							>
 								+10
 							</button>
@@ -487,14 +487,14 @@
 								<button
 									type="button"
 									onclick={() => removeRow(index)}
-									class="px-2 py-1 rounded-lg bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-rose-700 shadow-xs cursor-pointer"
+									class="px-2 py-1 rounded-card bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-rose-700 shadow-xs cursor-pointer"
 								>
 									确认删除
 								</button>
 								<button
 									type="button"
 									onclick={() => (confirmDeleteIndex = null)}
-									class="px-2 py-1 rounded-lg bg-zinc-100 text-zinc-600 text-[11px] hover:bg-zinc-200 cursor-pointer"
+									class="px-2 py-1 rounded-card bg-zinc-100 text-zinc-600 text-[11px] hover:bg-zinc-200 cursor-pointer"
 								>
 									取消
 								</button>
@@ -505,7 +505,7 @@
 								onclick={() => (confirmDeleteIndex = index)}
 								title="删除此规格行"
 								aria-label="删除规格行"
-								class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+								class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-card transition-colors cursor-pointer"
 							>
 								<UiIcon icon={Trash2} size={15} />
 							</button>

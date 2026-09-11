@@ -7,7 +7,6 @@
 		Package,
 		ReceiptText,
 		Tag,
-		Tags,
 		KeyRound,
 		Database,
 		FileText,
@@ -30,7 +29,6 @@
 			items: [
 				{ href: '/admin', label: '数据概览', icon: LayoutDashboard },
 				{ href: '/admin/products', label: '商品管理', icon: Package },
-				{ href: '/admin/products/categories', label: '分类管理', icon: Tags },
 				{ href: '/admin/orders', label: '订单中心', icon: ReceiptText }
 			]
 		},
