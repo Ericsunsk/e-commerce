@@ -24,6 +24,7 @@
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import {
+		ICONS,
 		ADMIN_PAGE,
 		ADMIN_CARDS,
 		ADMIN_BADGES,
@@ -1136,10 +1137,10 @@
 		<div class="relative bg-white rounded-card shadow-2xl border border-zinc-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
 			<!-- Modal Header -->
 			<div class="px-6 py-4 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between shrink-0">
-				<div class="flex items-center gap-2.5">
-					<div class="w-8 h-8 rounded-card bg-zinc-900 text-white flex items-center justify-center shadow-xs">
-						<UiIcon icon={Tags} size={16} />
-					</div>
+				<div class={ADMIN_CARDS.sectionHeader}>
+					<span class={ADMIN_CARDS.sectionIconWrap}>
+						<UiIcon icon={Tags} size={ICONS.sizeXl} />
+					</span>
 					<div>
 						<h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
 							分类管理

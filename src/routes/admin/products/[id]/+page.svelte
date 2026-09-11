@@ -9,7 +9,8 @@
 		ExternalLink,
 		Upload,
 		Trash2,
-		RefreshCw
+		RefreshCw,
+		Tag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { beforeNavigate, goto } from '$app/navigation';
@@ -488,7 +489,10 @@
 			<section class={ADMIN_CARDS.section}>
 				<div class={ADMIN_CARDS.header}>
 					<div class={ADMIN_CARDS.sectionHeader}>
-						<div>
+						<span class={ADMIN_CARDS.sectionIconWrap}>
+							<UiIcon icon={Tag} size={ICONS.sizeXl} />
+						</span>
+						<div class="flex-1 min-w-0">
 							<div class="flex items-center justify-between gap-2">
 								<h2 class={ADMIN_CARDS.title}>所属分类</h2>
 								<span class="text-[11px] font-mono text-zinc-400">已选 {selectedCategories.length} 个</span>
