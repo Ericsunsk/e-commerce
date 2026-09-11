@@ -834,7 +834,7 @@
 	</div>
 
 	<!-- Page Filter Tabs -->
-	<div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none">
+	<div class="flex flex-wrap items-center gap-2 pt-0.5">
 		<button
 			type="button"
 			onclick={() => (selectedPageId = 'all')}
@@ -855,7 +855,7 @@
 					: ADMIN_BUTTONS.pillInactive}
 				title={page.title || page.slug}
 			>
-				<span class="max-w-[140px] truncate">{page.title || page.slug}</span>
+				<span class="max-w-[240px] truncate">{page.title || page.slug}</span>
 				<span class="opacity-60 font-mono text-[10px]">({count})</span>
 			</button>
 		{/each}
