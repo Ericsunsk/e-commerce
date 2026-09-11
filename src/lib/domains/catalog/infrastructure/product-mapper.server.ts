@@ -78,11 +78,9 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 
 	const hasVariants = variants.length > 0;
 
-	let baseImage = mainImage;
-	if (!baseImage) {
-		const firstVariant = variants[0];
-		baseImage = firstVariant?.image || firstVariant?.galleryImages?.[0] || '';
-	}
+	const firstVariant = variants[0];
+	const firstVariantImage = firstVariant?.image || firstVariant?.galleryImages?.[0] || '';
+	const baseImage = firstVariantImage || mainImage;
 	const baseImages = baseImage ? [baseImage] : [];
 
 	const totalVariantStock = variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0);

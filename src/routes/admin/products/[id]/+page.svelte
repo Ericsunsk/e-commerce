@@ -19,7 +19,8 @@
 		ADMIN_BADGES,
 		ADMIN_FORMS,
 		ADMIN_BUTTONS,
-		ICONS
+		ICONS,
+		getFileUrl
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
@@ -55,15 +56,18 @@
 	// svelte-ignore state_referenced_locally
 	let variants = $state<VariantRow[]>(data.product.variants.map((v) => ({ ...v })));
 
-	// Image state
-	// svelte-ignore state_referenced_locally
-	let initialMainImage = data.product.mainImage || '';
-	let currentMainImage = $state(initialMainImage);
-	let newImageFile = $state<File | null>(null);
-	let imagePreviewUrl = $state<string | null>(null);
-	let activeDisplayImage = $derived(imagePreviewUrl || currentMainImage);
-	let imageCleared = $state(false);
-	let fileInputRef: HTMLInputElement | null = null;
+	// First SKU / Variant Image (drives product cover image)
+	let firstVariantImage = $derived.by(() => {
+		for (const v of variants) {
+			if (v.galleryFiles && v.galleryFiles.length > 0) {
+				return URL.createObjectURL(v.galleryFiles[0]);
+			}
+			if (v.gallery && v.gallery.length > 0 && v.id) {
+				return getFileUrl('product_variants', v.id, v.gallery[0], { thumb: '200x200' });
+			}
+		}
+		return data.product.mainImage || '';
+	});
 
 	let saving = $state(false);
 	let error = $state('');
@@ -134,9 +138,7 @@
 					gallery: [...(v.gallery ?? [])].sort()
 				}))
 			) !== initialSnapshot.variantsJson ||
-			variants.some((v) => (v.galleryFiles?.length ?? 0) > 0) ||
-			newImageFile !== null ||
-			imageCleared
+			variants.some((v) => (v.galleryFiles?.length ?? 0) > 0)
 	);
 
 	beforeNavigate((nav) => {
@@ -152,26 +154,6 @@
 		}
 	}
 
-	function handleFileSelect(e: Event) {
-		const target = e.target as HTMLInputElement;
-		if (target.files && target.files[0]) {
-			const file = target.files[0];
-			newImageFile = file;
-			imageCleared = false;
-			if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-			imagePreviewUrl = URL.createObjectURL(file);
-		}
-	}
-
-	function removeImage() {
-		if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-		newImageFile = null;
-		imagePreviewUrl = null;
-		currentMainImage = '';
-		imageCleared = true;
-		if (fileInputRef) fileInputRef.value = '';
-	}
-
 	function resetForm() {
 		title = initialSnapshot.title;
 		description = initialSnapshot.description;
@@ -185,12 +167,6 @@
 		isFeatured = initialSnapshot.isFeatured;
 		selectedCategories = [...data.product.categoryIds];
 		variants = data.product.variants.map((v) => ({ ...v }));
-		if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
-		newImageFile = null;
-		imagePreviewUrl = null;
-		currentMainImage = initialMainImage;
-		imageCleared = false;
-		if (fileInputRef) fileInputRef.value = '';
 		error = '';
 	}
 
@@ -235,20 +211,14 @@
 					...(v.price !== undefined ? { price: Number(v.price) } : {}),
 					...(v.compareAt !== undefined ? { compareAt: Number(v.compareAt) } : {}),
 					gallery: v.gallery ?? []
-				})),
-				...(imageCleared ? { main_image_clear: true } : {})
+				}))
 			};
 			const hasGalleryUploads = variants.some((v) => (v.galleryFiles?.length ?? 0) > 0);
 
 			let res: Response;
-			if (newImageFile || imageCleared || hasGalleryUploads) {
+			if (hasGalleryUploads) {
 				const formData = new FormData();
 				formData.append('data', JSON.stringify(payload));
-				if (newImageFile) {
-					formData.append('main_image', newImageFile);
-				} else if (imageCleared) {
-					formData.append('main_image', '');
-				}
 				for (const v of variants) {
 					for (const file of v.galleryFiles ?? []) {
 						formData.append(`gallery:${v.sku}`, file);
@@ -326,14 +296,23 @@
 		</a>
 
 		<div class={ADMIN_PAGE.header}>
-			<div>
-				<div class="flex items-center gap-3 flex-wrap">
-					<h1 class={ADMIN_PAGE.title}>编辑商品</h1>
-					{#if isFeatured}
-						<span class={ADMIN_BADGES.warning}>首页精选推荐</span>
-					{/if}
-					<span class={ADMIN_BADGES.neutral}>总库存: {totalStock} 件</span>
-					<span class={ADMIN_BADGES.neutral}>规格: {variants.length} 款</span>
+			<div class="flex items-center gap-3">
+				{#if firstVariantImage}
+					<img
+						src={firstVariantImage}
+						alt=""
+						class="w-10 h-10 object-cover rounded-xl border border-zinc-200 bg-white shrink-0"
+					/>
+				{/if}
+				<div>
+					<div class="flex items-center gap-3 flex-wrap">
+						<h1 class={ADMIN_PAGE.title}>编辑商品</h1>
+						{#if isFeatured}
+							<span class={ADMIN_BADGES.warning}>首页精选推荐</span>
+						{/if}
+						<span class={ADMIN_BADGES.neutral}>总库存: {totalStock} 件</span>
+						<span class={ADMIN_BADGES.neutral}>规格: {variants.length} 款</span>
+					</div>
 				</div>
 			</div>
 
@@ -499,107 +478,6 @@
 					</div>
 				</div>
 			</section>
-
-			<!-- Section 2: 主图与媒体资产 -->
-			<section class={ADMIN_CARDS.section}>
-				<div class={ADMIN_CARDS.header}>
-					<div class={ADMIN_CARDS.sectionHeader}>
-						<span class={ADMIN_CARDS.sectionIconWrap}>
-							<UiIcon icon={ImageIcon} size={ICONS.sizeXl} />
-						</span>
-						<div>
-							<h2 class={ADMIN_CARDS.title}>主图与媒体资产</h2>
-							<p class={ADMIN_CARDS.subtitle}>管理商品在列表封面与详情主视觉呈现的高清图</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-5 pt-5">
-					<input
-						type="file"
-						accept="image/jpeg,image/png,image/webp,image/avif"
-						class="hidden"
-						bind:this={fileInputRef}
-						onchange={handleFileSelect}
-					/>
-
-					{#if activeDisplayImage}
-						<div
-							class="p-4 rounded-xl border border-zinc-200 bg-zinc-50/40 flex flex-col sm:flex-row items-center sm:items-start gap-5"
-						>
-							<div
-								class="w-36 h-36 rounded-xl border border-zinc-200 bg-white overflow-hidden shrink-0 flex items-center justify-center relative group"
-							>
-								<img
-									src={activeDisplayImage}
-									alt={title}
-									class="w-full h-full object-cover object-center"
-								/>
-							</div>
-
-							<div class="space-y-3 flex-1 text-center sm:text-left">
-								<div class="space-y-1">
-									<div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-										<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-											商品主图
-										</span>
-										{#if newImageFile}
-											<span class={ADMIN_BADGES.info}>待保存新图: {newImageFile.name}</span>
-										{:else}
-											<span class={ADMIN_BADGES.success}>已云端同步</span>
-										{/if}
-									</div>
-									<p class="text-[11px] text-zinc-400">
-										尺寸建议 1200×1200 像素以上纯色或干净背景正方形图，支持 JPG、PNG、WebP 与 AVIF。
-									</p>
-								</div>
-
-								<div class="flex items-center justify-center sm:justify-start gap-2.5 pt-1">
-									<button
-										type="button"
-										onclick={() => fileInputRef?.click()}
-										class={ADMIN_BUTTONS.secondarySm}
-									>
-										<UiIcon icon={RefreshCw} size={13} />
-										替换图片
-									</button>
-
-									<button
-										type="button"
-										onclick={removeImage}
-										class={ADMIN_BUTTONS.dangerSecondary}
-									>
-										<UiIcon icon={Trash2} size={13} />
-										移除主图
-									</button>
-								</div>
-							</div>
-						</div>
-					{:else}
-						<div
-							role="button"
-							tabindex="0"
-							onclick={() => fileInputRef?.click()}
-							onkeydown={(e) => {
-								if (e.key === 'Enter' || e.key === ' ') fileInputRef?.click();
-							}}
-							class="w-full py-10 px-6 border-2 border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl bg-zinc-50/50 hover:bg-zinc-50 transition-all text-center flex flex-col items-center justify-center cursor-pointer group"
-						>
-							<div
-								class="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:border-zinc-400 transition-colors mb-3"
-							>
-								<UiIcon icon={Upload} size={20} />
-							</div>
-							<p class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-								点击或拖拽上传商品主图
-							</p>
-							<p class="text-[11px] text-zinc-400 mt-1">
-								支持 JPG、PNG、WebP、AVIF 格式，建议比例 1:1 正方形
-							</p>
-						</div>
-					{/if}
-				</div>
-			</section>
 		</div>
 
 		<!-- Right Sidebar Column (1 col) -->
@@ -729,17 +607,33 @@
 					</div>
 				</div>
 
-				<div class="grid grid-cols-2 gap-3 pt-4">
-					<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-						<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">总在库库存</span>
-						<span class="text-lg font-mono font-bold text-zinc-900">{totalStock}</span>
-						<span class="text-[10px] text-zinc-400 ml-1 font-mono">件</span>
-					</div>
+				<div class="space-y-3 pt-4">
+					{#if firstVariantImage}
+						<div class="flex items-center gap-3 p-2.5 rounded-xl border border-zinc-200 bg-zinc-50/50">
+							<img
+								src={firstVariantImage}
+								alt="商品封面"
+								class="w-12 h-12 rounded-lg object-cover border border-zinc-200 bg-white shrink-0"
+							/>
+							<div class="min-w-0 flex-1">
+								<span class="text-xs font-semibold text-zinc-900 block truncate">商品封面主图</span>
+								<span class="text-[11px] text-zinc-500 block">自动取自矩阵首款规格图</span>
+							</div>
+						</div>
+					{/if}
 
-					<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-						<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">细分规格款数</span>
-						<span class="text-lg font-mono font-bold text-zinc-900">{variants.length}</span>
-						<span class="text-[10px] text-zinc-400 ml-1 font-mono">款</span>
+					<div class="grid grid-cols-2 gap-3">
+						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">总在库库存</span>
+							<span class="text-lg font-mono font-bold text-zinc-900">{totalStock}</span>
+							<span class="text-[10px] text-zinc-400 ml-1 font-mono">件</span>
+						</div>
+
+						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">细分规格款数</span>
+							<span class="text-lg font-mono font-bold text-zinc-900">{variants.length}</span>
+							<span class="text-[10px] text-zinc-400 ml-1 font-mono">款</span>
+						</div>
 					</div>
 				</div>
 			</section>

@@ -206,8 +206,19 @@ export async function createCatalogProduct(
 			}
 
 			if (Object.keys(attrs).length > 0) payload.attributes = attrs;
-			if (mainImageFile) {
-				payload.main_image = mainImageFile;
+
+			let effectiveMainImage = mainImageFile;
+			if (!effectiveMainImage && galleryUploads) {
+				for (const v of data.variants) {
+					const files = galleryUploads.get(v.sku);
+					if (files && files.length > 0) {
+						effectiveMainImage = files[0];
+						break;
+					}
+				}
+			}
+			if (effectiveMainImage) {
+				payload.main_image = effectiveMainImage;
 			}
 			const record = await pb.collection(Collections.Products).create(payload);
 			await syncVariantsWithClient(pb, record.id, data.variants, galleryUploads);
@@ -471,6 +482,14 @@ export async function updateCatalogProduct(
 			payload.main_image = null;
 		} else if (mainImageFile instanceof File) {
 			payload.main_image = mainImageFile;
+		} else if (galleryUploads) {
+			for (const v of edit.variants ?? []) {
+				const files = galleryUploads.get(v.sku);
+				if (files && files.length > 0) {
+					payload.main_image = files[0];
+					break;
+				}
+			}
 		}
 
 		const updated = await pb.collection(Collections.Products).update(productId, payload);
