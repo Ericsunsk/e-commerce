@@ -1280,8 +1280,7 @@
 											{cat.sortOrder ?? 0}
 										</td>
 										<td class="py-2.5 px-3 font-semibold text-zinc-900">
-											<div>{cat.name}</div>
-											<div class="font-mono text-zinc-400 text-[10px] font-normal leading-tight">/{cat.slug}</div>
+											{cat.name}
 										</td>
 										<td class="py-2.5 px-3 text-center">
 											<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border {tier.cls}">
