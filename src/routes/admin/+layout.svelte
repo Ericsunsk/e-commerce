@@ -227,12 +227,12 @@
 				<nav class="flex flex-col gap-2 p-2 overflow-x-hidden overflow-y-auto min-h-0 flex-1">
 					{#each navGroups as group, groupIndex (group.title)}
 						<div class="flex flex-col gap-1">
-							{#if groupIndex > 0}
-								<!-- 分组间分割线：折叠态显示微细分割线，展开态提供轻微区隔 -->
+							{#if groupIndex > 0 && effectiveCollapsed}
+								<!-- 分组间分割线：仅在折叠态作为图标簇区隔 -->
 								<div class="h-px bg-zinc-200/80 my-1 mx-2"></div>
 							{/if}
 							{#if !effectiveCollapsed}
-								<div class="px-3 pt-1.5 pb-0.5 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+								<div class="px-3 {groupIndex > 0 ? 'pt-3' : 'pt-1'} pb-1 text-sm font-semibold text-zinc-400 uppercase tracking-wider select-none">
 									{group.title}
 								</div>
 							{/if}
