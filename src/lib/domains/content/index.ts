@@ -9,6 +9,7 @@ export * from './domain/models';
 export * from './domain/category-grid';
 export * from './domain/split-showcase';
 export * from './domain/cms-admin';
+export * from './domain/code-driven-sections.config';
 
 // UI Components
 export { default as Hero } from './ui/Hero.svelte';

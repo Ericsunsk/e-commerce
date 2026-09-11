@@ -10,7 +10,6 @@
 		KeyRound,
 		Database,
 		FileText,
-		Newspaper,
 		Users,
 		Settings,
 		X,
@@ -36,8 +35,7 @@
 			title: '运营推广',
 			items: [
 				{ href: '/admin/coupons', label: '营销卡券', icon: Tag },
-				{ href: '/admin/customers', label: '客户管理', icon: Users },
-				{ href: '/admin/content', label: '内容管理', icon: Newspaper }
+				{ href: '/admin/customers', label: '客户管理', icon: Users }
 			]
 		},
 		{

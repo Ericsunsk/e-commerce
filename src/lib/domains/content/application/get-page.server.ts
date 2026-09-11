@@ -11,6 +11,7 @@ import {
 	type UiAssetsResponse
 } from '$shared/infrastructure';
 import type { Page, UISection, UIAsset, SectionType, UISectionSettings } from '../domain/models';
+import { CODE_DRIVEN_SECTIONS } from '../domain/code-driven-sections.config';
 
 export async function getPage(slug: string): Promise<Page | null> {
 	if (!isValidSlug(slug)) {
@@ -49,6 +50,10 @@ export async function getPageSections(pageSlug: string): Promise<UISection[]> {
 				sort: 'sort_order'
 			});
 
+		if (!records.length) {
+			return CODE_DRIVEN_SECTIONS[pageSlug] || [];
+		}
+
 		return records.map((r) => {
 			const settings = (r.settings || {}) as UISectionSettings;
 
@@ -80,7 +85,7 @@ export async function getPageSections(pageSlug: string): Promise<UISection[]> {
 			};
 		});
 	} catch (_e) {
-		return [];
+		return CODE_DRIVEN_SECTIONS[pageSlug] || [];
 	}
 }
 
