@@ -32,9 +32,23 @@
 		ADMIN_DRAWER
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
-	import type { AdminProductRow } from '$domains/catalog';
+	import { getCategoryTier, type AdminProductRow } from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
+
+	function getTierBadge(cat: { name?: string; slug?: string }) {
+		const tier = getCategoryTier(cat);
+		switch (tier) {
+			case 'gender':
+				return { label: '人群 / 性别', cls: 'bg-sky-50 text-sky-700 border-sky-200/60' };
+			case 'primary':
+				return { label: '一级品类', cls: 'bg-purple-50 text-purple-700 border-purple-200/60' };
+			case 'subcategory':
+				return { label: '细分子类', cls: 'bg-zinc-100 text-zinc-600 border-zinc-200/60' };
+			default:
+				return { label: '其他类目', cls: 'bg-zinc-50 text-zinc-500 border-zinc-200' };
+		}
+	}
 
 	// svelte-ignore state_referenced_locally
 	let rows = $state<AdminProductRow[]>(data.products.map((p) => ({ ...p })));
@@ -1252,7 +1266,7 @@
 								<tr>
 									<th class="py-2.5 px-3 w-14 text-center">排序</th>
 									<th class="py-2.5 px-3">分类名称</th>
-									<th class="py-2.5 px-3">标识 Slug</th>
+									<th class="py-2.5 px-3 text-center">分类层级</th>
 									<th class="py-2.5 px-3 text-center">关联商品</th>
 									<th class="py-2.5 px-3 text-center">前台状态</th>
 									<th class="py-2.5 px-3 text-right">操作</th>
@@ -1260,15 +1274,19 @@
 							</thead>
 							<tbody class="divide-y divide-zinc-100">
 								{#each categories.slice().sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)) as cat (cat.id)}
+									{@const tier = getTierBadge(cat)}
 									<tr class="hover:bg-zinc-50/60 transition-colors">
 										<td class="py-2.5 px-3 font-mono text-zinc-400 text-center text-[11px]">
 											{cat.sortOrder ?? 0}
 										</td>
 										<td class="py-2.5 px-3 font-semibold text-zinc-900">
-											{cat.name}
+											<div>{cat.name}</div>
+											<div class="font-mono text-zinc-400 text-[10px] font-normal leading-tight">/{cat.slug}</div>
 										</td>
-										<td class="py-2.5 px-3 font-mono text-zinc-500 text-[11px]">
-											/{cat.slug}
+										<td class="py-2.5 px-3 text-center">
+											<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border {tier.cls}">
+												{tier.label}
+											</span>
 										</td>
 										<td class="py-2.5 px-3 text-center">
 											<span class="inline-block px-2 py-0.5 rounded-card bg-zinc-100 text-zinc-700 font-mono text-[11px] font-medium">
