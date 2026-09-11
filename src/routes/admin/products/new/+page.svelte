@@ -539,7 +539,7 @@
 
 			<!-- Variant Matrix -->
 			<div>
-				<VariantMatrix bind:variants />
+				<VariantMatrix bind:variants productSlug={title} />
 			</div>
 		</div>
 	</section>

@@ -108,12 +108,13 @@ async function syncVariantsWithClient(
 	variants: NormalizedProductCreate['variants']
 ): Promise<void> {
 	for (const variant of variants) {
-		const payload = {
+		const payload: Record<string, unknown> = {
 			product: productId,
 			color: variant.color,
 			size: variant.size,
 			sku: variant.sku,
-			stock_quantity: variant.stockQuantity
+			stock_quantity: variant.stockQuantity,
+			...(variant.colorSwatch ? { color_swatch: variant.colorSwatch } : {})
 		};
 		if (variant.id) {
 			await pb.collection(Collections.ProductVariants).update(variant.id, payload);
@@ -190,6 +191,7 @@ export interface AdminProductEdit {
 	variants: Array<{
 		id: string;
 		color: string;
+		colorSwatch?: string;
 		size: string;
 		sku: string;
 		stockQuantity: number;
@@ -238,6 +240,7 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 				variants: variants.map((v) => ({
 					id: v.id,
 					color: v.color,
+					colorSwatch: v.color_swatch || undefined,
 					size: v.size,
 					sku: v.sku,
 					stockQuantity: v.stock_quantity

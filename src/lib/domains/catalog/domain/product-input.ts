@@ -31,6 +31,7 @@ function readString(value: unknown): string {
 export interface NormalizedProductVariant {
 	id?: string;
 	color: string;
+	colorSwatch?: string;
 	size: string;
 	sku: string;
 	stockQuantity: number;
@@ -56,7 +57,15 @@ function normalizeVariant(raw: unknown, index: number): NormalizedProductVariant
 		throwProductIssue(`规格 ${index + 1}：库存必须是不小于 0 的整数`);
 	}
 	const id = readString(item.id);
-	return { ...(id ? { id } : {}), color, size, sku, stockQuantity };
+	const colorSwatch = readString(item.colorSwatch ?? item.color_swatch);
+	return {
+		...(id ? { id } : {}),
+		color,
+		...(colorSwatch ? { colorSwatch } : {}),
+		size,
+		sku,
+		stockQuantity
+	};
 }
 
 function normalizeVariants(raw: unknown): NormalizedProductVariant[] {

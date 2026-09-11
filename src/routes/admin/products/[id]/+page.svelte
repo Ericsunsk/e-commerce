@@ -660,7 +660,7 @@
 
 			<!-- Variant Matrix -->
 			<div>
-				<VariantMatrix bind:variants />
+				<VariantMatrix bind:variants productSlug={data.product.slug} />
 			</div>
 		</div>
 	</section>
