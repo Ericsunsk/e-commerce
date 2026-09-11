@@ -5,9 +5,14 @@
 // Models
 export * from './domain/models';
 
+// Pure Domain Resolvers
+export * from './domain/category-grid';
+export * from './domain/split-showcase';
+
 // UI Components
 export { default as Hero } from './ui/Hero.svelte';
 export { default as HeroCategories } from './ui/HeroCategories.svelte';
+export { default as SplitShowcase } from './ui/SplitShowcase.svelte';
 export { default as SectionRenderer } from './ui/SectionRenderer.svelte';
 export { default as FeatureSplit } from './ui/FeatureSplit.svelte';
 export { default as CtaBanner } from './ui/CtaBanner.svelte';

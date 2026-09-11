@@ -4,7 +4,7 @@ import {
 	resolvePocketBaseGallery,
 	isValidSlug
 } from '$shared/kernel';
-import { pb, withAdmin, sanitizeCmsHtml } from '$shared/infrastructure/server';
+import { pb, sanitizeCmsHtml } from '$shared/infrastructure/server';
 import {
 	Collections,
 	type UiSectionsResponse,
@@ -136,21 +136,4 @@ export async function getAssetsByGroup(group: UIAsset['group']): Promise<UIAsset
 	} catch (_e) {
 		return [];
 	}
-}
-
-export async function getCollectionImages() {
-	return withAdmin(async (adminPb) => {
-		const records = await adminPb.collection(Collections.CollectionImages).getFullList();
-		return records
-			.map((r) => ({
-				id: r.id,
-				collectionId: r.collectionId,
-				title: r.title,
-				image: r.image,
-				position: r.position,
-				link: r.link,
-				active: r.active
-			}))
-			.filter((r) => r.active);
-	}, []);
 }

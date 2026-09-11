@@ -3,6 +3,7 @@
 	import FeatureSplit from './FeatureSplit.svelte';
 	import CtaBanner from './CtaBanner.svelte';
 	import HeroCategories from './HeroCategories.svelte';
+	import SplitShowcase from './SplitShowcase.svelte';
 	import { ProductGrid, type Category, type Product } from '$domains/catalog';
 	import type { UISection, UIAsset } from '../domain/models';
 
@@ -31,6 +32,9 @@
 {:else if section.type === 'category_grid'}
 	<!-- 首页品类大入口：支持后台自定义 items / 动态商品品类 / 缺省回退 -->
 	<HeroCategories {section} {categories} assets={homeAssets} />
+{:else if section.type === 'split_showcase'}
+	<!-- 双拼大片海报区块 -->
+	<SplitShowcase {section} />
 {:else if section.type === 'product_grid'}
 	<ProductGrid {section} products={featuredProducts} />
 {:else if section.type === 'rich_text'}

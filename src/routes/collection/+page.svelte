@@ -1,52 +1,15 @@
 <script lang="ts">
 	import { ProductListGrid } from '$domains/catalog';
 	import { RemoteImage } from '$shared/ui';
-	import { getFileUrl } from '$shared/kernel';
+	import { resolveSplitShowcase } from '$domains/content';
 
 	let { data } = $props();
 
-	type PBRecord = {
-		position: string;
-		image: string;
-		collectionId: string;
-		id: string;
-		link?: string;
-		title?: string;
-	};
-
-	// 优先使用 collection_images 集合中的图片
-	let leftRecord = $derived(
-		data.collectionImages?.find((img: PBRecord) => img.position === 'left')
-	);
-	let rightRecord = $derived(
-		data.collectionImages?.find((img: PBRecord) => img.position === 'right')
+	let splitSection = $derived(
+		data.sections?.find((s) => s.type === 'split_showcase') || data.sections?.[0]
 	);
 
-	// 辅助函数：构建图片 URL（支持 PB 直连或 R2 CDN）
-	const getImageUrl = (record: PBRecord | undefined) => {
-		if (!record || !record.image) return '';
-		return getFileUrl(record.collectionId, record.id, record.image);
-	};
-
-	let heroImageLeft = $derived(getImageUrl(leftRecord));
-	let heroImageRight = $derived(getImageUrl(rightRecord));
-
-	let heroPanels = $derived(
-		[
-			{
-				id: 'left',
-				link: leftRecord?.link?.trim() || '',
-				title: leftRecord?.title?.trim() || '',
-				image: heroImageLeft
-			},
-			{
-				id: 'right',
-				link: rightRecord?.link?.trim() || '',
-				title: rightRecord?.title?.trim() || '',
-				image: heroImageRight
-			}
-		].filter((panel) => panel.image)
-	);
+	let showcase = $derived(resolveSplitShowcase(splitSection));
 
 	// 滚动交互逻辑 (Single Element Hybrid)
 	let scrollY = $state(0);
@@ -59,7 +22,7 @@
 <svelte:window bind:scrollY bind:innerHeight />
 
 <svelte:head>
-	<title>Collections | {data.settings.siteName}</title>
+	<title>{data.page?.title || showcase.heading} | {data.settings.siteName}</title>
 </svelte:head>
 
 <div class="relative w-full min-h-screen bg-background-light dark:bg-background-dark">
@@ -72,13 +35,13 @@
 		<h1
 			class="font-display text-[12vw] md:text-[14vw] font-bold tracking-[0.05em] leading-none text-red-600 select-none whitespace-nowrap"
 		>
-			GLAMOURIA
+			{showcase.heading}
 		</h1>
 	</div>
 
 	<!-- HERO SECTION: Split Screen -->
 	<div class="relative w-full h-screen flex flex-col md:flex-row z-0">
-		{#each heroPanels as panel (panel.id)}
+		{#each showcase.panels as panel (panel.id)}
 			{#if panel.link}
 				<a href={panel.link} class="flex-1 block bg-background-light dark:bg-primary overflow-hidden">
 					<RemoteImage
@@ -107,11 +70,13 @@
 	<div
 		class="relative z-20 pt-[27.5vh] pb-12 px-4 md:px-6 bg-background-light dark:bg-background-dark"
 	>
-		<div class="mb-[calc(3rem+2.5vh)] text-center">
-			<span class="text-[20px] font-medium tracking-[0.1em] uppercase text-primary dark:text-white"
-				>Shop Now</span
-			>
-		</div>
+		{#if showcase.subheading}
+			<div class="mb-[calc(3rem+2.5vh)] text-center">
+				<span class="text-[20px] font-medium tracking-[0.1em] uppercase text-primary dark:text-white"
+					>{showcase.subheading}</span
+				>
+			</div>
+		{/if}
 
 		<ProductListGrid
 			products={data.products}
