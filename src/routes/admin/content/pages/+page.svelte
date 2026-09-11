@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Plus, Pencil, Trash2, X, ExternalLink } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { ADMIN_BUTTONS } from '$shared/kernel';
+	import { ADMIN_BUTTONS, ADMIN_SEGMENTED } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -86,14 +86,19 @@
 
 <div class="space-y-6 max-w-4xl">
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-		<nav class="flex flex-wrap gap-2" aria-label="内容管理">
-			{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/sections', label: '页面排版' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
+		<nav class={ADMIN_SEGMENTED.wrapper} aria-label="内容管理">
+			{#each [
+				{ href: '/admin/content', label: '站点配置' },
+				{ href: '/admin/content/sections', label: '页面排版' },
+				{ href: '/admin/content/pages', label: '页面管理' },
+				{ href: '/admin/content/navigation', label: '导航管理' }
+			] as tab (tab.href)}
 				<a
 					href={tab.href}
 					aria-current={tab.href === '/admin/content/pages' ? 'page' : undefined}
-					class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border {tab.href === '/admin/content/pages'
-						? 'bg-zinc-900 text-white border-zinc-900'
-						: 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}"
+					class={tab.href === '/admin/content/pages'
+						? ADMIN_SEGMENTED.itemActive
+						: ADMIN_SEGMENTED.itemInactive}
 				>
 					{tab.label}
 				</a>

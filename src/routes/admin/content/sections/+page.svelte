@@ -12,7 +12,7 @@
 		ShoppingBag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { ADMIN_BUTTONS } from '$shared/kernel';
+	import { ADMIN_BUTTONS, ADMIN_SEGMENTED } from '$shared/kernel';
 	import {
 		SECTION_TYPES,
 		SECTION_TYPE_LABELS,
@@ -784,20 +784,19 @@
 
 <div class="space-y-6 max-w-6xl">
 	<!-- Top Navigation Tabs -->
-	<nav class="flex flex-wrap gap-2" aria-label="内容管理">
+	<nav class={ADMIN_SEGMENTED.wrapper} aria-label="内容管理">
 		{#each [
 			{ href: '/admin/content', label: '站点配置' },
-			{ href: '/admin/content/pages', label: '页面管理' },
 			{ href: '/admin/content/sections', label: '页面排版' },
+			{ href: '/admin/content/pages', label: '页面管理' },
 			{ href: '/admin/content/navigation', label: '导航管理' }
 		] as tab (tab.href)}
 			<a
 				href={tab.href}
 				aria-current={tab.href === '/admin/content/sections' ? 'page' : undefined}
-				class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border transition-colors {tab.href ===
-				'/admin/content/sections'
-					? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
-					: 'border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 bg-white'}"
+				class={tab.href === '/admin/content/sections'
+					? ADMIN_SEGMENTED.itemActive
+					: ADMIN_SEGMENTED.itemInactive}
 			>
 				{tab.label}
 			</a>
@@ -835,7 +834,7 @@
 	</div>
 
 	<!-- Page Filter Tabs -->
-	<div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+	<div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none">
 		<button
 			type="button"
 			onclick={() => (selectedPageId = 'all')}
@@ -843,7 +842,8 @@
 				? ADMIN_BUTTONS.pillActive
 				: ADMIN_BUTTONS.pillInactive}
 		>
-			全部 ({sections.length})
+			<span>全部</span>
+			<span class="opacity-60 font-mono text-[10px]">({sections.length})</span>
 		</button>
 		{#each data.pages as page (page.id)}
 			{@const count = sections.filter((s) => s.pageId === page.id).length}
@@ -853,8 +853,10 @@
 				class={selectedPageId === page.id
 					? ADMIN_BUTTONS.pillActive
 					: ADMIN_BUTTONS.pillInactive}
+				title={page.title || page.slug}
 			>
-				{page.title || page.slug} ({count})
+				<span class="max-w-[140px] truncate">{page.title || page.slug}</span>
+				<span class="opacity-60 font-mono text-[10px]">({count})</span>
 			</button>
 		{/each}
 	</div>

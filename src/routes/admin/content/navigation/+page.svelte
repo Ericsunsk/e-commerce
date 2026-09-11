@@ -1,23 +1,39 @@
 <script lang="ts">
-	import { Plus, Pencil, Trash2, X, Eye, EyeOff, ExternalLink } from 'lucide-svelte';
+	import { Plus, Pencil, Trash2, ExternalLink } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { ADMIN_BUTTONS } from '$shared/kernel';
+	import {
+		ADMIN_BUTTONS,
+		ADMIN_PAGE,
+		ADMIN_SEGMENTED,
+		ADMIN_CARDS,
+		ADMIN_FORMS
+	} from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	// svelte-ignore state_referenced_locally
 	let rows = $state(data.items.map((i) => ({ ...i })));
-	let drawerOpen = $state(false);
-	let editingId = $state<string | null>(null);
-	let form = $state({ label: '', url: '/', location: 'header', parent: '', order: 0, is_visible: true });
+	let editingId = $state<string | 'new' | null>(null);
+	let form = $state({
+		label: '',
+		url: '/',
+		location: 'header',
+		parent: '',
+		order: 0,
+		is_visible: true
+	});
 	let saving = $state(false);
 	let formError = $state('');
 	let error = $state('');
 
 	const groups = $derived.by(() => {
 		const order = ['header', 'footer', 'mobile'];
-		const titles: Record<string, string> = { header: '顶部导航', footer: '底部导航', mobile: '移动端' };
+		const titles: Record<string, string> = {
+			header: '顶部导航 (Header)',
+			footer: '底部导航 (Footer)',
+			mobile: '移动端抽屉 (Mobile)'
+		};
 		return order.map((location) => ({
 			location,
 			title: titles[location],
@@ -27,11 +43,18 @@
 		}));
 	});
 
-	function openNew() {
-		editingId = null;
-		form = { label: '', url: '/', location: 'header', parent: '', order: 0, is_visible: true };
+	function openNew(location: string = 'header') {
+		const groupItems = rows.filter((r) => (r.location || 'header') === location);
+		editingId = 'new';
+		form = {
+			label: '',
+			url: '/',
+			location,
+			parent: '',
+			order: groupItems.length + 1,
+			is_visible: true
+		};
 		formError = '';
-		drawerOpen = true;
 	}
 
 	function openEdit(id: string) {
@@ -47,7 +70,11 @@
 			is_visible: row.isActive
 		};
 		formError = '';
-		drawerOpen = true;
+	}
+
+	function cancelEdit() {
+		editingId = null;
+		formError = '';
 	}
 
 	async function refresh() {
@@ -63,15 +90,16 @@
 		saving = true;
 		formError = '';
 		try {
-			const url = editingId ? `/api/admin/content/navigation/${editingId}` : '/api/admin/content/navigation';
+			const isNew = editingId === 'new';
+			const url = isNew ? '/api/admin/content/navigation' : `/api/admin/content/navigation/${editingId}`;
 			const res = await fetch(url, {
-				method: editingId ? 'PATCH' : 'POST',
+				method: isNew ? 'POST' : 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ ...form, parent: form.parent.trim() || undefined })
 			});
 			const body = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(body.error || '保存失败');
-			drawerOpen = false;
+			editingId = null;
 			await refresh();
 		} catch (e: unknown) {
 			formError = e instanceof Error ? e.message : '保存失败';
@@ -123,16 +151,107 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="space-y-6 max-w-4xl">
+{#snippet navItemForm()}
+	<div class="p-5 bg-zinc-50/80 border-b border-zinc-100 space-y-4">
+		{#if formError}
+			<p role="alert" class="p-3 bg-rose-50 text-rose-600 rounded-lg border border-rose-200 text-xs">
+				{formError}
+			</p>
+		{/if}
+
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+			<div class="sm:col-span-2">
+				<label for="nav-label-input" class={ADMIN_FORMS.label}>菜单名称 *</label>
+				<input
+					id="nav-label-input"
+					bind:value={form.label}
+					placeholder="例如：新品上市 / NEW ARRIVALS"
+					class={ADMIN_FORMS.inputSm}
+				/>
+			</div>
+			<div>
+				<label for="nav-order-input" class={ADMIN_FORMS.label}>显示排序</label>
+				<input
+					id="nav-order-input"
+					bind:value={form.order}
+					type="number"
+					min="0"
+					class="{ADMIN_FORMS.inputSm} font-mono"
+				/>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+			<div class="sm:col-span-2">
+				<label for="nav-url-input" class={ADMIN_FORMS.label}>跳转链接 *</label>
+				<input
+					id="nav-url-input"
+					bind:value={form.url}
+					placeholder="/category/new 或 https://…"
+					class="{ADMIN_FORMS.inputSm} font-mono"
+				/>
+			</div>
+			<div>
+				<label for="nav-location-select" class={ADMIN_FORMS.label}>所处位置</label>
+				<select
+					id="nav-location-select"
+					bind:value={form.location}
+					class={ADMIN_FORMS.select}
+				>
+					<option value="header">顶部导航 (Header)</option>
+					<option value="footer">底部导航 (Footer)</option>
+					<option value="mobile">移动端 (Mobile)</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+			<label class="inline-flex items-center gap-2 text-xs font-semibold text-zinc-700 cursor-pointer">
+				<input
+					type="checkbox"
+					bind:checked={form.is_visible}
+					class="w-4 h-4 rounded text-zinc-900 accent-zinc-900 border-zinc-300 focus:ring-0 cursor-pointer"
+				/>
+				<span>启用并前台可见</span>
+			</label>
+
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					onclick={cancelEdit}
+					class={ADMIN_BUTTONS.secondarySm}
+				>
+					取消
+				</button>
+				<button
+					type="button"
+					onclick={save}
+					disabled={saving || !form.label.trim() || !form.url.trim()}
+					class={ADMIN_BUTTONS.primarySm}
+				>
+					{saving ? '保存中…' : '保存'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
+<div class="{ADMIN_PAGE.container} max-w-5xl">
+	<!-- Top Subnav & External Links -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-		<nav class="flex flex-wrap gap-2" aria-label="内容管理">
-			{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/sections', label: '页面排版' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
+		<nav class={ADMIN_SEGMENTED.wrapper} aria-label="内容管理">
+			{#each [
+				{ href: '/admin/content', label: '站点配置' },
+				{ href: '/admin/content/sections', label: '页面排版' },
+				{ href: '/admin/content/pages', label: '页面管理' },
+				{ href: '/admin/content/navigation', label: '导航管理' }
+			] as tab (tab.href)}
 				<a
 					href={tab.href}
 					aria-current={tab.href === '/admin/content/navigation' ? 'page' : undefined}
-					class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider border {tab.href === '/admin/content/navigation'
-						? 'bg-zinc-900 text-white border-zinc-900'
-						: 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}"
+					class={tab.href === '/admin/content/navigation'
+						? ADMIN_SEGMENTED.itemActive
+						: ADMIN_SEGMENTED.itemInactive}
 				>
 					{tab.label}
 				</a>
@@ -144,174 +263,131 @@
 				href={`${data.pocketbaseUrl}/_/`}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors shrink-0"
+				class={ADMIN_BUTTONS.secondarySm}
 				title="在新窗口打开 PocketBase 官方数据管理后台"
 			>
 				<UiIcon icon={ExternalLink} size={14} />
-				<span>PB 数据后台</span>
+				<span>PB 后台</span>
 			</a>
 		{/if}
 	</div>
-	<div class="flex flex-wrap items-start justify-between gap-4">
+
+	<!-- Page Header -->
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<div>
-			<h1 class="text-2xl font-display font-bold uppercase tracking-widest text-zinc-900">导航管理</h1>
-			<p class="text-xs text-zinc-500 mt-1">顶部 / 底部 / 移动端菜单项</p>
+			<h1 class={ADMIN_PAGE.title}>导航菜单管理</h1>
+			<p class={ADMIN_PAGE.subtitle}>顶部 Header、底部 Footer 与移动端抽屉导航结构编排</p>
 		</div>
 		<button
 			type="button"
-			onclick={openNew}
+			onclick={() => openNew('header')}
 			class={ADMIN_BUTTONS.primary}
 		>
 			<UiIcon icon={Plus} size={14} />
-			新建菜单项
+			<span>新建菜单项</span>
 		</button>
 	</div>
 
 	{#if error}
-		<p role="alert" class="text-xs text-rose-600">{error}</p>
+		<p role="alert" class="p-3 bg-rose-50 text-rose-600 rounded-card border border-rose-200 text-xs">
+			{error}
+		</p>
 	{/if}
 
-	{#each groups as group (group.location)}
-		<section class="bg-white border border-zinc-200 rounded-card overflow-hidden">
-			<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800 p-5 border-b border-zinc-100">
-				{group.title}（{group.items.length}）
-			</h2>
-			{#if group.items.length === 0}
-				<p class="p-5 text-sm text-zinc-400">暂无菜单项</p>
-			{:else}
-				<ul class="divide-y divide-zinc-100">
-					{#each group.items as item (item.id)}
-						<li class="flex items-center justify-between gap-4 p-5">
-							<div class="min-w-0">
-								<p class="text-sm font-semibold text-zinc-900 truncate">{item.label}</p>
-								<p class="text-xs text-zinc-400 font-mono mt-0.5 truncate">{item.url}</p>
-							</div>
-							<div class="flex items-center gap-2 shrink-0">
-								<button
-									type="button"
-									onclick={() => toggleVisible(item.id, !item.isActive)}
-									aria-label="切换{item.label}显隐"
-									class={ADMIN_BUTTONS.icon}
-								>
-									<UiIcon icon={item.isActive ? Eye : EyeOff} size={14} />
-								</button>
-								<button
-									type="button"
-									onclick={() => openEdit(item.id)}
-									aria-label="编辑{item.label}"
-									class={ADMIN_BUTTONS.icon}
-								>
-									<UiIcon icon={Pencil} size={14} />
-								</button>
-								<button
-									type="button"
-									onclick={() => remove(item.id, item.label)}
-									aria-label="删除{item.label}"
-									class={ADMIN_BUTTONS.danger}
-								>
-									<UiIcon icon={Trash2} size={14} />
-								</button>
-							</div>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</section>
-	{/each}
-</div>
-
-{#if drawerOpen}
-	<div class="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="编辑菜单项">
-		<button aria-label="关闭" class="absolute inset-0 bg-zinc-900/40 cursor-default" onclick={() => (drawerOpen = false)}></button>
-		<aside class="absolute right-0 top-0 h-full w-full max-w-md bg-white border-l border-zinc-200 shadow-2xl p-6 sm:p-8 overflow-y-auto">
-			<div class="flex items-center justify-between pb-4 border-b border-zinc-100 mb-6">
-				<h2 class="text-xl font-display font-bold uppercase tracking-wider text-zinc-900">
-					{editingId ? '编辑菜单项' : '新建菜单项'}
-				</h2>
-				<button
-					onclick={() => (drawerOpen = false)}
-					class={ADMIN_BUTTONS.icon}
-					aria-label="关闭"
-				>
-					<UiIcon icon={X} size={20} />
-				</button>
-			</div>
-
-			{#if formError}
-				<p role="alert" class="text-xs text-rose-600 mb-4">{formError}</p>
-			{/if}
-
-			<div class="space-y-4">
-				<div class="grid grid-cols-2 gap-4">
-					<label class="block">
-						<span class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">名称 *</span>
-						<input
-							bind:value={form.label}
-							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900"
-						/>
-					</label>
-					<label class="block">
-						<span class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">排序</span>
-						<input
-							bind:value={form.order}
-							type="number"
-							min="0"
-							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900"
-						/>
-					</label>
+	<!-- Navigation Groups -->
+	<div class="space-y-6">
+		{#each groups as group (group.location)}
+			<section class="{ADMIN_CARDS.base} p-0 overflow-hidden">
+				<!-- Group Header -->
+				<div class="p-4 sm:p-5 border-b border-zinc-100 flex items-center justify-between gap-3 bg-zinc-50/50">
+					<div class="flex items-center gap-2.5">
+						<h2 class={ADMIN_CARDS.title}>{group.title}</h2>
+						<span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200/60">
+							{group.items.length}
+						</span>
+					</div>
+					<button
+						type="button"
+						onclick={() => openNew(group.location)}
+						class={ADMIN_BUTTONS.secondarySm}
+					>
+						<UiIcon icon={Plus} size={13} />
+						<span>添加链接</span>
+					</button>
 				</div>
-				<label class="block">
-					<span class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">链接 *</span>
-					<input
-						bind:value={form.url}
-						placeholder="/shop 或 https://…"
-						class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm font-mono text-zinc-900 outline-none focus:border-zinc-900"
-					/>
-				</label>
-				<div class="grid grid-cols-2 gap-4">
-					<label class="block">
-						<span class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">位置</span>
-						<select
-							bind:value={form.location}
-							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900"
-						>
-							<option value="header">顶部导航</option>
-							<option value="footer">底部导航</option>
-							<option value="mobile">移动端</option>
-						</select>
-					</label>
-					<label class="block">
-						<span class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">父级 ID（选填）</span>
-						<input
-							bind:value={form.parent}
-							placeholder="留空为顶级"
-							class="w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm font-mono text-zinc-900 outline-none focus:border-zinc-900"
-						/>
-					</label>
-				</div>
-				<label class="flex items-center gap-2 text-xs font-semibold text-zinc-700">
-					<input type="checkbox" bind:checked={form.is_visible} class="w-4 h-4 accent-emerald-600" />
-					前台可见
-				</label>
-			</div>
 
-			<div class="flex gap-3 mt-6">
-				<button
-					type="button"
-					onclick={() => (drawerOpen = false)}
-					class="flex-1 {ADMIN_BUTTONS.secondary}"
-				>
-					取消
-				</button>
-				<button
-					type="button"
-					onclick={save}
-					disabled={saving || !form.label.trim() || !form.url.trim()}
-					class="flex-1 {ADMIN_BUTTONS.primary}"
-				>
-					{saving ? '保存中…' : '保存'}
-				</button>
-			</div>
-		</aside>
+				<!-- Inline Creator for this group -->
+				{#if editingId === 'new' && form.location === group.location}
+					{@render navItemForm()}
+				{/if}
+
+				{#if group.items.length === 0}
+					<div class="p-8 text-center text-xs text-zinc-400">
+						暂无菜单项，点击右上角「添加链接」创建
+					</div>
+				{:else}
+					<ul class="divide-y divide-zinc-100">
+						{#each group.items as item (item.id)}
+							<li>
+								{#if editingId === item.id}
+									{@render navItemForm()}
+								{:else}
+									<div class="flex items-center justify-between gap-4 p-4 sm:p-5 hover:bg-zinc-50/50 transition-colors {item.isActive ? '' : 'opacity-60 bg-zinc-50/30'}">
+										<div class="min-w-0 flex items-center gap-3">
+											<span class="text-[11px] font-mono text-zinc-400 shrink-0 w-6">#{item.order}</span>
+											<div class="min-w-0">
+												<p class="text-xs font-semibold text-zinc-900 truncate">{item.label}</p>
+												<p class="text-[11px] text-zinc-400 font-mono mt-0.5 truncate">{item.url}</p>
+											</div>
+										</div>
+
+										<div class="flex items-center gap-2 shrink-0">
+											<!-- Visibility Switch -->
+											<button
+												type="button"
+												role="switch"
+												aria-checked={item.isActive}
+												aria-label="切换{item.label}显隐"
+												onclick={() => toggleVisible(item.id, !item.isActive)}
+												class="relative inline-flex w-8 h-4.5 items-center rounded-full transition-colors {item.isActive
+													? 'bg-emerald-500'
+													: 'bg-zinc-300'}"
+											>
+												<span
+													class="inline-block w-3.5 h-3.5 rounded-full bg-white transition-transform {item.isActive
+														? 'translate-x-4'
+														: 'translate-x-0.5'}"
+												></span>
+											</button>
+
+											<div class="h-3 w-px bg-zinc-200"></div>
+
+											<button
+												type="button"
+												onclick={() => openEdit(item.id)}
+												aria-label="编辑{item.label}"
+												class={ADMIN_BUTTONS.icon}
+												title="编辑"
+											>
+												<UiIcon icon={Pencil} size={14} />
+											</button>
+											<button
+												type="button"
+												onclick={() => remove(item.id, item.label)}
+												aria-label="删除{item.label}"
+												class={ADMIN_BUTTONS.danger}
+												title="删除"
+											>
+												<UiIcon icon={Trash2} size={14} />
+											</button>
+										</div>
+									</div>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</section>
+		{/each}
 	</div>
-{/if}
+</div>

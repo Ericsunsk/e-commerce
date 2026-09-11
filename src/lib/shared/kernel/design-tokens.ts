@@ -231,11 +231,11 @@ export const ADMIN_BUTTONS = {
 	miniIconAction:
 		'w-8 h-8 inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer shrink-0',
 	pill:
-		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border text-xs font-medium transition-colors cursor-pointer',
+		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border text-xs font-medium whitespace-nowrap shrink-0 transition-colors cursor-pointer',
 	pillActive:
-		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold transition-colors cursor-pointer',
+		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer',
 	pillInactive:
-		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs transition-colors cursor-pointer',
+		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs whitespace-nowrap shrink-0 transition-colors cursor-pointer',
 	filterPillActive:
 		'px-2.5 py-1 text-xs rounded-lg border border-zinc-900 bg-zinc-900 text-white font-medium transition-all flex items-center gap-1.5 cursor-pointer',
 	filterPillInactive:
