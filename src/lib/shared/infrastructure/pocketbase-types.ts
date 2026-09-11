@@ -275,7 +275,8 @@ export enum UiSectionsTypeOptions {
 	'product_grid' = 'product_grid',
 	'rich_text' = 'rich_text',
 	'cta_banner' = 'cta_banner',
-	'category_grid' = 'category_grid'
+	'category_grid' = 'category_grid',
+	'split_showcase' = 'split_showcase'
 }
 export type UiSectionsRecord<Tsettings = unknown> = {
 	content?: HTMLString;

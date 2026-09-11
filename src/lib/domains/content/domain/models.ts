@@ -38,12 +38,27 @@ export type SectionType =
 	| 'product_grid'
 	| 'category_grid'
 	| 'rich_text'
-	| 'cta_banner';
+	| 'cta_banner'
+	| 'split_showcase';
 
 export interface UISectionAction {
 	text: string;
 	link: string;
 	style?: 'primary' | 'outline' | 'text';
+}
+
+export interface CategoryCardSetting {
+	title?: string;
+	link?: string;
+	imageUrl?: string;
+	categoryId?: string;
+}
+
+export interface SplitShowcasePanel {
+	title?: string;
+	link?: string;
+	imageUrl?: string;
+	position?: 'left' | 'right';
 }
 
 export interface UISectionSettings {
@@ -52,6 +67,12 @@ export interface UISectionSettings {
 		image_url?: string;
 		video_url?: string;
 	};
+	reverse?: boolean;
+	align?: 'left' | 'center' | 'right';
+	style?: string;
+	columns?: number;
+	items?: CategoryCardSetting[];
+	panels?: SplitShowcasePanel[];
 	[key: string]: unknown;
 }
 

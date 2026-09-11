@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { normalizePageInput, normalizeNavInput, toPageRow, toNavRow } from './cms-admin';
+import {
+	normalizePageInput,
+	normalizeNavInput,
+	toPageRow,
+	toNavRow,
+	normalizeSectionInput,
+	toSectionRow
+} from './cms-admin';
 
 describe('cms admin model', () => {
 	it('validates page payloads', () => {
@@ -51,5 +58,46 @@ describe('cms admin model', () => {
 			location: 'header',
 			order: 0
 		});
+		expect(
+			toSectionRow({
+				id: 's1',
+				page: 'p1',
+				type: 'split_showcase',
+				heading: 'Glamour',
+				sort_order: 20,
+				is_active: true,
+				image: ['img1.jpg', 'img2.jpg']
+			})
+		).toMatchObject({
+			id: 's1',
+			pageId: 'p1',
+			type: 'split_showcase',
+			heading: 'Glamour',
+			sortOrder: 20,
+			isActive: true,
+			imageCount: 2
+		});
+	});
+
+	it('validates section payloads', () => {
+		expect(
+			normalizeSectionInput({
+				page: 'p1',
+				type: 'split_showcase',
+				heading: 'Summer 2027',
+				settings: { reverse: true }
+			})
+		).toMatchObject({
+			page: 'p1',
+			type: 'split_showcase',
+			heading: 'Summer 2027',
+			is_active: true,
+			settings: { reverse: true }
+		});
+
+		// Rejects invalid type
+		expect(() =>
+			normalizeSectionInput({ page: 'p1', type: 'invalid_type_unknown' })
+		).toThrow();
 	});
 });

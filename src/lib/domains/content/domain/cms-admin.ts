@@ -119,3 +119,106 @@ export function toNavRow(record: {
 		isActive: record.is_visible !== false
 	};
 }
+
+import type { SectionType, UISectionSettings } from './models';
+
+export const SECTION_TYPES: SectionType[] = [
+	'hero',
+	'feature_split',
+	'product_grid',
+	'category_grid',
+	'rich_text',
+	'cta_banner',
+	'split_showcase'
+];
+
+export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
+	hero: '焦点主视觉 (Hero)',
+	feature_split: '图文分屏故事 (Feature Split)',
+	product_grid: '商品橱窗网格 (Product Grid)',
+	category_grid: '核心品类网格 (Category Grid)',
+	rich_text: '富文本排版 (Rich Text)',
+	cta_banner: '行动号召横幅 (CTA Banner)',
+	split_showcase: '双拼沉浸大片 (Split Showcase)'
+};
+
+export interface NormalizedSection {
+	page: string;
+	type: SectionType;
+	heading: string;
+	subheading: string;
+	content: string;
+	sort_order: number;
+	is_active: boolean;
+	settings: UISectionSettings;
+}
+
+export function normalizeSectionInput(input: unknown): NormalizedSection {
+	if (!input || typeof input !== 'object') throwCmsIssue('区块数据格式错误');
+	const data = input as Record<string, unknown>;
+	const page = String(data.page ?? '').trim();
+	const type = String(data.type ?? 'hero') as SectionType;
+	if (!SECTION_TYPES.includes(type)) {
+		throwCmsIssue(`不支持的区块类型: ${type}`);
+	}
+	const heading = String(data.heading ?? '').trim();
+	const subheading = String(data.subheading ?? '').trim();
+	const content = String(data.content ?? '');
+	const sort_order = Number(data.sort_order ?? 10);
+	const is_active = data.is_active === undefined ? true : data.is_active === true;
+	const settings = (data.settings && typeof data.settings === 'object' ? data.settings : {}) as UISectionSettings;
+
+	return {
+		page,
+		type,
+		heading,
+		subheading,
+		content,
+		sort_order: Number.isFinite(sort_order) ? sort_order : 10,
+		is_active,
+		settings
+	};
+}
+
+export interface SectionRow {
+	id: string;
+	pageId: string;
+	type: SectionType;
+	heading: string;
+	subheading: string;
+	sortOrder: number;
+	isActive: boolean;
+	imageCount: number;
+	updated: string;
+}
+
+export function toSectionRow(record: {
+	id: string;
+	page?: string;
+	type?: string;
+	heading?: string;
+	subheading?: string;
+	sort_order?: number;
+	is_active?: boolean;
+	image?: string[] | string;
+	updated?: string;
+}): SectionRow {
+	const imageList = Array.isArray(record.image)
+		? record.image
+		: record.image
+			? [record.image]
+			: [];
+	return {
+		id: record.id,
+		pageId: record.page || '',
+		type: (SECTION_TYPES.includes(record.type as SectionType)
+			? record.type
+			: 'hero') as SectionType,
+		heading: record.heading || '',
+		subheading: record.subheading || '',
+		sortOrder: Number(record.sort_order) || 0,
+		isActive: record.is_active !== false,
+		imageCount: imageList.length,
+		updated: record.updated || ''
+	};
+}
