@@ -155,7 +155,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 		<!-- Left: Purchased items -->
 		<section
-			class="lg:col-span-2 bg-white border border-zinc-200 rounded-card p-6 shadow-xs flex flex-col justify-between"
+			class="lg:col-span-2 bg-white border border-zinc-200 rounded-card p-6 flex flex-col justify-between"
 		>
 			<div>
 				<h2
@@ -222,7 +222,7 @@
 		<!-- Right: Customer & Shipping info -->
 		<div class="space-y-6">
 			<!-- Customer details -->
-			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-3">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 space-y-3">
 				<h2
 					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
 				>
@@ -247,7 +247,7 @@
 			</section>
 
 			<!-- Fulfillment tracking -->
-			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-3">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 space-y-3">
 				<h2
 					class="text-xs font-bold uppercase tracking-wider text-zinc-700 pb-2 border-b border-zinc-100"
 				>

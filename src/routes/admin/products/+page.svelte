@@ -381,97 +381,90 @@
 	</div>
 
 	<!-- Search & Filters Toolbar (Single Row directly above table, without outer card) -->
-	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-		<div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-0">
-			<!-- 1. Search Box at first position -->
-			<div class="relative w-full sm:w-64 md:w-72 shrink-0">
-				<UiIcon
-					icon={Search}
-					size={15}
-					class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
-				/>
-				<input
-					type="search"
-					placeholder="搜索商品标题或变体 SKU..."
-					bind:value={search}
-					aria-label="搜索商品"
-					class="w-full h-9 bg-white border border-zinc-200 rounded-card pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 shadow-2xs transition-colors"
-				/>
-			</div>
+	<div class="flex flex-wrap items-center gap-2.5">
+		<!-- 1. Search Box at first position -->
+		<div class="relative w-full sm:w-64 md:w-72 shrink-0">
+			<UiIcon
+				icon={Search}
+				size={15}
+				class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+			/>
+			<input
+				type="search"
+				placeholder="搜索商品标题或变体 SKU..."
+				bind:value={search}
+				aria-label="搜索商品"
+				class="w-full h-9 bg-white border border-zinc-200 rounded-card pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 transition-colors"
+			/>
+		</div>
 
-			<!-- 2. Category Filter Dropdown -->
-			<select
-				bind:value={selectedCategory}
-				aria-label="按分类筛选"
-				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
-			>
-				<option value="all">全部分类 ({totalProducts})</option>
-				{#each categories as cat (cat.id)}
-					{@const count = rows.filter((r) => r.categories?.some((c: { id: string }) => c.id === cat.id)).length}
-					<option value={cat.id}>{cat.name || cat.slug} ({count})</option>
-				{/each}
-			</select>
+		<!-- 2. Category Filter Dropdown -->
+		<select
+			bind:value={selectedCategory}
+			aria-label="按分类筛选"
+			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+		>
+			<option value="all">全部分类 ({totalProducts})</option>
+			{#each categories as cat (cat.id)}
+				{@const count = rows.filter((r) => r.categories?.some((c: { id: string }) => c.id === cat.id)).length}
+				<option value={cat.id}>{cat.name || cat.slug} ({count})</option>
+			{/each}
+		</select>
 
-			<!-- 3. Status Filter Dropdown -->
-			<select
-				bind:value={selectedStatus}
-				aria-label="按上架状态筛选"
-				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
-			>
-				<option value="all">全部上架状态</option>
-				<option value="active">在售在架 ({activeProducts})</option>
-				<option value="inactive">下架暂存 ({inactiveProducts})</option>
-			</select>
+		<!-- 3. Status Filter Dropdown -->
+		<select
+			bind:value={selectedStatus}
+			aria-label="按上架状态筛选"
+			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+		>
+			<option value="all">全部上架状态</option>
+			<option value="active">在售在架 ({activeProducts})</option>
+			<option value="inactive">下架暂存 ({inactiveProducts})</option>
+		</select>
 
-			<!-- 4. Stock Filter Dropdown -->
-			<select
-				bind:value={selectedStock}
-				aria-label="按库存状态筛选"
-				class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 shadow-2xs cursor-pointer"
-			>
-				<option value="all">全部库存状态</option>
-				<option value="in_stock">库存充足 (>5 件)</option>
-				<option value="low_stock">库存紧张 (1-5 件)</option>
-				<option value="out_of_stock">已售罄 (0 件)</option>
-			</select>
+		<!-- 4. Stock Filter Dropdown -->
+		<select
+			bind:value={selectedStock}
+			aria-label="按库存状态筛选"
+			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
+		>
+			<option value="all">全部库存状态</option>
+			<option value="in_stock">库存充足 (>5 件)</option>
+			<option value="low_stock">库存紧张 (1-5 件)</option>
+			<option value="out_of_stock">已售罄 (0 件)</option>
+		</select>
 
-			<!-- 5. Featured Toggle Icon Button -->
+		<!-- 5. Featured Toggle Icon Button -->
+		<button
+			type="button"
+			onclick={() => (onlyFeatured = !onlyFeatured)}
+			title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
+			aria-label="仅看精选推荐"
+			class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 {onlyFeatured
+				? 'bg-amber-50 text-amber-600 border-amber-300'
+				: 'bg-white text-zinc-500 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+		>
+			<UiIcon icon={Sparkles} size={15} />
+		</button>
+
+		<!-- 6. Reset Filters Icon Button -->
+		{#if search || selectedCategory !== 'all' || selectedStatus !== 'all' || selectedStock !== 'all' || onlyFeatured}
 			<button
 				type="button"
-				onclick={() => (onlyFeatured = !onlyFeatured)}
-				title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
-				aria-label="仅看精选推荐"
-				class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shadow-2xs shrink-0 {onlyFeatured
-					? 'bg-amber-50 text-amber-600 border-amber-300'
-					: 'bg-white text-zinc-500 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+				onclick={() => {
+					search = '';
+					selectedCategory = 'all';
+					selectedStatus = 'all';
+					selectedStock = 'all';
+					onlyFeatured = false;
+				}}
+				title="重置所有筛选"
+				aria-label="重置所有筛选"
+				class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
 			>
-				<UiIcon icon={Sparkles} size={15} />
+				<UiIcon icon={RotateCcw} size={15} />
 			</button>
-
-			<!-- 6. Reset Filters Icon Button -->
-			{#if search || selectedCategory !== 'all' || selectedStatus !== 'all' || selectedStock !== 'all' || onlyFeatured}
-				<button
-					type="button"
-					onclick={() => {
-						search = '';
-						selectedCategory = 'all';
-						selectedStatus = 'all';
-						selectedStock = 'all';
-						onlyFeatured = false;
-					}}
-					title="重置所有筛选"
-					aria-label="重置所有筛选"
-					class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-2xs shrink-0"
-				>
-					<UiIcon icon={RotateCcw} size={15} />
-				</button>
-			{/if}
-		</div>
-
-		<!-- Right Side: Item Count -->
-		<div class="text-xs font-mono font-semibold text-zinc-400 shrink-0 self-end sm:self-auto">
-			显示 {visibleRows.length} / {totalProducts}
-		</div>
+		{/if}
 	</div>
 
 	<!-- Table Card -->
@@ -679,7 +672,7 @@
 						暂无独立规格记录（单品模式）
 					</div>
 				{:else}
-					<div class="border border-zinc-200 rounded-xl overflow-hidden shadow-2xs">
+					<div class="border border-zinc-200 rounded-xl overflow-hidden">
 						<table class="w-full text-left text-xs border-collapse">
 							<thead class="bg-zinc-50 border-b border-zinc-200 text-zinc-500 text-[10px] uppercase font-semibold">
 								<tr>
@@ -805,7 +798,7 @@
 
 				<!-- Inline Create / Edit Subform -->
 				{#if showCategoryForm}
-					<div class="p-4 rounded-card bg-zinc-50 border border-zinc-200 shadow-xs space-y-3.5">
+					<div class="p-4 rounded-card bg-zinc-50 border border-zinc-200 space-y-3.5">
 						<div class="flex items-center justify-between pb-2 border-b border-zinc-200">
 							<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
 								{categoryEditingId ? '编辑分类' : '新建分类'}
@@ -898,7 +891,7 @@
 				{/if}
 
 				<!-- Categories Table -->
-				<div class="border border-zinc-200 rounded-card overflow-hidden shadow-2xs">
+				<div class="border border-zinc-200 rounded-card overflow-hidden">
 					{#if categoryLoading && categories.length === 0}
 						<div class="py-12 text-center text-zinc-400">
 							<span class="inline-block w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin mb-2"></span>

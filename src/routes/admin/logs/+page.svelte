@@ -61,12 +61,12 @@
 			e.preventDefault();
 			apply();
 		}}
-		class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-xl border border-zinc-200 shadow-xs"
+		class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-xl border border-zinc-200"
 	>
 		<select
 			bind:value={level}
 			aria-label="日志级别"
-			class="bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900"
+			class="bg-white border border-zinc-300 rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-700 outline-none focus:border-zinc-900"
 		>
 			<option value="all">全部级别</option>
 			<option value="DEBUG">DEBUG</option>
@@ -89,7 +89,7 @@
 		</button>
 	</form>
 
-	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card overflow-hidden">
 		<div class="overflow-x-auto">
 			<table class="w-full text-left min-w-[760px]">
 				<thead>

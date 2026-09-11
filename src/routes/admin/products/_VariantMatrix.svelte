@@ -212,7 +212,7 @@
 
 	<!-- Collapsible Batch Generator Panel -->
 	{#if showGenerator}
-		<div class="p-4 rounded-xl bg-white border border-zinc-300/80 shadow-sm space-y-4">
+		<div class="p-4 rounded-xl bg-white border border-zinc-300/80 space-y-4">
 			<div class="flex items-center justify-between border-b border-zinc-100 pb-2.5">
 				<div class="flex items-center gap-2">
 					<div class="p-1 rounded-md bg-zinc-100 text-zinc-800">
@@ -345,7 +345,7 @@
 			{#each variants as row, index (index)}
 				{@const isConfirming = confirmDeleteIndex === index}
 				<div
-					class="bg-white p-3.5 rounded-xl border border-zinc-200/90 shadow-xs hover:border-zinc-300 transition-colors flex flex-col lg:flex-row lg:items-center gap-3"
+					class="bg-white p-3.5 rounded-xl border border-zinc-200/90 hover:border-zinc-300 transition-colors flex flex-col lg:flex-row lg:items-center gap-3"
 				>
 					<!-- Row index badge -->
 					<div class="hidden lg:flex items-center justify-center w-6 text-[11px] font-mono text-zinc-400 shrink-0">

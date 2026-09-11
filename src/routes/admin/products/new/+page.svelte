@@ -411,7 +411,7 @@
 					class="p-4 rounded-xl border border-zinc-200/80 bg-zinc-50/40 flex flex-col sm:flex-row items-center sm:items-start gap-5"
 				>
 					<div
-						class="w-36 h-36 rounded-xl border border-zinc-200 bg-white overflow-hidden shrink-0 shadow-xs flex items-center justify-center relative group"
+						class="w-36 h-36 rounded-xl border border-zinc-200 bg-white overflow-hidden shrink-0 flex items-center justify-center relative group"
 					>
 						<img
 							src={imagePreviewUrl}

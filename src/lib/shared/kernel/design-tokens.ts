@@ -98,10 +98,10 @@ export const RADIUS = {
 } as const;
 
 export const ADMIN_CARDS = {
-	base: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs',
-	kpi: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors',
-	section: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between',
-	table: 'bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden',
+	base: 'bg-white border border-zinc-200/80 rounded-card p-6',
+	kpi: 'bg-white border border-zinc-200/80 rounded-card p-6 flex flex-col justify-between hover:border-zinc-300 transition-colors',
+	section: 'bg-white border border-zinc-200/80 rounded-card p-6 flex flex-col justify-between',
+	table: 'bg-white border border-zinc-200 rounded-card overflow-hidden',
 	header: 'flex items-center justify-between border-b border-zinc-100 pb-4',
 	body: 'p-6 space-y-6',
 	padding: 'p-6',

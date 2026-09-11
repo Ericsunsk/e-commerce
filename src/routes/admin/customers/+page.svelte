@@ -41,7 +41,7 @@
 			e.preventDefault();
 			apply();
 		}}
-		class="flex gap-3 bg-white p-4 rounded-xl border border-zinc-200 shadow-xs"
+		class="flex gap-3 bg-white p-4 rounded-xl border border-zinc-200"
 	>
 		<div class="relative flex-1">
 			<UiIcon
@@ -65,7 +65,7 @@
 		</button>
 	</form>
 
-	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card overflow-hidden">
 		{#if data.rows.length === 0}
 			<p class="p-8 text-sm text-zinc-400 text-center">没有匹配的客户</p>
 		{:else}

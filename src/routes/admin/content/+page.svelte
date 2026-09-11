@@ -153,7 +153,7 @@
 		<!-- Card 1: 页面排版 -->
 		<a
 			href="/admin/content/sections"
-			class="group bg-white border border-zinc-200 rounded-card p-5 shadow-xs hover:border-zinc-900 hover:shadow-md transition-all flex flex-col justify-between"
+			class="group bg-white border border-zinc-200 rounded-card p-5 hover:border-zinc-900 transition-all flex flex-col justify-between"
 		>
 			<div class="space-y-3">
 				<div class="flex items-center justify-between">
@@ -182,7 +182,7 @@
 		<!-- Card 2: 页面管理 -->
 		<a
 			href="/admin/content/pages"
-			class="group bg-white border border-zinc-200 rounded-card p-5 shadow-xs hover:border-zinc-900 hover:shadow-md transition-all flex flex-col justify-between"
+			class="group bg-white border border-zinc-200 rounded-card p-5 hover:border-zinc-900 transition-all flex flex-col justify-between"
 		>
 			<div class="space-y-3">
 				<div class="flex items-center justify-between">
@@ -211,7 +211,7 @@
 		<!-- Card 3: 导航管理 -->
 		<a
 			href="/admin/content/navigation"
-			class="group bg-white border border-zinc-200 rounded-card p-5 shadow-xs hover:border-zinc-900 hover:shadow-md transition-all flex flex-col justify-between"
+			class="group bg-white border border-zinc-200 rounded-card p-5 hover:border-zinc-900 transition-all flex flex-col justify-between"
 		>
 			<div class="space-y-3">
 				<div class="flex items-center justify-between">
@@ -270,7 +270,7 @@
 		<!-- Left Column (2 cols): Brand & Commerce Settings -->
 		<div class="lg:col-span-2 space-y-6">
 			<!-- Card A: 品牌与标识 -->
-			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-5">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 space-y-5">
 				<div class="flex items-center justify-between border-b border-zinc-100 pb-4">
 					<div class="flex items-center gap-2.5">
 						<div class="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
@@ -348,7 +348,7 @@
 			</section>
 
 			<!-- Card B: 交易结算与免邮门槛 -->
-			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-5">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 space-y-5">
 				<div class="flex items-center justify-between border-b border-zinc-100 pb-4">
 					<div class="flex items-center gap-2.5">
 						<div class="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
@@ -447,7 +447,7 @@
 		<!-- Right Column (1 col): System Maintenance & Quick Info -->
 		<div class="space-y-6">
 			<!-- Card C: 站点运营状态 (Maintenance Mode) -->
-			<section class="bg-white border border-zinc-200 rounded-card p-6 shadow-xs space-y-4">
+			<section class="bg-white border border-zinc-200 rounded-card p-6 space-y-4">
 				<div class="flex items-center gap-2.5 border-b border-zinc-100 pb-4">
 					<div class="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
 						<UiIcon icon={ShieldAlert} size={16} />

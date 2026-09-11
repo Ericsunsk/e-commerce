@@ -351,7 +351,7 @@
 	{/if}
 
 	<!-- Sections List Table -->
-	<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
+	<section class="bg-white border border-zinc-200 rounded-card overflow-hidden">
 		{#if filteredSections.length === 0}
 			<div class="p-12 text-center text-zinc-400">
 				<UiIcon icon={Layers} size={36} className="mx-auto mb-3 opacity-40" />

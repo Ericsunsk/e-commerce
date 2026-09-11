@@ -28,7 +28,7 @@
 		</div>
 
 		<!-- Card -->
-		<div class="bg-white border border-zinc-200 rounded-card shadow-sm p-8 md:p-10">
+		<div class="bg-white border border-zinc-200 rounded-card p-8 md:p-10">
 			{#if form?.error}
 				<div
 					role="alert"

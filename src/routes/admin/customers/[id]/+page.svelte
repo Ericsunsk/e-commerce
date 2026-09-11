@@ -29,7 +29,7 @@
 	</div>
 
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-		<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden h-fit">
+		<section class="bg-white border border-zinc-200 rounded-card overflow-hidden h-fit">
 			<div class="p-5 border-b border-zinc-100 flex items-center gap-2">
 				<UiIcon icon={MapPin} size={16} class="text-zinc-500" />
 				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">收货地址</h2>
@@ -56,7 +56,7 @@
 			{/if}
 		</section>
 
-		<section class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden h-fit">
+		<section class="bg-white border border-zinc-200 rounded-card overflow-hidden h-fit">
 			<div class="p-5 border-b border-zinc-100 flex items-center gap-2">
 				<UiIcon icon={ReceiptText} size={16} class="text-zinc-500" />
 				<h2 class="text-xs font-bold uppercase tracking-wider text-zinc-800">历史订单</h2>

@@ -43,7 +43,7 @@
 
 	<!-- Controls bar -->
 	<div
-		class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-zinc-200 shadow-xs"
+		class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-zinc-200"
 	>
 		<!-- Filter tabs -->
 		<div class="flex flex-wrap items-center gap-1.5">
@@ -76,7 +76,7 @@
 	</div>
 
 	<!-- Table Card -->
-	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card overflow-hidden">
 		<div class="overflow-x-auto">
 			<table class="w-full text-left min-w-[780px]">
 				<thead>

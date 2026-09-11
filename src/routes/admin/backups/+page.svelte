@@ -64,7 +64,7 @@
 		<p role="alert" class="text-xs text-rose-600">{error}</p>
 	{/if}
 
-	<div class="bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden">
+	<div class="bg-white border border-zinc-200 rounded-card overflow-hidden">
 		{#if rows.length === 0}
 			<p class="p-8 text-sm text-zinc-400 text-center">暂无备份文件</p>
 		{:else}
