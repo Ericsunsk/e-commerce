@@ -14,7 +14,13 @@
 		X
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
-	import { getFileUrl } from '$shared/kernel';
+	import {
+		getFileUrl,
+		ADMIN_MATRIX,
+		ADMIN_TABLE,
+		ADMIN_BUTTONS,
+		ADMIN_BADGES
+	} from '$shared/kernel';
 	import {
 		DEFAULT_SIZE_PRESETS,
 		DEFAULT_COLOR_PRESETS,
@@ -551,7 +557,7 @@
 							type="number"
 							min="0"
 							bind:value={generatorDefaultStock}
-							class="w-16 bg-white border border-zinc-300 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 text-center"
+							class={ADMIN_MATRIX.generatorStock}
 						/>
 						<span class="text-xs text-zinc-400">件</span>
 					</div>
@@ -626,7 +632,7 @@
 										color: (e.target as HTMLInputElement).value
 									})}
 								placeholder="颜色名称"
-								class="font-bold text-xs text-zinc-900 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 px-2.5 py-1 rounded-lg outline-none transition-colors w-28 shadow-2xs"
+								class={ADMIN_MATRIX.colorName}
 							/>
 
 							<!-- SKU Prefix Input -->
@@ -638,7 +644,7 @@
 										applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
 									placeholder="前缀"
 									spellcheck={false}
-									class="bg-transparent border-none text-xs font-mono font-medium text-zinc-700 outline-none w-24 p-0"
+									class={ADMIN_MATRIX.skuPrefix}
 									title="自动生成，可手动覆盖修改"
 								/>
 							</div>
@@ -708,15 +714,15 @@
 
 						<!-- Right: Actions -->
 						<div class="flex items-center gap-2 self-end md:self-auto">
-							<span class="text-xs font-mono text-zinc-500 font-medium mr-1">
-								在库: <strong class="text-zinc-900">{group.stockTotal}</strong> 件
+							<span class={ADMIN_BADGES.neutral}>
+								在库: {group.stockTotal} 件
 							</span>
 
 							<button
 								type="button"
 								onclick={() => duplicateColor(group)}
 								title="复制此颜色及全部尺码规格"
-								class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-300 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
+								class={ADMIN_BUTTONS.secondarySm}
 							>
 								<UiIcon icon={Copy} size={11} />
 								<span>复制</span>
@@ -727,14 +733,14 @@
 									<button
 										type="button"
 										onclick={() => removeColor(group.key)}
-										class="px-2 py-1 rounded-lg bg-rose-600 text-white text-xs font-medium hover:bg-rose-700 cursor-pointer"
+										class={ADMIN_BUTTONS.dangerSolidSm}
 									>
 										确认删除
 									</button>
 									<button
 										type="button"
 										onclick={() => (confirmDeleteColor = null)}
-										class="px-2 py-1 rounded-lg border border-zinc-200 bg-white text-zinc-600 text-xs font-medium hover:bg-zinc-50 cursor-pointer"
+										class={ADMIN_BUTTONS.secondarySm}
 									>
 										取消
 									</button>
@@ -744,7 +750,7 @@
 									type="button"
 									onclick={() => (confirmDeleteColor = group.key)}
 									title="删除此颜色系列"
-									class="p-1.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+									class={ADMIN_BUTTONS.danger}
 								>
 									<UiIcon icon={Trash2} size={14} />
 								</button>
@@ -753,21 +759,21 @@
 					</div>
 
 					<!-- Clean Sizes Table -->
-					<div class="overflow-x-auto">
-						<table class="w-full text-left border-collapse">
+					<div class={ADMIN_TABLE.wrapper}>
+						<table class={ADMIN_TABLE.table}>
 							<thead>
-								<tr class="border-b border-zinc-100 bg-zinc-50/40 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-									<th class="py-2.5 px-4 w-36">尺码 (Size)</th>
-									<th class="py-2.5 px-4">完整 SKU 编码</th>
-									<th class="py-2.5 px-4 w-64">在库库存 (Stock)</th>
-									<th class="py-2.5 px-4 w-16 text-right">操作</th>
+								<tr class={ADMIN_TABLE.headerRow}>
+									<th class="{ADMIN_TABLE.headerCell} w-36">尺码 (Size)</th>
+									<th class={ADMIN_TABLE.headerCell}>完整 SKU 编码</th>
+									<th class="{ADMIN_TABLE.headerCell} w-64">在库库存 (Stock)</th>
+									<th class="{ADMIN_TABLE.headerCell} w-16 text-right">操作</th>
 								</tr>
 							</thead>
-							<tbody class="divide-y divide-zinc-100 text-xs">
+							<tbody class={ADMIN_TABLE.body}>
 								{#each group.entries as entry (entry.index)}
-									<tr class="hover:bg-zinc-50/50 transition-colors group/row">
+									<tr class="{ADMIN_TABLE.row} group/row">
 										<!-- Size Name Input -->
-										<td class="py-2.5 px-4">
+										<td class={ADMIN_TABLE.cell}>
 											<input
 												value={entry.row.size}
 												oninput={(e) => {
@@ -775,13 +781,13 @@
 													const row = variants[entry.index];
 													if (row) variants[entry.index] = { ...row, size: next };
 												}}
-												class="w-24 font-bold text-xs text-zinc-900 bg-zinc-100/80 border border-transparent hover:border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-lg px-2.5 py-1 outline-none transition-colors"
+												class={ADMIN_MATRIX.size}
 												placeholder="尺码"
 											/>
 										</td>
 
 										<!-- SKU Display + Refresh -->
-										<td class="py-2.5 px-4 font-mono text-zinc-600">
+										<td class="{ADMIN_TABLE.cell} font-mono text-zinc-600">
 											<div class="flex items-center gap-1.5">
 												<span>{entry.row.sku || '—'}</span>
 												<button
@@ -796,7 +802,7 @@
 										</td>
 
 										<!-- Stock Stepper Controls -->
-										<td class="py-2.5 px-4">
+										<td class={ADMIN_TABLE.cell}>
 											<div class="flex items-center gap-1">
 												<button
 													type="button"
@@ -820,7 +826,7 @@
 																stockQuantity: Math.max(0, Math.floor(Number((e.target as HTMLInputElement).value) || 0))
 															};
 													}}
-													class="w-16 h-7 border border-zinc-200 rounded-lg text-center font-mono font-bold text-xs text-zinc-900 outline-none focus:border-zinc-900 shadow-2xs"
+													class={ADMIN_MATRIX.stock}
 												/>
 												<button
 													type="button"
@@ -842,7 +848,7 @@
 										</td>
 
 										<!-- Remove Size -->
-										<td class="py-2.5 px-4 text-right">
+										<td class="{ADMIN_TABLE.cell} text-right">
 											<button
 												type="button"
 												onclick={() => removeSize(entry.index)}
@@ -858,14 +864,14 @@
 
 								<!-- Quick Add Size Row inside the table -->
 								<tr class="bg-zinc-50/30">
-									<td colspan="4" class="py-2.5 px-4">
+									<td colspan="4" class={ADMIN_TABLE.cell}>
 										{#if addingSizeFor === group.key}
 											<div class="flex items-center gap-2 py-0.5 flex-wrap">
 												<span class="text-xs font-semibold text-zinc-700">新尺码:</span>
 												<input
 													bind:value={newSizeName}
 													placeholder="如 L 或 42"
-													class="w-24 bg-white border border-zinc-300 rounded-lg px-2 py-1 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 shadow-2xs"
+													class={ADMIN_MATRIX.newSize}
 													onkeydown={(e) => {
 														if (e.key === 'Enter') confirmAddSize(group);
 														if (e.key === 'Escape') addingSizeFor = null;
@@ -876,7 +882,7 @@
 													type="number"
 													min="0"
 													bind:value={newSizeStock}
-													class="w-16 bg-white border border-zinc-300 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 text-center outline-none focus:border-zinc-900 shadow-2xs"
+													class={ADMIN_MATRIX.newStock}
 												/>
 												<div class="flex items-center gap-1 ml-1">
 													{#each COMMON_QUICK_SIZES as qs (qs)}
