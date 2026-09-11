@@ -15,7 +15,7 @@
 
 	let {
 		section,
-		categories: _categories = [],
+		categories = [],
 		featuredProducts = [],
 		homeAssets = []
 	}: Props = $props();
@@ -29,8 +29,8 @@
 {:else if section.type === 'cta_banner'}
 	<CtaBanner {section} />
 {:else if section.type === 'category_grid'}
-	<!-- 首页大入口：使用 PocketBase 配置的图片 -->
-	<HeroCategories assets={homeAssets} />
+	<!-- 首页品类大入口：支持后台自定义 items / 动态商品品类 / 缺省回退 -->
+	<HeroCategories {section} {categories} assets={homeAssets} />
 {:else if section.type === 'product_grid'}
 	<ProductGrid {section} products={featuredProducts} />
 {:else if section.type === 'rich_text'}

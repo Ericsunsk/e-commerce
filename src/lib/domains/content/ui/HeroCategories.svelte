@@ -1,44 +1,25 @@
 <script lang="ts">
-	import { LinkedImage } from '$domains/catalog';
+	import { LinkedImage, type Category } from '$domains/catalog';
 	import { TRANSITIONS } from '$shared/kernel';
-	import type { UIAsset } from '../domain/models';
+	import type { UISection, UIAsset } from '../domain/models';
+	import { resolveCategoryGridItems, getCategoryGridClass } from '../domain/category-grid';
 
 	interface Props {
+		section?: UISection;
+		categories?: Category[];
 		assets?: UIAsset[];
 	}
 
-	let { assets = [] }: Props = $props();
+	let { section, categories = [], assets = [] }: Props = $props();
 
-	// 从 assets 中查找对应的图片 URL
-	function getImageUrl(key: string): string {
-		const asset = assets.find((a) => a.key === key);
-		return asset?.url || '';
-	}
-
-	// 首页三大入口配置
-	let categories = $derived([
-		{
-			name: 'MENS',
-			link: '/shop?gender=mens',
-			image: getImageUrl('hero_category_mens')
-		},
-		{
-			name: 'WOMENS',
-			link: '/shop?gender=womens',
-			image: getImageUrl('hero_category_womens')
-		},
-		{
-			name: 'ACCESSORIES',
-			link: '/shop?category=accessories',
-			image: getImageUrl('hero_category_accessories')
-		}
-	]);
+	let displayItems = $derived(resolveCategoryGridItems({ section, categories, assets }));
+	let gridClass = $derived(getCategoryGridClass(displayItems.length));
 </script>
 
 <section class="py-8 px-6 md:px-12">
 	<div class="max-w-[1600px] mx-auto">
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-			{#each categories as category (category.name)}
+		<div class="grid {gridClass} gap-6 md:gap-8">
+			{#each displayItems as category (category.name + category.link)}
 				<LinkedImage
 					href={category.link}
 					preloadData="hover"
