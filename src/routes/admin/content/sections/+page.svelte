@@ -684,7 +684,7 @@
 					>
 				</div>
 				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-					{#each [{ title: 'Wool Tailored Blazer', price: '¥ 3,490' }, { title: 'Silk Pleated Dress', price: '¥ 2,850' }, { title: 'Cashmere Knit Top', price: '¥ 1,980' }, { title: 'Leather Mini Bag', price: '¥ 4,200' }] as item}
+					{#each [{ title: 'Wool Tailored Blazer', price: '¥ 3,490' }, { title: 'Silk Pleated Dress', price: '¥ 2,850' }, { title: 'Cashmere Knit Top', price: '¥ 1,980' }, { title: 'Leather Mini Bag', price: '¥ 4,200' }] as item (item.title)}
 						<div
 							class="bg-zinc-50/80 rounded-lg p-2 border border-zinc-200/40 text-center space-y-1.5"
 						>
@@ -715,7 +715,7 @@
 					>
 				</div>
 				<div class="grid grid-cols-3 gap-2.5">
-					{#each ['OUTERWEAR', 'LEATHER GOODS', 'ACCESSORIES'] as cat, idx}
+					{#each ['OUTERWEAR', 'LEATHER GOODS', 'ACCESSORIES'] as cat, idx (cat)}
 						<div
 							class="relative h-20 sm:h-24 rounded-lg overflow-hidden bg-zinc-900 flex items-end p-2.5 text-white border border-zinc-800"
 						>

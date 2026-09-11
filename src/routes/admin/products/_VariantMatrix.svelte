@@ -9,7 +9,6 @@
 		ChevronDown,
 		ChevronUp,
 		ImagePlus,
-		Image as ImageIcon,
 		Copy,
 		X
 	} from 'lucide-svelte';
@@ -749,7 +748,7 @@
 
 							<!-- Compact 4-Photo Gallery Strip (No divider line) -->
 							<div class="flex items-center gap-1.5" title="该颜色专属图集（前台选中该颜色时联动，最多 4 张）">
-								{#each gallerySlots as item}
+								{#each gallerySlots as item (item.url)}
 									<div class="relative w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-100 group/thumb shrink-0">
 										{#if item.url}
 											<img

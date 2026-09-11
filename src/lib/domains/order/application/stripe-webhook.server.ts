@@ -43,6 +43,18 @@ export async function verifyStripeWebhook(
 	}
 	const { webhookSecret } = await getPaymentConfig();
 	if (!webhookSecret) {
+		// Fulfillment is entirely webhook-driven, so a missing secret means
+		// paid orders never become records. Log loudly and distinguishably —
+		// this is a misconfiguration, not a transient error.
+		console.error(
+			JSON.stringify({
+				level: 'error',
+				scope: 'webhook/stripe',
+				event: 'webhook_secret_missing',
+				hint: 'Set the secret in 管理后台 → 支付设置, or provide STRIPE_WEBHOOK_SECRET.',
+				impact: 'Paid orders will NOT be fulfilled until this is configured.'
+			})
+		);
 		throw { status: 500, message: 'Stripe webhook secret is not configured' };
 	}
 	try {
