@@ -365,6 +365,47 @@
 		return getFileUrl('product_variants', variantId, name, { thumb: '200x200' });
 	}
 
+	function galleryZoomUrl(variantId: string, name: string): string {
+		return getFileUrl('product_variants', variantId, name, { thumb: '600x600' });
+	}
+
+	interface GallerySlotItem {
+		kind: 'existing' | 'pending';
+		name?: string;
+		file?: File;
+		ownerIndex?: number;
+		url: string;
+		zoomUrl: string;
+	}
+
+	function getGroupGallerySlots(group: ColorGroup): GallerySlotItem[] {
+		const owner = group.entries[0];
+		const items: GallerySlotItem[] = [];
+
+		for (const name of group.gallery.slice(0, MAX_GALLERY_PER_VARIANT)) {
+			items.push({
+				kind: 'existing',
+				name,
+				url: owner?.row.id ? galleryUrl(owner.row.id, name) : '',
+				zoomUrl: owner?.row.id ? galleryZoomUrl(owner.row.id, name) : ''
+			});
+		}
+
+		for (const item of group.pendingFiles) {
+			if (items.length >= MAX_GALLERY_PER_VARIANT) break;
+			const pUrl = previewOf(item.file);
+			items.push({
+				kind: 'pending',
+				file: item.file,
+				ownerIndex: item.ownerIndex,
+				url: pUrl,
+				zoomUrl: pUrl
+			});
+		}
+
+		return items;
+	}
+
 	function toggleSizePreset(size: string) {
 		if (selectedSizes.includes(size)) {
 			selectedSizes = selectedSizes.filter((s) => s !== size);
@@ -599,6 +640,7 @@
 	{#if colorGroups.length > 0}
 		<div class="space-y-4">
 			{#each colorGroups as group (group.key)}
+				{@const gallerySlots = getGroupGallerySlots(group)}
 				<div class={ADMIN_MATRIX.colorCard}>
 					<!-- Color Banner Header -->
 					<div class="bg-zinc-50/70 border-b border-zinc-200/80 px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -635,30 +677,27 @@
 								class={ADMIN_MATRIX.colorName}
 							/>
 
-							<!-- SKU Prefix Input -->
-							<div class="flex items-center gap-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-mono">
-								<span class="text-[10px] uppercase font-bold text-zinc-400">SKU前缀:</span>
-								<input
-									value={skuPrefixOf(group)}
-									oninput={(e) =>
-										applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
-									placeholder="前缀"
-									spellcheck={false}
-									class={ADMIN_MATRIX.skuPrefix}
-									title="自动生成，可手动覆盖修改"
-								/>
-							</div>
+							<!-- SKU Prefix Input: auto-width based on value -->
+							<input
+								value={skuPrefixOf(group)}
+								oninput={(e) =>
+									applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
+								placeholder="SKU"
+								spellcheck={false}
+								style="width: {Math.max(6, (skuPrefixOf(group) || 'SKU').length + 2)}ch;"
+								class={ADMIN_MATRIX.skuPrefix}
+								title="SKU 前缀（自动生成，可手动覆盖修改）"
+							/>
 
-							<!-- Compact Gallery Thumbnails Strip -->
-							<div class="flex items-center gap-1.5 pl-2 border-l border-zinc-200" title="该颜色专属图集（前台选中该颜色时联动）">
-								{#each group.gallery.slice(0, MAX_GALLERY_PER_VARIANT) as name (name)}
-									{@const owner = group.entries[0]}
-									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-zinc-200 bg-zinc-100 group/thumb shrink-0">
-										{#if owner?.row.id}
+							<!-- Compact 4-Photo Gallery Strip (No divider line) -->
+							<div class="flex items-center gap-1.5" title="该颜色专属图集（前台选中该颜色时联动，最多 4 张）">
+								{#each gallerySlots as item}
+									<div class="relative w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-100 group/thumb shrink-0">
+										{#if item.url}
 											<img
-												src={galleryUrl(owner.row.id, name)}
+												src={item.url}
 												alt=""
-												class="w-full h-full object-cover"
+												class="w-full h-full object-cover rounded-lg"
 												loading="lazy"
 											/>
 										{:else}
@@ -666,37 +705,47 @@
 												IMG
 											</div>
 										{/if}
+
+										<!-- Floating enlarged preview on hover -->
+										{#if item.url}
+											<div
+												class="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 hidden group-hover/thumb:block z-50 animate-in fade-in zoom-in-95 duration-100"
+											>
+												<div class="bg-white border border-zinc-200 rounded-xl p-1.5 w-48 h-48 flex items-center justify-center">
+													<img
+														src={item.zoomUrl || item.url}
+														alt=""
+														class="w-full h-full object-cover rounded-lg bg-zinc-50"
+													/>
+												</div>
+											</div>
+										{/if}
+
+										<!-- Remove button on hover -->
 										<button
 											type="button"
-											onclick={() => removeGroupGalleryImage(group, name)}
+											onclick={() => {
+												if (item.kind === 'existing' && item.name) {
+													removeGroupGalleryImage(group, item.name);
+												} else if (item.kind === 'pending' && item.file && item.ownerIndex !== undefined) {
+													removeGroupGalleryFile(item.ownerIndex, item.file);
+												}
+											}}
 											aria-label="移除图片"
-											class="absolute inset-0 bg-black/60 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity"
+											title="移除图片"
+											class="absolute inset-0 bg-black/60 text-white rounded-lg opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center cursor-pointer transition-opacity z-10"
 										>
-											<UiIcon icon={X} size={10} />
+											<UiIcon icon={X} size={11} />
 										</button>
 									</div>
 								{/each}
 
-								{#each group.pendingFiles as item (item.file.name + item.file.size + item.file.lastModified)}
-									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-dashed border-zinc-400 bg-zinc-50 group/thumb shrink-0">
-										<img src={previewOf(item.file)} alt="" class="w-full h-full object-cover" />
-										<button
-											type="button"
-											onclick={() => removeGroupGalleryFile(item.ownerIndex, item.file)}
-											aria-label="移除待上传图片"
-											class="absolute inset-0 bg-black/60 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity"
-										>
-											<UiIcon icon={X} size={10} />
-										</button>
-									</div>
-								{/each}
-
-								{#if group.gallery.length + group.pendingFiles.length < MAX_GALLERY_PER_VARIANT}
+								{#each Array.from({ length: Math.max(0, MAX_GALLERY_PER_VARIANT - gallerySlots.length) }) as _, slotIdx (slotIdx)}
 									<label
-										class="w-7 h-7 rounded-md border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white"
+										class="w-8 h-8 rounded-lg border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white"
 										title="上传颜色图集（最多 4 张）"
 									>
-										<UiIcon icon={ImagePlus} size={12} />
+										<UiIcon icon={ImagePlus} size={13} />
 										<input
 											type="file"
 											accept="image/jpeg,image/png,image/webp,image/avif"
@@ -708,7 +757,7 @@
 											}}
 										/>
 									</label>
-								{/if}
+								{/each}
 							</div>
 						</div>
 
@@ -750,9 +799,10 @@
 									type="button"
 									onclick={() => (confirmDeleteColor = group.key)}
 									title="删除此颜色系列"
-									class={ADMIN_BUTTONS.danger}
+									class={ADMIN_BUTTONS.secondarySm}
 								>
-									<UiIcon icon={Trash2} size={14} />
+									<UiIcon icon={Trash2} size={11} />
+									<span>删除</span>
 								</button>
 							{/if}
 						</div>

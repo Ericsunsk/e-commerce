@@ -168,13 +168,13 @@ export const ADMIN_FORMS = {
 
 export const ADMIN_MATRIX = {
 	/** Color card wrapper (flat, clean, no shadow). */
-	colorCard: 'bg-white border border-zinc-200 rounded-xl overflow-hidden transition-all hover:border-zinc-300',
+	colorCard: 'bg-white border border-zinc-200 rounded-xl transition-all hover:border-zinc-300',
 	/** Generator card wrapper (flat, clean, no shadow). */
 	generatorCard: 'p-4 rounded-xl bg-zinc-50/80 border border-zinc-200 space-y-3.5',
 	/** Color name field in the matrix row / banner. */
 	colorName: `${MATRIX_INPUT_BASE} font-bold w-28 shrink-0`,
-	/** SKU prefix field in the matrix row / banner. */
-	skuPrefix: 'bg-transparent border-none text-xs font-mono font-medium text-zinc-700 outline-none w-24 p-0 shrink-0',
+	/** SKU prefix field in the matrix row / banner (clean white input, width content-driven). */
+	skuPrefix: `${MATRIX_INPUT_BASE} font-mono shrink-0`,
 	/** Size input field in the variant table row. */
 	size: `${MATRIX_INPUT_BASE} font-bold w-24 shrink-0`,
 	/** Alias for size input field. */
