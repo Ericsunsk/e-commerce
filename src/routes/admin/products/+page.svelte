@@ -490,8 +490,10 @@
 		</div>
 	</div>
 
-	<!-- Search & Filters Toolbar (Search on left, Action icons right-aligned) -->
-	<div class="flex flex-wrap items-center justify-between gap-2.5">
+	<!-- Products Section (Toolbar + Table grouped as one unit with 1/2 spacing) -->
+	<div class="space-y-3">
+		<!-- Search & Filters Toolbar (Search on left, Action icons right-aligned) -->
+		<div class="flex flex-wrap items-center justify-between gap-2.5">
 		<!-- 1. Search Box (Native 'x' removed) -->
 		<div class="relative w-full sm:w-64 md:w-72 shrink-0">
 			<UiIcon
@@ -968,6 +970,7 @@
 			</table>
 		</div>
 	</div>
+</div>
 </div>
 
 <!-- Variant Quick-Inspection Drawer -->
