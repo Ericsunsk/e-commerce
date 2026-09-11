@@ -27,8 +27,6 @@
 	// svelte-ignore state_referenced_locally
 	let sections = $state(data.sections.map((s) => ({ ...s })));
 	let selectedPageId = $state<string>('all');
-	let drawerOpen = $state(false);
-	let editingId = $state<string | null>(null);
 
 	interface SectionFormData {
 		page: string;
@@ -52,15 +50,12 @@
 		actions: []
 	});
 
+	// Inline editing & creating state: null | 'new' | string (section id)
+	let inlineId = $state<string | null>(null);
 	let saving = $state(false);
 	let formError = $state('');
 	let error = $state('');
 	let successMsg = $state('');
-
-	// Inline in-card editing (#57)
-	let inlineId = $state<string | null>(null);
-	let inlineSaving = $state(false);
-	let inlineError = $state('');
 	let externalImageUrl = $state('');
 	let settingsRest = $state<Record<string, unknown>>({});
 	let externalRest = $state<Record<string, unknown>>({});
@@ -122,8 +117,10 @@
 	}
 
 	function openNew() {
-		editingId = null;
-		inlineId = null;
+		if (inlineId === 'new') {
+			inlineId = null;
+			return;
+		}
 		form = {
 			page: selectedPageId !== 'all' ? selectedPageId : data.pages[0]?.id || '',
 			type: 'hero',
@@ -138,7 +135,7 @@
 		settingsRest = {};
 		externalRest = {};
 		formError = '';
-		drawerOpen = true;
+		inlineId = 'new';
 	}
 
 	async function toggleInline(id: string) {
@@ -147,13 +144,11 @@
 			return;
 		}
 		formError = '';
-		inlineError = '';
 		try {
 			const res = await fetch(`/api/admin/content/sections/${id}`);
 			if (!res.ok) throw new Error('加载区块失败');
 			const body = await res.json();
 			const sec = body.section;
-			editingId = id;
 			const actions: UISectionAction[] = sec.settings?.actions || [];
 			const { actions: _dropActions, external: _dropExternal, ...rest } =
 				(sec.settings && typeof sec.settings === 'object'
@@ -212,11 +207,9 @@
 	}
 
 	async function save() {
-		const inline = inlineId !== null && inlineId === editingId;
-		if (inline) inlineSaving = true;
-		else saving = true;
+		if (!inlineId) return;
+		saving = true;
 		formError = '';
-		inlineError = '';
 		try {
 			const { validActions, imageUrl, settings } = buildSettings();
 			const payload = {
@@ -230,20 +223,43 @@
 				settings
 			};
 
-			const url = editingId
-				? `/api/admin/content/sections/${editingId}`
-				: '/api/admin/content/sections';
+			const isNew = inlineId === 'new';
+			const url = isNew
+				? '/api/admin/content/sections'
+				: `/api/admin/content/sections/${inlineId}`;
 			const res = await fetch(url, {
-				method: editingId ? 'PATCH' : 'POST',
+				method: isNew ? 'POST' : 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			});
 			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存区块失败');
+			if (!res.ok) throw new Error(body.error || (isNew ? '创建区块失败' : '保存区块失败'));
 
-			if (inline && editingId) {
+			if (isNew) {
+				const createdId = body.section?.id || '';
+				sections = [
+					...sections,
+					{
+						id: createdId,
+						pageId: form.page,
+						type: form.type,
+						heading: form.heading,
+						subheading: form.subheading,
+						content: form.content,
+						sortOrder: Number(form.sort_order),
+						isActive: form.is_active,
+						imageCount: imageUrl ? 1 : 0,
+						images: imageUrl ? [imageUrl] : [],
+						imageUrl,
+						settings: { actions: validActions },
+						updated: new Date().toISOString()
+					}
+				];
+				successMsg = '区块已创建';
+			} else {
+				const targetId = inlineId;
 				sections = sections.map((s) =>
-					s.id === editingId
+					s.id === targetId
 						? {
 								...s,
 								pageId: form.page,
@@ -258,21 +274,15 @@
 							}
 						: s
 				);
-				inlineId = null;
 				successMsg = '区块已更新';
-			} else {
-				drawerOpen = false;
-				successMsg = editingId ? '区块已更新' : '区块已创建';
 			}
+			inlineId = null;
 			setTimeout(() => (successMsg = ''), 3000);
 			await refresh();
 		} catch (e: unknown) {
-			const message = e instanceof Error ? e.message : '保存失败';
-			if (inline) inlineError = message;
-			else formError = message;
+			formError = e instanceof Error ? e.message : '保存失败';
 		} finally {
 			saving = false;
-			inlineSaving = false;
 		}
 	}
 
@@ -328,6 +338,7 @@
 			const res = await fetch(`/api/admin/content/sections/${id}`, { method: 'DELETE' });
 			if (!res.ok) throw new Error('删除失败');
 			sections = sections.filter((s) => s.id !== id);
+			if (inlineId === id) inlineId = null;
 			successMsg = '区块已删除';
 			setTimeout(() => (successMsg = ''), 3000);
 		} catch (e: unknown) {
@@ -521,6 +532,251 @@
 	</div>
 {/snippet}
 
+{#snippet sectionPreview(
+	type: SectionType,
+	heading?: string | null,
+	subheading?: string | null,
+	content?: string | null,
+	imageUrl?: string | null,
+	actions: UISectionAction[] = []
+)}
+	<div class="p-4 sm:p-5 bg-zinc-50/40">
+		{#if type === 'hero'}
+			<div
+				class="relative w-full h-44 sm:h-52 rounded-xl overflow-hidden bg-zinc-950 flex items-center justify-center text-center p-6 select-none border border-zinc-900/10 shadow-inner"
+			>
+				{#if imageUrl}
+					<img
+						src={imageUrl}
+						alt={heading}
+						class="absolute inset-0 w-full h-full object-cover opacity-60"
+					/>
+				{:else}
+					<div
+						class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800"
+					>
+						<div
+							class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"
+						></div>
+					</div>
+				{/if}
+				<div class="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]"></div>
+
+				<div class="relative z-10 max-w-lg mx-auto space-y-2 text-white">
+					{#if subheading}
+						<p class="text-[10px] uppercase font-mono tracking-[0.25em] text-zinc-300">
+							{subheading}
+						</p>
+					{/if}
+					<h4
+						class="text-lg sm:text-2xl font-display font-bold uppercase tracking-widest text-white leading-tight"
+					>
+						{heading || 'HERO MAIN FOCUS'}
+					</h4>
+					<div class="pt-1.5 flex items-center justify-center gap-2">
+						<span
+							class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-white text-zinc-900 shadow-xs"
+						>
+							{actions[0]?.text || 'EXPLORE NOW'}
+						</span>
+					</div>
+				</div>
+			</div>
+		{:else if type === 'split_showcase'}
+			<div class="grid grid-cols-2 gap-3 h-40 sm:h-48 select-none">
+				<div
+					class="relative rounded-xl overflow-hidden bg-zinc-900 flex flex-col justify-end p-4 text-white border border-zinc-800"
+				>
+					{#if imageUrl}
+						<img
+							src={imageUrl}
+							alt=""
+							class="absolute inset-0 w-full h-full object-cover opacity-75"
+						/>
+					{:else}
+						<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-zinc-950"></div>
+					{/if}
+					<div
+						class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
+					></div>
+					<div class="relative z-10">
+						<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
+							>ATELIER 01</span
+						>
+						<p
+							class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
+						>
+							{heading || 'WOMEN COLLECTION'}
+						</p>
+					</div>
+				</div>
+
+				<div
+					class="relative rounded-xl overflow-hidden bg-zinc-950 flex flex-col justify-end p-4 text-white border border-zinc-800"
+				>
+					<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-black"></div>
+					<div
+						class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
+					></div>
+					<div class="relative z-10">
+						<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
+							>ATELIER 02</span
+						>
+						<p
+							class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
+						>
+							{subheading || 'MEN SELECTION'}
+						</p>
+					</div>
+				</div>
+			</div>
+		{:else if type === 'feature_split'}
+			<div
+				class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-zinc-200/80 items-center select-none"
+			>
+				<div
+					class="relative rounded-lg overflow-hidden h-32 bg-zinc-100 flex items-center justify-center border border-zinc-200/50"
+				>
+					{#if imageUrl}
+						<img src={imageUrl} alt="" class="w-full h-full object-cover" />
+					{:else}
+						<div class="text-zinc-400 flex flex-col items-center gap-1.5">
+							<UiIcon icon={ImageIcon} size={22} />
+							<span class="text-[10px] font-mono">EDITORIAL VISUAL</span>
+						</div>
+					{/if}
+				</div>
+				<div class="space-y-1.5 py-1 pr-2">
+					<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+						{subheading || 'HERITAGE CRAFT'}
+					</span>
+					<h4
+						class="text-sm sm:text-base font-display font-bold uppercase text-zinc-900 tracking-wider"
+					>
+						{heading || 'DESIGN PHILOSOPHY'}
+					</h4>
+					<p class="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+						{content ||
+							'探索优雅与前卫工艺的融合，每一道剪裁皆经过手工雕琢，呈现历久弥新的高定风尚。'}
+					</p>
+					<div class="pt-0.5">
+						<span
+							class="text-[10px] font-bold uppercase tracking-wider text-zinc-900 underline underline-offset-4"
+						>
+							{actions[0]?.text || 'READ THE STORY'} →
+						</span>
+					</div>
+				</div>
+			</div>
+		{:else if type === 'product_grid'}
+			<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
+				<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+					<div>
+						<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
+							>SHOWCASE</span
+						>
+						<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+							{heading || 'CURATED SELECTION'}
+						</h4>
+					</div>
+					<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
+						>VIEW ALL</span
+					>
+				</div>
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+					{#each [{ title: 'Wool Tailored Blazer', price: '¥ 3,490' }, { title: 'Silk Pleated Dress', price: '¥ 2,850' }, { title: 'Cashmere Knit Top', price: '¥ 1,980' }, { title: 'Leather Mini Bag', price: '¥ 4,200' }] as item}
+						<div
+							class="bg-zinc-50/80 rounded-lg p-2 border border-zinc-200/40 text-center space-y-1.5"
+						>
+							<div
+								class="aspect-3/4 rounded bg-zinc-200/60 flex items-center justify-center text-zinc-400"
+							>
+								<UiIcon icon={ShoppingBag} size={16} className="opacity-50" />
+							</div>
+							<div class="text-[10px] font-medium text-zinc-800 truncate">{item.title}</div>
+							<div class="text-[9px] font-mono font-bold text-zinc-500">{item.price}</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{:else if type === 'category_grid'}
+			<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
+				<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+					<div>
+						<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
+							>CATEGORIES</span
+						>
+						<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+							{heading || 'EXPLORE BY CATEGORY'}
+						</h4>
+					</div>
+					<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
+						>COLLECTIONS</span
+					>
+				</div>
+				<div class="grid grid-cols-3 gap-2.5">
+					{#each ['OUTERWEAR', 'LEATHER GOODS', 'ACCESSORIES'] as cat, idx}
+						<div
+							class="relative h-20 sm:h-24 rounded-lg overflow-hidden bg-zinc-900 flex items-end p-2.5 text-white border border-zinc-800"
+						>
+							<div
+								class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/60 to-transparent"
+							></div>
+							<div class="relative z-10">
+								<span class="text-[8px] font-mono text-zinc-400">0{idx + 1}</span>
+								<div class="text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+									{cat}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{:else if type === 'cta_banner'}
+			<div
+				class="bg-zinc-900 text-white p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-zinc-800 select-none shadow-xs"
+			>
+				<div class="space-y-1">
+					<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+						{subheading || 'NEWSLETTER & EXCLUSIVES'}
+					</span>
+					<h4
+						class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-white"
+					>
+						{heading || 'JOIN THE PRIVILEGE CLUB'}
+					</h4>
+				</div>
+				<span
+					class="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-white text-zinc-900 text-xs font-bold tracking-wider uppercase shrink-0 shadow-xs"
+				>
+					{actions[0]?.text || 'SUBSCRIBE NOW'}
+				</span>
+			</div>
+		{:else}
+			<div
+				class="bg-white p-6 rounded-xl border border-zinc-200/80 text-center max-w-xl mx-auto space-y-2 select-none"
+			>
+				{#if subheading}
+					<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+						{subheading}
+					</span>
+				{/if}
+				<h4
+					class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-900"
+				>
+					{heading || 'EDITORIAL STORY'}
+				</h4>
+				<p
+					class="text-xs text-zinc-600 line-clamp-3 leading-relaxed font-serif italic max-w-md mx-auto"
+				>
+					{content ||
+						'“真正的奢华无需繁复的堆砌，而是经由纯粹线条与高级质感唤醒的内在从容。”'}
+				</p>
+			</div>
+		{/if}
+	</div>
+{/snippet}
+
 <svelte:head>
 	<title>页面排版 | 管理后台</title>
 	<meta name="robots" content="noindex, nofollow" />
@@ -616,7 +872,76 @@
 
 	<!-- Visual Block Stream -->
 	<div class="space-y-4">
-		{#if filteredSections.length === 0}
+		<!-- Inline Create Block Card -->
+		{#if inlineId === 'new'}
+			<article
+				class="bg-white border-2 border-zinc-900 rounded-card overflow-hidden transition-all shadow-xs"
+			>
+				<div
+					class="px-5 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70"
+				>
+					<div class="flex items-center gap-2 min-w-0">
+						<span
+							class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-zinc-900 text-white"
+						>
+							新建区块
+						</span>
+						<span class="font-medium text-sm text-zinc-900 truncate">
+							{form.heading || '（输入主标题实时预览）'}
+						</span>
+					</div>
+					<button
+						type="button"
+						onclick={() => (inlineId = null)}
+						class={ADMIN_BUTTONS.icon}
+						title="取消"
+					>
+						<UiIcon icon={X} size={16} />
+					</button>
+				</div>
+
+				<!-- Live Preview of New Block -->
+				{@render sectionPreview(
+					form.type,
+					form.heading,
+					form.subheading,
+					form.content,
+					externalImageUrl.trim(),
+					form.actions
+				)}
+
+				<!-- Form Fields -->
+				<div class="border-t border-zinc-100 bg-white px-5 py-5 space-y-5 text-xs text-zinc-700">
+					{#if formError}
+						<p role="alert" class="p-3 bg-rose-50 text-rose-600 rounded-lg border border-rose-200">
+							{formError}
+						</p>
+					{/if}
+
+					{@render sectionFormFields()}
+
+					<div class="flex items-center justify-end gap-3 pt-2">
+						<button
+							type="button"
+							onclick={() => (inlineId = null)}
+							class={ADMIN_BUTTONS.secondary}
+						>
+							取消
+						</button>
+						<button
+							type="button"
+							onclick={save}
+							disabled={saving}
+							class={ADMIN_BUTTONS.primary}
+						>
+							{saving ? '创建中…' : '创建区块'}
+						</button>
+					</div>
+				</div>
+			</article>
+		{/if}
+
+		{#if filteredSections.length === 0 && inlineId !== 'new'}
 			<div class="bg-white border border-zinc-200 rounded-card p-12 text-center text-zinc-400">
 				<UiIcon icon={Layers} size={36} className="mx-auto mb-3 opacity-30" />
 				<p class="text-sm font-medium text-zinc-600">当前页面暂无已配置的区块</p>
@@ -756,258 +1081,24 @@
 					</div>
 
 					<!-- Card Body: Miniature Visual Preview -->
-					<div class="p-4 sm:p-5 bg-zinc-50/40">
-						{#if row.type === 'hero'}
-							<!-- Hero Section Preview -->
-							<div
-								class="relative w-full h-44 sm:h-52 rounded-xl overflow-hidden bg-zinc-950 flex items-center justify-center text-center p-6 select-none border border-zinc-900/10 shadow-inner"
-							>
-								{#if activeImageUrl}
-									<img
-										src={activeImageUrl}
-										alt={activeHeading}
-										class="absolute inset-0 w-full h-full object-cover opacity-60"
-									/>
-								{:else}
-									<div
-										class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800"
-									>
-										<div
-											class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"
-										></div>
-									</div>
-								{/if}
-								<div class="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]"></div>
-
-								<div class="relative z-10 max-w-lg mx-auto space-y-2 text-white">
-									{#if activeSubheading}
-										<p class="text-[10px] uppercase font-mono tracking-[0.25em] text-zinc-300">
-											{activeSubheading}
-										</p>
-									{/if}
-									<h4
-										class="text-lg sm:text-2xl font-display font-bold uppercase tracking-widest text-white leading-tight"
-									>
-										{activeHeading || 'HERO MAIN FOCUS'}
-									</h4>
-									<div class="pt-1.5 flex items-center justify-center gap-2">
-										<span
-											class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-white text-zinc-900 shadow-xs"
-										>
-											{activeActions[0]?.text || 'EXPLORE NOW'}
-										</span>
-									</div>
-								</div>
-							</div>
-						{:else if row.type === 'split_showcase'}
-							<!-- Split Showcase Preview -->
-							<div class="grid grid-cols-2 gap-3 h-40 sm:h-48 select-none">
-								<div
-									class="relative rounded-xl overflow-hidden bg-zinc-900 flex flex-col justify-end p-4 text-white border border-zinc-800"
-								>
-									{#if activeImageUrl}
-										<img
-											src={activeImageUrl}
-											alt=""
-											class="absolute inset-0 w-full h-full object-cover opacity-75"
-										/>
-									{:else}
-										<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-zinc-950"></div>
-									{/if}
-									<div
-										class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
-									></div>
-									<div class="relative z-10">
-										<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
-											>ATELIER 01</span
-										>
-										<p
-											class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
-										>
-											{activeHeading || 'WOMEN COLLECTION'}
-										</p>
-									</div>
-								</div>
-
-								<div
-									class="relative rounded-xl overflow-hidden bg-zinc-950 flex flex-col justify-end p-4 text-white border border-zinc-800"
-								>
-									<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-black"></div>
-									<div
-										class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
-									></div>
-									<div class="relative z-10">
-										<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
-											>ATELIER 02</span
-										>
-										<p
-											class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
-										>
-											{activeSubheading || 'MEN SELECTION'}
-										</p>
-									</div>
-								</div>
-							</div>
-						{:else if row.type === 'feature_split'}
-							<!-- Feature Split Preview -->
-							<div
-								class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-zinc-200/80 items-center select-none"
-							>
-								<div
-									class="relative rounded-lg overflow-hidden h-32 bg-zinc-100 flex items-center justify-center border border-zinc-200/50"
-								>
-									{#if activeImageUrl}
-										<img src={activeImageUrl} alt="" class="w-full h-full object-cover" />
-									{:else}
-										<div class="text-zinc-400 flex flex-col items-center gap-1.5">
-											<UiIcon icon={ImageIcon} size={22} />
-											<span class="text-[10px] font-mono">EDITORIAL VISUAL</span>
-										</div>
-									{/if}
-								</div>
-								<div class="space-y-1.5 py-1 pr-2">
-									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
-										{activeSubheading || 'HERITAGE CRAFT'}
-									</span>
-									<h4
-										class="text-sm sm:text-base font-display font-bold uppercase text-zinc-900 tracking-wider"
-									>
-										{activeHeading || 'DESIGN PHILOSOPHY'}
-									</h4>
-									<p class="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
-										{activeContent ||
-											'探索优雅与前卫工艺的融合，每一道剪裁皆经过手工雕琢，呈现历久弥新的高定风尚。'}
-									</p>
-									<div class="pt-0.5">
-										<span
-											class="text-[10px] font-bold uppercase tracking-wider text-zinc-900 underline underline-offset-4"
-										>
-											{activeActions[0]?.text || 'READ THE STORY'} →
-										</span>
-									</div>
-								</div>
-							</div>
-						{:else if row.type === 'product_grid'}
-							<!-- Product Grid Preview -->
-							<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
-								<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
-									<div>
-										<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
-											>SHOWCASE</span
-										>
-										<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-											{activeHeading || 'CURATED SELECTION'}
-										</h4>
-									</div>
-									<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
-										>VIEW ALL</span
-									>
-								</div>
-								<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-									{#each [{ title: 'Wool Tailored Blazer', price: '¥ 3,490' }, { title: 'Silk Pleated Dress', price: '¥ 2,850' }, { title: 'Cashmere Knit Top', price: '¥ 1,980' }, { title: 'Leather Mini Bag', price: '¥ 4,200' }] as item}
-										<div
-											class="bg-zinc-50/80 rounded-lg p-2 border border-zinc-200/40 text-center space-y-1.5"
-										>
-											<div
-												class="aspect-3/4 rounded bg-zinc-200/60 flex items-center justify-center text-zinc-400"
-											>
-												<UiIcon icon={ShoppingBag} size={16} className="opacity-50" />
-											</div>
-											<div class="text-[10px] font-medium text-zinc-800 truncate">{item.title}</div>
-											<div class="text-[9px] font-mono font-bold text-zinc-500">{item.price}</div>
-										</div>
-									{/each}
-								</div>
-							</div>
-						{:else if row.type === 'category_grid'}
-							<!-- Category Grid Preview -->
-							<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
-								<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
-									<div>
-										<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
-											>CATEGORIES</span
-										>
-										<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-											{activeHeading || 'EXPLORE BY CATEGORY'}
-										</h4>
-									</div>
-									<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
-										>COLLECTIONS</span
-									>
-								</div>
-								<div class="grid grid-cols-3 gap-2.5">
-									{#each ['OUTERWEAR', 'LEATHER GOODS', 'ACCESSORIES'] as cat, idx}
-										<div
-											class="relative h-20 sm:h-24 rounded-lg overflow-hidden bg-zinc-900 flex items-end p-2.5 text-white border border-zinc-800"
-										>
-											<div
-												class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/60 to-transparent"
-											></div>
-											<div class="relative z-10">
-												<span class="text-[8px] font-mono text-zinc-400">0{idx + 1}</span>
-												<div class="text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-													{cat}
-												</div>
-											</div>
-										</div>
-									{/each}
-								</div>
-							</div>
-						{:else if row.type === 'cta_banner'}
-							<!-- CTA Banner Preview -->
-							<div
-								class="bg-zinc-900 text-white p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-zinc-800 select-none shadow-xs"
-							>
-								<div class="space-y-1">
-									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
-										{activeSubheading || 'NEWSLETTER & EXCLUSIVES'}
-									</span>
-									<h4
-										class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-white"
-									>
-										{activeHeading || 'JOIN THE PRIVILEGE CLUB'}
-									</h4>
-								</div>
-								<span
-									class="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-white text-zinc-900 text-xs font-bold tracking-wider uppercase shrink-0 shadow-xs"
-								>
-									{activeActions[0]?.text || 'SUBSCRIBE NOW'}
-								</span>
-							</div>
-						{:else}
-							<!-- Rich Text Preview -->
-							<div
-								class="bg-white p-6 rounded-xl border border-zinc-200/80 text-center max-w-xl mx-auto space-y-2 select-none"
-							>
-								{#if activeSubheading}
-									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
-										{activeSubheading}
-									</span>
-								{/if}
-								<h4
-									class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-900"
-								>
-									{activeHeading || 'EDITORIAL STORY'}
-								</h4>
-								<p
-									class="text-xs text-zinc-600 line-clamp-3 leading-relaxed font-serif italic max-w-md mx-auto"
-								>
-									{activeContent ||
-										'“真正的奢华无需繁复的堆砌，而是经由纯粹线条与高级质感唤醒的内在从容。”'}
-								</p>
-							</div>
-						{/if}
-					</div>
+					{@render sectionPreview(
+						row.type,
+						activeHeading,
+						activeSubheading,
+						activeContent,
+						activeImageUrl,
+						activeActions
+					)}
 
 					{#if inlineId === row.id}
 						<div class="border-t border-zinc-100 bg-white px-5 py-5">
 							<div class="space-y-5 text-xs text-zinc-700">
-								{#if inlineError}
+								{#if formError}
 									<p
 										role="alert"
 										class="p-3 bg-rose-50 text-rose-600 rounded-lg border border-rose-200"
 									>
-										{inlineError}
+										{formError}
 									</p>
 								{/if}
 
@@ -1024,10 +1115,10 @@
 									<button
 										type="button"
 										onclick={save}
-										disabled={inlineSaving}
+										disabled={saving}
 										class={ADMIN_BUTTONS.primary}
 									>
-										{inlineSaving ? '保存中…' : '保存修改'}
+										{saving ? '保存中…' : '保存修改'}
 									</button>
 								</div>
 							</div>
@@ -1038,58 +1129,3 @@
 		{/if}
 	</div>
 </div>
-
-<!-- Edit / Create Section Drawer -->
-{#if drawerOpen}
-	<div
-		class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end"
-		role="dialog"
-		aria-modal="true"
-	>
-		<div class="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col overflow-hidden">
-			<!-- Drawer Header -->
-			<div class="px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50">
-				<h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
-					{editingId ? '编辑页面区块' : '新建页面区块'}
-				</h2>
-				<button
-					type="button"
-					onclick={() => (drawerOpen = false)}
-					class={ADMIN_BUTTONS.icon}
-				>
-					<UiIcon icon={X} size={18} />
-				</button>
-			</div>
-
-			<!-- Drawer Body -->
-			<div class="p-6 overflow-y-auto space-y-5 flex-1 text-xs text-zinc-700">
-				{#if formError}
-					<p role="alert" class="p-3 bg-rose-50 text-rose-600 rounded-lg border border-rose-200">
-						{formError}
-					</p>
-				{/if}
-
-				{@render sectionFormFields()}
-			</div>
-
-			<!-- Drawer Footer -->
-			<div class="p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-end gap-3">
-				<button
-					type="button"
-					onclick={() => (drawerOpen = false)}
-					class={ADMIN_BUTTONS.secondary}
-				>
-					取消
-				</button>
-				<button
-					type="button"
-					onclick={save}
-					disabled={saving}
-					class={ADMIN_BUTTONS.primary}
-				>
-					{saving ? '保存中…' : '保存区块'}
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}
