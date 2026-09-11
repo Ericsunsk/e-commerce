@@ -1,6 +1,10 @@
 import type { PageServerLoad } from './$types';
-import { listAdminProducts } from '$domains/catalog/server';
+import { listAdminProducts, getCategories } from '$domains/catalog/server';
 
 export const load: PageServerLoad = async () => {
-	return { products: await listAdminProducts() };
+	const [products, categories] = await Promise.all([
+		listAdminProducts(),
+		getCategories().catch(() => [])
+	]);
+	return { products, categories };
 };

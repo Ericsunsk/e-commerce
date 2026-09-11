@@ -95,10 +95,14 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 			? [rawCategoryIds]
 			: [];
 
+	type CategoryExpand = { category?: CategoriesResponse[] | CategoriesResponse };
+	const expandedCats = (record.expand as unknown as CategoryExpand | undefined)?.category;
+	const resolvedCategories = categories && categories.length > 0 ? categories : mapCategoriesFromExpand(expandedCats);
+
 	let gender: 'mens' | 'womens' | 'unisex' = 'unisex';
-	if (categories) {
-		if (categories.some((c) => c.slug === 'mens' || c.slug === 'men')) gender = 'mens';
-		else if (categories.some((c) => c.slug === 'womens' || c.slug === 'women')) gender = 'womens';
+	if (resolvedCategories && resolvedCategories.length > 0) {
+		if (resolvedCategories.some((c) => c.slug === 'mens' || c.slug === 'men')) gender = 'mens';
+		else if (resolvedCategories.some((c) => c.slug === 'womens' || c.slug === 'women')) gender = 'womens';
 	}
 
 	return {
@@ -113,7 +117,7 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 		image: baseImage,
 		images: baseImages,
 		variants: hasVariants ? variants : undefined,
-		categories: categories,
+		categories: resolvedCategories,
 		categoryIds: categoryIds,
 		attributes: (record.attributes as Record<string, unknown>) || {},
 		isFeature: !!record.is_featured,

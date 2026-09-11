@@ -45,7 +45,14 @@ function product(overrides: Partial<Product> = {}): Product {
 
 describe('admin product row', () => {
 	it('projects pricing, stock aggregates, and status', () => {
-		const row = toAdminProductRow(product(), 'rec-1', true);
+		const row = toAdminProductRow(
+			product({
+				isFeature: true,
+				categories: [{ id: 'cat-1', name: 'Tops', slug: 'tops' } as unknown as import('./models').Category]
+			}),
+			'rec-1',
+			true
+		);
 		expect(row).toMatchObject({
 			id: 'rec-1',
 			slug: 'tee',
@@ -54,8 +61,12 @@ describe('admin product row', () => {
 			priceValue: 50,
 			totalStock: 5,
 			variantCount: 2,
-			isActive: true
+			isActive: true,
+			isFeatured: true,
+			categories: [{ id: 'cat-1', name: 'Tops', slug: 'tops' }]
 		});
+		expect(row.variants).toHaveLength(2);
+		expect(row.variants[0]).toMatchObject({ sku: 'TEE-R-M', color: 'Red', size: 'M', stockQuantity: 3 });
 	});
 
 	it('handles variant-less products as zero stock', () => {

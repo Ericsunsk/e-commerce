@@ -7,6 +7,20 @@
  */
 import type { Product } from './models';
 
+export interface AdminProductVariantSummary {
+	id?: string;
+	color: string;
+	size: string;
+	sku: string;
+	stockQuantity: number;
+}
+
+export interface AdminProductCategorySummary {
+	id: string;
+	name: string;
+	slug: string;
+}
+
 export interface AdminProductRow {
 	id: string;
 	slug: string;
@@ -17,6 +31,9 @@ export interface AdminProductRow {
 	totalStock: number;
 	variantCount: number;
 	isActive: boolean;
+	isFeatured: boolean;
+	categories: AdminProductCategorySummary[];
+	variants: AdminProductVariantSummary[];
 }
 
 export function toAdminProductRow(
@@ -25,6 +42,12 @@ export function toAdminProductRow(
 	isActive: boolean
 ): AdminProductRow {
 	const variants = product.variants ?? [];
+	const categories: AdminProductCategorySummary[] = (product.categories ?? []).map((c) => ({
+		id: c.id,
+		name: c.title || c.name || c.slug,
+		slug: c.slug
+	}));
+
 	return {
 		id: recordId,
 		slug: product.slug,
@@ -34,6 +57,15 @@ export function toAdminProductRow(
 		priceValue: product.priceValue,
 		totalStock: variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0),
 		variantCount: variants.length,
-		isActive
+		isActive,
+		isFeatured: Boolean(product.isFeature),
+		categories,
+		variants: variants.map((v) => ({
+			id: v.id,
+			color: v.color,
+			size: v.size,
+			sku: v.sku,
+			stockQuantity: Number(v.stockQuantity) || 0
+		}))
 	};
 }
