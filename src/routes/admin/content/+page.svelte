@@ -56,7 +56,7 @@
 
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 		<nav class="flex flex-wrap gap-2" aria-label="内容管理">
-			{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
+			{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/sections', label: '页面排版' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
 				<a
 					href={tab.href}
 					aria-current={tab.href === '/admin/content' ? 'page' : undefined}

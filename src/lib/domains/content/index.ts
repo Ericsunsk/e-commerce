@@ -5,9 +5,10 @@
 // Models
 export * from './domain/models';
 
-// Pure Domain Resolvers
+// Pure Domain Resolvers & CMS Admin
 export * from './domain/category-grid';
 export * from './domain/split-showcase';
+export * from './domain/cms-admin';
 
 // UI Components
 export { default as Hero } from './ui/Hero.svelte';
