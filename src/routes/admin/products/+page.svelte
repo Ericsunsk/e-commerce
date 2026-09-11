@@ -18,7 +18,10 @@
 		Sparkles,
 		RotateCcw,
 		Pencil,
-		Trash2
+		Trash2,
+		ListFilter,
+		ArrowUpDown,
+		Check
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import {
@@ -40,11 +43,85 @@
 	let error = $state('');
 	let search = $state('');
 
-	// Filter states
-	let selectedCategory = $state<string>('all');
-	let selectedStatus = $state<'all' | 'active' | 'inactive'>('all');
-	let selectedStock = $state<'all' | 'in_stock' | 'low_stock' | 'out_of_stock'>('all');
+	// Filter states (Multi-selection)
+	let selectedCategoryIds = $state<string[]>([]);
+	let selectedStatuses = $state<('active' | 'inactive')[]>([]);
+	let selectedStocks = $state<('in_stock' | 'low_stock' | 'out_of_stock')[]>([]);
 	let onlyFeatured = $state(false);
+
+	// Popover open states
+	let isFilterOpen = $state(false);
+	let isSortOpen = $state(false);
+
+	// Sort states
+	type SortOption =
+		| 'default'
+		| 'price_asc'
+		| 'price_desc'
+		| 'stock_asc'
+		| 'stock_desc'
+		| 'title_asc'
+		| 'title_desc';
+	let sortBy = $state<SortOption>('default');
+
+	const sortOptions: { id: SortOption; label: string }[] = [
+		{ id: 'default', label: '默认排序' },
+		{ id: 'price_asc', label: '价格：从低到高' },
+		{ id: 'price_desc', label: '价格：从高到低' },
+		{ id: 'stock_asc', label: '库存：从低到高' },
+		{ id: 'stock_desc', label: '库存：从高到低' },
+		{ id: 'title_asc', label: '名称：A 到 Z' },
+		{ id: 'title_desc', label: '名称：Z 到 A' }
+	];
+
+	function toggleCategoryFilter(id: string) {
+		if (selectedCategoryIds.includes(id)) {
+			selectedCategoryIds = selectedCategoryIds.filter((x) => x !== id);
+		} else {
+			selectedCategoryIds = [...selectedCategoryIds, id];
+		}
+	}
+
+	function toggleStatusFilter(status: 'active' | 'inactive') {
+		if (selectedStatuses.includes(status)) {
+			selectedStatuses = selectedStatuses.filter((s) => s !== status);
+		} else {
+			selectedStatuses = [...selectedStatuses, status];
+		}
+	}
+
+	function toggleStockFilter(stock: 'in_stock' | 'low_stock' | 'out_of_stock') {
+		if (selectedStocks.includes(stock)) {
+			selectedStocks = selectedStocks.filter((s) => s !== stock);
+		} else {
+			selectedStocks = [...selectedStocks, stock];
+		}
+	}
+
+	function resetFilters() {
+		selectedCategoryIds = [];
+		selectedStatuses = [];
+		selectedStocks = [];
+	}
+
+	function resetAll() {
+		search = '';
+		selectedCategoryIds = [];
+		selectedStatuses = [];
+		selectedStocks = [];
+		onlyFeatured = false;
+		sortBy = 'default';
+		isFilterOpen = false;
+		isSortOpen = false;
+	}
+
+	let activeFilterCount = $derived(
+		selectedCategoryIds.length + selectedStatuses.length + selectedStocks.length
+	);
+
+	let hasActiveControls = $derived(
+		Boolean(search || activeFilterCount > 0 || onlyFeatured || sortBy !== 'default')
+	);
 
 	// Quick drawer for variant inspection
 	let inspectProduct = $state<AdminProductRow | null>(null);
@@ -53,12 +130,14 @@
 	let totalProducts = $derived(rows.length);
 	let activeProducts = $derived(rows.filter((r) => r.isActive).length);
 	let inactiveProducts = $derived(rows.filter((r) => !r.isActive).length);
+	let inStockProducts = $derived(rows.filter((r) => r.totalStock > 5).length);
+	let lowStockProducts = $derived(rows.filter((r) => r.totalStock > 0 && r.totalStock <= 5).length);
 	let alertProducts = $derived(rows.filter((r) => r.totalStock <= 5).length);
 	let outOfStockProducts = $derived(rows.filter((r) => r.totalStock === 0).length);
 
-	// Filtered product rows
-	let visibleRows = $derived(
-		rows.filter((row) => {
+	// Filtered and sorted product rows
+	let visibleRows = $derived.by(() => {
+		const filtered = rows.filter((row) => {
 			// Search filter: title, slug, sku
 			const q = search.trim().toLowerCase();
 			if (q) {
@@ -69,29 +148,60 @@
 				if (!titleMatch && !slugMatch && !skuMatch) return false;
 			}
 
-			// Category filter
-			if (selectedCategory !== 'all') {
-				const hasCategory = row.categories?.some(
-					(c: { id: string; slug: string }) => c.id === selectedCategory || c.slug === selectedCategory
+			// Category multi-select filter
+			if (selectedCategoryIds.length > 0) {
+				const matchesCategory = row.categories?.some(
+					(c: { id: string; slug: string }) =>
+						selectedCategoryIds.includes(c.id) || selectedCategoryIds.includes(c.slug)
 				);
-				if (!hasCategory) return false;
+				if (!matchesCategory) return false;
 			}
 
-			// Status filter
-			if (selectedStatus === 'active' && !row.isActive) return false;
-			if (selectedStatus === 'inactive' && row.isActive) return false;
+			// Status multi-select filter
+			if (selectedStatuses.length > 0) {
+				const statusMatch =
+					(selectedStatuses.includes('active') && row.isActive) ||
+					(selectedStatuses.includes('inactive') && !row.isActive);
+				if (!statusMatch) return false;
+			}
 
-			// Stock filter
-			if (selectedStock === 'in_stock' && row.totalStock <= 5) return false;
-			if (selectedStock === 'low_stock' && (row.totalStock === 0 || row.totalStock > 5)) return false;
-			if (selectedStock === 'out_of_stock' && row.totalStock > 0) return false;
+			// Stock multi-select filter
+			if (selectedStocks.length > 0) {
+				const stockStatus =
+					row.totalStock === 0
+						? 'out_of_stock'
+						: row.totalStock <= 5
+							? 'low_stock'
+							: 'in_stock';
+				if (!selectedStocks.includes(stockStatus)) return false;
+			}
 
 			// Featured filter
 			if (onlyFeatured && !row.isFeatured) return false;
 
 			return true;
-		})
-	);
+		});
+
+		if (sortBy === 'default') return filtered;
+
+		const sorted = [...filtered];
+		switch (sortBy) {
+			case 'price_asc':
+				return sorted.sort((a, b) => a.priceValue - b.priceValue);
+			case 'price_desc':
+				return sorted.sort((a, b) => b.priceValue - a.priceValue);
+			case 'stock_asc':
+				return sorted.sort((a, b) => a.totalStock - b.totalStock);
+			case 'stock_desc':
+				return sorted.sort((a, b) => b.totalStock - a.totalStock);
+			case 'title_asc':
+				return sorted.sort((a, b) => a.title.localeCompare(b.title));
+			case 'title_desc':
+				return sorted.sort((a, b) => b.title.localeCompare(a.title));
+			default:
+				return sorted;
+		}
+	});
 
 	async function toggleActive(id: string, next: boolean) {
 		const previous = rows;
@@ -380,9 +490,9 @@
 		</div>
 	</div>
 
-	<!-- Search & Filters Toolbar (Single Row directly above table, without outer card) -->
-	<div class="flex flex-wrap items-center gap-2.5">
-		<!-- 1. Search Box at first position -->
+	<!-- Search & Filters Toolbar (Search on left, Action icons right-aligned) -->
+	<div class="flex flex-wrap items-center justify-between gap-2.5">
+		<!-- 1. Search Box (Native 'x' removed) -->
 		<div class="relative w-full sm:w-64 md:w-72 shrink-0">
 			<UiIcon
 				icon={Search}
@@ -390,81 +500,304 @@
 				class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
 			/>
 			<input
-				type="search"
+				type="text"
 				placeholder="搜索商品标题或变体 SKU..."
 				bind:value={search}
 				aria-label="搜索商品"
-				class="w-full h-9 bg-white border border-zinc-200 rounded-card pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 transition-colors"
+				class="w-full h-9 bg-white border border-zinc-200 rounded-card pl-9 pr-3 text-xs text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 transition-colors [&::-webkit-search-cancel-button]:appearance-none"
 			/>
 		</div>
 
-		<!-- 2. Category Filter Dropdown -->
-		<select
-			bind:value={selectedCategory}
-			aria-label="按分类筛选"
-			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
-		>
-			<option value="all">全部分类 ({totalProducts})</option>
-			{#each categories as cat (cat.id)}
-				{@const count = rows.filter((r) => r.categories?.some((c: { id: string }) => c.id === cat.id)).length}
-				<option value={cat.id}>{cat.name || cat.slug} ({count})</option>
-			{/each}
-		</select>
+		<!-- 2. Action Icons Grouped & Aligned to Right -->
+		<div class="flex items-center gap-2 ml-auto">
+			<!-- 筛选 (Filter) Multi-select Popover -->
+			<div class="relative">
+				<button
+					type="button"
+					onclick={() => {
+						isFilterOpen = !isFilterOpen;
+						if (isFilterOpen) isSortOpen = false;
+					}}
+					title="多维筛选 (分类/上架/库存)"
+					aria-label="多维筛选"
+					class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 relative {activeFilterCount > 0
+						? 'bg-zinc-900 text-white border-zinc-900'
+						: isFilterOpen
+							? 'bg-zinc-100 text-zinc-900 border-zinc-300'
+							: 'bg-white text-zinc-600 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+				>
+					<UiIcon icon={ListFilter} size={15} />
+					{#if activeFilterCount > 0}
+						<span
+							class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white leading-none"
+						>
+							{activeFilterCount}
+						</span>
+					{/if}
+				</button>
 
-		<!-- 3. Status Filter Dropdown -->
-		<select
-			bind:value={selectedStatus}
-			aria-label="按上架状态筛选"
-			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
-		>
-			<option value="all">全部上架状态</option>
-			<option value="active">在售在架 ({activeProducts})</option>
-			<option value="inactive">下架暂存 ({inactiveProducts})</option>
-		</select>
+				{#if isFilterOpen}
+					<button
+						type="button"
+						class="fixed inset-0 z-20 cursor-default"
+						onclick={() => (isFilterOpen = false)}
+						aria-label="关闭筛选菜单"
+					></button>
+					<div
+						class="absolute right-0 top-full mt-2 w-80 sm:w-88 bg-white border border-zinc-200 rounded-card p-4 z-30 shadow-xl space-y-4 animate-in fade-in zoom-in-95 duration-100"
+					>
+						<div class="flex items-center justify-between pb-2 border-b border-zinc-100">
+							<div class="flex items-center gap-1.5">
+								<UiIcon icon={ListFilter} size={14} class="text-zinc-700" />
+								<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">商品多维筛选</span>
+							</div>
+							{#if activeFilterCount > 0}
+								<button
+									type="button"
+									onclick={resetFilters}
+									class="text-[11px] text-zinc-400 hover:text-rose-600 transition-colors cursor-pointer"
+								>
+									清空筛选 ({activeFilterCount})
+								</button>
+							{/if}
+						</div>
 
-		<!-- 4. Stock Filter Dropdown -->
-		<select
-			bind:value={selectedStock}
-			aria-label="按库存状态筛选"
-			class="h-9 bg-white border border-zinc-200 rounded-card px-3 text-xs text-zinc-700 outline-none focus:border-zinc-900 cursor-pointer"
-		>
-			<option value="all">全部库存状态</option>
-			<option value="in_stock">库存充足 (>5 件)</option>
-			<option value="low_stock">库存紧张 (1-5 件)</option>
-			<option value="out_of_stock">已售罄 (0 件)</option>
-		</select>
+						<!-- 所属分类 (可多选) -->
+						<div>
+							<div class="flex items-center justify-between text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+								<span>所属分类</span>
+								{#if selectedCategoryIds.length > 0}
+									<button
+										type="button"
+										onclick={() => (selectedCategoryIds = [])}
+										class="text-[10px] text-zinc-400 hover:text-zinc-700 font-normal normal-case cursor-pointer"
+									>
+										重置
+									</button>
+								{/if}
+							</div>
+							{#if categories.length === 0}
+								<p class="text-xs text-zinc-400">暂无分类数据</p>
+							{:else}
+								<div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+									{#each categories as cat (cat.id)}
+										{@const isSelected = selectedCategoryIds.includes(cat.id)}
+										{@const count = rows.filter((r) => r.categories?.some((c: { id: string }) => c.id === cat.id)).length}
+										<button
+											type="button"
+											onclick={() => toggleCategoryFilter(cat.id)}
+											class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {isSelected
+												? 'bg-zinc-900 text-white border-zinc-900 font-medium'
+												: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+										>
+											{#if isSelected}
+												<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+											{/if}
+											<span>{cat.name || cat.slug}</span>
+											<span class="text-[10px] {isSelected ? 'text-zinc-300' : 'text-zinc-400'}">({count})</span>
+										</button>
+									{/each}
+								</div>
+							{/if}
+						</div>
 
-		<!-- 5. Featured Toggle Icon Button -->
-		<button
-			type="button"
-			onclick={() => (onlyFeatured = !onlyFeatured)}
-			title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
-			aria-label="仅看精选推荐"
-			class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 {onlyFeatured
-				? 'bg-amber-50 text-amber-600 border-amber-300'
-				: 'bg-white text-zinc-500 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
-		>
-			<UiIcon icon={Sparkles} size={15} />
-		</button>
+						<!-- 上架状态 (可多选) -->
+						<div>
+							<div class="flex items-center justify-between text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+								<span>上架状态</span>
+								{#if selectedStatuses.length > 0}
+									<button
+										type="button"
+										onclick={() => (selectedStatuses = [])}
+										class="text-[10px] text-zinc-400 hover:text-zinc-700 font-normal normal-case cursor-pointer"
+									>
+										重置
+									</button>
+								{/if}
+							</div>
+							<div class="flex flex-wrap gap-1.5">
+								<button
+									type="button"
+									onclick={() => toggleStatusFilter('active')}
+									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStatuses.includes('active')
+										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
+										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+								>
+									{#if selectedStatuses.includes('active')}
+										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+									{/if}
+									<span>在售在架</span>
+									<span class="text-[10px] {selectedStatuses.includes('active') ? 'text-zinc-300' : 'text-zinc-400'}">({activeProducts})</span>
+								</button>
 
-		<!-- 6. Reset Filters Icon Button -->
-		{#if search || selectedCategory !== 'all' || selectedStatus !== 'all' || selectedStock !== 'all' || onlyFeatured}
+								<button
+									type="button"
+									onclick={() => toggleStatusFilter('inactive')}
+									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStatuses.includes('inactive')
+										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
+										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+								>
+									{#if selectedStatuses.includes('inactive')}
+										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+									{/if}
+									<span>下架暂存</span>
+									<span class="text-[10px] {selectedStatuses.includes('inactive') ? 'text-zinc-300' : 'text-zinc-400'}">({inactiveProducts})</span>
+								</button>
+							</div>
+						</div>
+
+						<!-- 库存状态 (可多选) -->
+						<div>
+							<div class="flex items-center justify-between text-[11px] font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+								<span>库存状态</span>
+								{#if selectedStocks.length > 0}
+									<button
+										type="button"
+										onclick={() => (selectedStocks = [])}
+										class="text-[10px] text-zinc-400 hover:text-zinc-700 font-normal normal-case cursor-pointer"
+									>
+										重置
+									</button>
+								{/if}
+							</div>
+							<div class="flex flex-wrap gap-1.5">
+								<button
+									type="button"
+									onclick={() => toggleStockFilter('in_stock')}
+									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('in_stock')
+										? 'bg-emerald-700 text-white border-emerald-700 font-medium'
+										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+								>
+									{#if selectedStocks.includes('in_stock')}
+										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+									{/if}
+									<span>库存充足</span>
+									<span class="text-[10px] {selectedStocks.includes('in_stock') ? 'text-emerald-200' : 'text-zinc-400'}">({inStockProducts})</span>
+								</button>
+
+								<button
+									type="button"
+									onclick={() => toggleStockFilter('low_stock')}
+									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('low_stock')
+										? 'bg-amber-600 text-white border-amber-600 font-medium'
+										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+								>
+									{#if selectedStocks.includes('low_stock')}
+										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+									{/if}
+									<span>库存紧张</span>
+									<span class="text-[10px] {selectedStocks.includes('low_stock') ? 'text-amber-200' : 'text-zinc-400'}">({lowStockProducts})</span>
+								</button>
+
+								<button
+									type="button"
+									onclick={() => toggleStockFilter('out_of_stock')}
+									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('out_of_stock')
+										? 'bg-rose-600 text-white border-rose-600 font-medium'
+										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
+								>
+									{#if selectedStocks.includes('out_of_stock')}
+										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
+									{/if}
+									<span>已售罄</span>
+									<span class="text-[10px] {selectedStocks.includes('out_of_stock') ? 'text-rose-200' : 'text-zinc-400'}">({outOfStockProducts})</span>
+								</button>
+							</div>
+						</div>
+
+						<!-- Footer -->
+						<div class="flex items-center justify-end pt-2 border-t border-zinc-100">
+							<button
+								type="button"
+								onclick={() => (isFilterOpen = false)}
+								class="text-xs px-3.5 py-1.5 rounded-card bg-zinc-900 text-white font-medium hover:bg-zinc-800 transition-colors cursor-pointer"
+							>
+								完成
+							</button>
+						</div>
+					</div>
+				{/if}
+			</div>
+
+			<!-- 精选 (Featured) Toggle Icon -->
 			<button
 				type="button"
-				onclick={() => {
-					search = '';
-					selectedCategory = 'all';
-					selectedStatus = 'all';
-					selectedStock = 'all';
-					onlyFeatured = false;
-				}}
-				title="重置所有筛选"
-				aria-label="重置所有筛选"
-				class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+				onclick={() => (onlyFeatured = !onlyFeatured)}
+				title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
+				aria-label="仅看精选推荐"
+				class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 {onlyFeatured
+					? 'bg-amber-500 text-white border-amber-500'
+					: 'bg-white text-zinc-600 border-zinc-200 hover:text-amber-600 hover:bg-zinc-50'}"
 			>
-				<UiIcon icon={RotateCcw} size={15} />
+				<UiIcon icon={Sparkles} size={15} />
 			</button>
-		{/if}
+
+			<!-- 排序 (Sort) Dropdown Icon -->
+			<div class="relative">
+				<button
+					type="button"
+					onclick={() => {
+						isSortOpen = !isSortOpen;
+						if (isSortOpen) isFilterOpen = false;
+					}}
+					title="排序方式"
+					aria-label="排序方式"
+					class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 relative {sortBy !== 'default'
+						? 'bg-zinc-900 text-white border-zinc-900'
+						: isSortOpen
+							? 'bg-zinc-100 text-zinc-900 border-zinc-300'
+							: 'bg-white text-zinc-600 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+				>
+					<UiIcon icon={ArrowUpDown} size={15} />
+				</button>
+
+				{#if isSortOpen}
+					<button
+						type="button"
+						class="fixed inset-0 z-20 cursor-default"
+						onclick={() => (isSortOpen = false)}
+						aria-label="关闭排序菜单"
+					></button>
+					<div
+						class="absolute right-0 top-full mt-2 w-48 bg-white border border-zinc-200 rounded-card p-1.5 z-30 shadow-xl space-y-0.5 animate-in fade-in zoom-in-95 duration-100"
+					>
+						<div class="px-2.5 py-1.5 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+							排序方式
+						</div>
+						{#each sortOptions as opt (opt.id)}
+							<button
+								type="button"
+								onclick={() => {
+									sortBy = opt.id;
+									isSortOpen = false;
+								}}
+								class="w-full px-2.5 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer {sortBy === opt.id
+									? 'bg-zinc-100 text-zinc-900 font-semibold'
+									: 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900'}"
+							>
+								<span>{opt.label}</span>
+								{#if sortBy === opt.id}
+									<UiIcon icon={Check} size={13} class="text-zinc-900" />
+								{/if}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<!-- 重置 (Reset) Icon Button (shown when search, filter, featured, or sort active) -->
+			{#if hasActiveControls}
+				<button
+					type="button"
+					onclick={resetAll}
+					title="重置所有筛选和排序"
+					aria-label="重置所有筛选和排序"
+					class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+				>
+					<UiIcon icon={RotateCcw} size={15} />
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Table Card -->
@@ -619,6 +952,15 @@
 								<UiIcon icon={SearchX} size={36} class="text-zinc-300 block mb-2.5 mx-auto" />
 								<p class="font-medium">未找到匹配的商品款目</p>
 								<p class="text-xs text-zinc-400 mt-1">请尝试放宽搜索条件或重置筛选器</p>
+								{#if hasActiveControls}
+									<button
+										type="button"
+										onclick={resetAll}
+										class="mt-3 text-xs text-zinc-900 underline font-medium hover:text-zinc-600 transition-colors cursor-pointer"
+									>
+										清空搜索与筛选条件
+									</button>
+								{/if}
 							</td>
 						</tr>
 					{/if}
