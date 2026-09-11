@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
 	isStorefrontVisible,
 	filterVisibleProducts,
-	normalizeActiveToggle
+	normalizeActiveToggle,
+	normalizeFeaturedToggle
 } from './product-visibility';
 
 describe('product visibility', () => {
@@ -25,6 +26,19 @@ describe('product visibility', () => {
 		for (const bad of [null, {}, { is_active: 'yes' }, { is_active: 1 }]) {
 			try {
 				normalizeActiveToggle(bad);
+				expect.unreachable();
+			} catch (err) {
+				expect(err).toMatchObject({ status: 400 });
+			}
+		}
+	});
+
+	it('validates the admin featured toggle payload strictly', () => {
+		expect(normalizeFeaturedToggle({ is_featured: true })).toBe(true);
+		expect(normalizeFeaturedToggle({ is_featured: false })).toBe(false);
+		for (const bad of [null, {}, { is_featured: 'yes' }, { is_featured: 1 }]) {
+			try {
+				normalizeFeaturedToggle(bad);
 				expect.unreachable();
 			} catch (err) {
 				expect(err).toMatchObject({ status: 400 });

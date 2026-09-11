@@ -77,6 +77,18 @@ export async function setProductActive(
 	});
 }
 
+export async function setProductFeatured(
+	productId: string,
+	isFeatured: boolean
+): Promise<{ id: string; is_featured: boolean }> {
+	return withAdmin(async (pb) => {
+		const updated = await pb.collection(Collections.Products).update(productId, {
+			is_featured: isFeatured
+		});
+		return { id: updated.id, is_featured: !!(updated as ProductsResponse).is_featured };
+	});
+}
+
 /** Admin variant stock rollup helper (reused by the dashboard). */
 export async function listVariantStockWithClient(
 	pb: TypedPocketBase

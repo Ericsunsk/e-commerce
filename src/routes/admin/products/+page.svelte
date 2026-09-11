@@ -226,6 +226,30 @@
 		}
 	}
 
+	async function toggleFeatured(id: string, next: boolean) {
+		const previous = rows;
+		rows = rows.map((row) => (row.id === id ? { ...row, isFeatured: next } : row));
+		pendingIds.add(id);
+		error = '';
+
+		try {
+			const res = await fetch(`/api/admin/products/${id}/toggle`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ is_featured: next })
+			});
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				throw new Error(body.error || `Toggle failed (${res.status})`);
+			}
+		} catch (e: unknown) {
+			rows = previous;
+			error = e instanceof Error ? e.message : '切换精选推荐失败';
+		} finally {
+			pendingIds.delete(id);
+		}
+	}
+
 	interface CategoryItem {
 		id: string;
 		name: string;
@@ -766,6 +790,7 @@
 						<th class="{ADMIN_TABLE.headerCell} text-center">变体规格</th>
 						<th class="{ADMIN_TABLE.headerCell} text-center">所属分类</th>
 						<th class="{ADMIN_TABLE.headerCell} text-center">在售状态</th>
+						<th class="{ADMIN_TABLE.headerCell} text-center">首页精选</th>
 						<th class="{ADMIN_TABLE.headerCell} text-right">快捷操作</th>
 					</tr>
 				</thead>
@@ -874,6 +899,28 @@
 								</button>
 							</td>
 
+							<!-- Homepage Featured Switch -->
+							<td class="{ADMIN_TABLE.cell} text-center">
+								<button
+									type="button"
+									role="switch"
+									aria-checked={row.isFeatured}
+									aria-label="切换{row.title}首页精选状态"
+									disabled={pendingIds.has(row.id)}
+									onclick={() => toggleFeatured(row.id, !row.isFeatured)}
+									class="relative inline-flex w-10 h-6 items-center rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed {row.isFeatured
+										? 'bg-amber-500'
+										: 'bg-zinc-300'} disabled:opacity-50"
+									title={row.isFeatured ? '首页精选中 (点击取消)' : '未精选 (点击设为首页推荐)'}
+								>
+									<span
+										class="inline-block w-4 h-4 rounded-full bg-white transition-transform shadow-xs {row.isFeatured
+											? 'translate-x-5'
+											: 'translate-x-1'}"
+									></span>
+								</button>
+							</td>
+
 							<!-- Quick Actions -->
 							<td class="{ADMIN_TABLE.cell} text-right">
 								<div class="inline-flex items-center gap-1.5">
@@ -902,7 +949,7 @@
 
 					{#if visibleRows.length === 0}
 						<tr>
-							<td colspan="7" class="px-5 py-16 text-center text-sm text-zinc-400">
+							<td colspan="8" class="px-5 py-16 text-center text-sm text-zinc-400">
 								<UiIcon icon={SearchX} size={36} class="text-zinc-300 block mb-2.5 mx-auto" />
 								<p class="font-medium">未找到匹配的商品款目</p>
 								<p class="text-xs text-zinc-400 mt-1">请尝试放宽搜索条件或重置筛选器</p>

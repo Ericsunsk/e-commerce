@@ -32,3 +32,16 @@ export function normalizeActiveToggle(input: unknown): boolean {
 	}
 	return value;
 }
+
+/** Validate the admin featured toggle payload; throws `{ status: 400 }` otherwise. */
+export function normalizeFeaturedToggle(input: unknown): boolean {
+	if (!input || typeof input !== 'object') {
+		throw { status: 400, message: '请求数据格式错误' };
+	}
+	const value = (input as Record<string, unknown>).is_featured;
+	if (typeof value !== 'boolean') {
+		throw { status: 400, message: 'is_featured 必须是布尔值' };
+	}
+	return value;
+}
+
