@@ -1,9 +1,9 @@
 /**
  * Pure domain classification for categories into hierarchical tiers.
  * Tiers:
- * 1. Gender / Audience (人群 / 性别): Mens, Womens, Unisex, Kids...
- * 2. Primary / Department (一级品类): Tops, Bottoms, Outerwear, Footwear, Accessories...
- * 3. Subcategories / Product Types (细分子类): Hoodies, Pants, Shoes, T-Shirts, Sweaters...
+ * 1. Tier 1 (一级类目): Gender / Audience (Mens, Womens, Unisex, Kids...)
+ * 2. Tier 2 (二级类目): Primary / Department (Tops, Bottoms, Outerwear, Footwear, Accessories...)
+ * 3. Tier 3 (三级类目): Subcategories / Product Types (Hoodies, Pants, Shoes, T-Shirts, Sweaters...)
  * 4. Other (其他类目): Custom categories not matched above.
  */
 
@@ -19,20 +19,20 @@ export interface CategoryTierMeta {
 export const CATEGORY_TIER_DEFINITIONS: Record<CategoryHierarchyTier, CategoryTierMeta> = {
 	gender: {
 		id: 'gender',
-		label: '人群 / 性别',
-		description: '商品定位受众群体',
+		label: '一级类目',
+		description: '性别与适用人群',
 		order: 1
 	},
 	primary: {
 		id: 'primary',
-		label: '一级品类',
-		description: '服饰主类目归属',
+		label: '二级类目',
+		description: '主品类',
 		order: 2
 	},
 	subcategory: {
 		id: 'subcategory',
-		label: '细分子类',
-		description: '细分款式或版型',
+		label: '三级类目',
+		description: '细分子类',
 		order: 3
 	},
 	other: {

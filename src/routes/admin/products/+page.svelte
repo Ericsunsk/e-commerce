@@ -40,11 +40,11 @@
 		const tier = getCategoryTier(cat);
 		switch (tier) {
 			case 'gender':
-				return { label: '人群 / 性别', cls: 'bg-sky-50 text-sky-700 border-sky-200/60' };
+				return { label: '一级类目', cls: 'bg-sky-50 text-sky-700 border-sky-200/60' };
 			case 'primary':
-				return { label: '一级品类', cls: 'bg-purple-50 text-purple-700 border-purple-200/60' };
+				return { label: '二级类目', cls: 'bg-purple-50 text-purple-700 border-purple-200/60' };
 			case 'subcategory':
-				return { label: '细分子类', cls: 'bg-zinc-100 text-zinc-600 border-zinc-200/60' };
+				return { label: '三级类目', cls: 'bg-zinc-100 text-zinc-600 border-zinc-200/60' };
 			default:
 				return { label: '其他类目', cls: 'bg-zinc-50 text-zinc-500 border-zinc-200' };
 		}

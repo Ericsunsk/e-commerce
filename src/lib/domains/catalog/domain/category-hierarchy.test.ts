@@ -51,12 +51,12 @@ describe('category hierarchy domain', () => {
 
 		// Tier 1: Gender / Audience
 		expect(groups[0].id).toBe('gender');
-		expect(groups[0].label).toBe('人群 / 性别');
+		expect(groups[0].label).toBe('一级类目');
 		expect(groups[0].categories.map((c) => c.slug)).toEqual(['mens', 'womens']);
 
 		// Tier 2: Primary Categories
 		expect(groups[1].id).toBe('primary');
-		expect(groups[1].label).toBe('一级品类');
+		expect(groups[1].label).toBe('二级类目');
 		expect(groups[1].categories.map((c) => c.slug)).toEqual([
 			'accessories',
 			'tops',
@@ -67,7 +67,7 @@ describe('category hierarchy domain', () => {
 
 		// Tier 3: Subcategories
 		expect(groups[2].id).toBe('subcategory');
-		expect(groups[2].label).toBe('细分子类');
+		expect(groups[2].label).toBe('三级类目');
 		expect(groups[2].categories.map((c) => c.slug)).toEqual(['pants', 'hoodies', 'shoes']);
 	});
 });
