@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
 	getCategoryTier,
 	groupCategoriesByHierarchy,
-	sortCategoriesByHierarchy
+	sortCategoriesByHierarchy,
+	calculateTierSortShifts
 } from './category-hierarchy';
 
 describe('category hierarchy domain', () => {
@@ -98,5 +99,71 @@ describe('category hierarchy domain', () => {
 			'custom-promo:1'
 		]);
 	});
+
+	describe('calculateTierSortShifts', () => {
+		it('shifts conflicting items forward when inserting new category at 1', () => {
+			const existing = [
+				{ id: 'a', sort_order: 1 },
+				{ id: 'b', sort_order: 2 },
+				{ id: 'c', sort_order: 3 }
+			];
+			const res = calculateTierSortShifts(existing, null, 1);
+			expect(res.targetSortOrder).toBe(1);
+			expect(res.shifts).toEqual([
+				{ id: 'a', sort_order: 2 },
+				{ id: 'b', sort_order: 3 },
+				{ id: 'c', sort_order: 4 }
+			]);
+		});
+
+		it('leaves items before insertion point unaffected', () => {
+			const existing = [
+				{ id: 'a', sort_order: 1 },
+				{ id: 'b', sort_order: 2 },
+				{ id: 'c', sort_order: 4 }
+			];
+			const res = calculateTierSortShifts(existing, null, 2);
+			expect(res.targetSortOrder).toBe(2);
+			expect(res.shifts).toEqual([
+				{ id: 'b', sort_order: 3 }
+			]);
+		});
+
+		it('does nothing if no collision exists', () => {
+			const existing = [
+				{ id: 'a', sort_order: 1 },
+				{ id: 'b', sort_order: 2 }
+			];
+			const res = calculateTierSortShifts(existing, null, 5);
+			expect(res.targetSortOrder).toBe(5);
+			expect(res.shifts).toEqual([]);
+		});
+
+		it('does not shift when updating an item with unchanged sort_order', () => {
+			const existing = [
+				{ id: 'a', sort_order: 1 },
+				{ id: 'b', sort_order: 2 }
+			];
+			const res = calculateTierSortShifts(existing, 'a', 1);
+			expect(res.targetSortOrder).toBe(1);
+			expect(res.shifts).toEqual([]);
+		});
+
+		it('shifts items when updating an item to a smaller conflicting sort_order', () => {
+			const existing = [
+				{ id: 'a', sort_order: 1 },
+				{ id: 'b', sort_order: 2 },
+				{ id: 'c', sort_order: 3 }
+			];
+			// Move 'c' from 3 to 1
+			const res = calculateTierSortShifts(existing, 'c', 1);
+			expect(res.targetSortOrder).toBe(1);
+			expect(res.shifts).toEqual([
+				{ id: 'a', sort_order: 2 },
+				{ id: 'b', sort_order: 3 }
+			]);
+		});
+	});
 });
+
 

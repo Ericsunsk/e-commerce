@@ -4,7 +4,11 @@
 import { withAdmin } from '$shared/infrastructure/server';
 import { Collections, type CategoriesResponse, type TypedPocketBase } from '$shared/infrastructure';
 import { normalizeCategory, toCategoryRow, type CategoryRow } from '../domain/category-admin';
-import { sortCategoriesByHierarchy } from '../domain/category-hierarchy';
+import {
+	getCategoryTier,
+	sortCategoriesByHierarchy,
+	calculateTierSortShifts
+} from '../domain/category-hierarchy';
 
 async function countProductsWithClient(pb: TypedPocketBase, categoryId: string): Promise<number> {
 	try {
@@ -48,11 +52,38 @@ export async function saveAdminCategory(
 ): Promise<{ id: string }> {
 	const data = normalizeCategory(input);
 	return withAdmin(async (pb) => {
+		const targetTier = getCategoryTier({ slug: data.slug, name: data.name });
+
+		// Fetch all existing categories to check the same tier for sort collisions
+		const allRecords = (await pb
+			.collection(Collections.Categories)
+			.getFullList()) as CategoriesResponse[];
+
+		const sameTierItems = allRecords
+			.filter((r) => getCategoryTier({ slug: r.slug, name: r.name }) === targetTier)
+			.map((r) => ({
+				id: r.id,
+				sort_order: Number(r.sort_order) || 0
+			}));
+
+		const { targetSortOrder, shifts } = calculateTierSortShifts(
+			sameTierItems,
+			id,
+			data.sort_order
+		);
+
+		// Execute cascade shifts for items that collide
+		for (const shift of shifts) {
+			await pb.collection(Collections.Categories).update(shift.id, {
+				sort_order: shift.sort_order
+			});
+		}
+
 		const payload = {
 			name: data.name,
 			slug: data.slug,
 			description: data.description || undefined,
-			sort_order: data.sort_order,
+			sort_order: targetSortOrder,
 			is_visible: data.is_visible
 		};
 		if (id) {

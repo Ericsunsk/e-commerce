@@ -385,7 +385,12 @@
 			const res = await fetch(`/api/admin/categories/${cat.id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: cat.name, slug: cat.slug, is_visible: next })
+				body: JSON.stringify({
+					name: cat.name,
+					slug: cat.slug,
+					sort_order: cat.sortOrder ?? 0,
+					is_visible: next
+				})
 			});
 			if (!res.ok) throw new Error('切换显隐状态失败');
 			await refreshCategories();
@@ -1189,6 +1194,7 @@
 									bind:value={categoryForm.sort_order}
 									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
 								/>
+								<span class="block text-[10px] text-zinc-400">同层级若权重重复将自动顺延已有分类</span>
 							</label>
 						</div>
 

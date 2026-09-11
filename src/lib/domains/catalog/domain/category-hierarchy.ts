@@ -270,3 +270,67 @@ export function sortCategoriesByHierarchy<
 	if (!categories || categories.length === 0) return [];
 	return categories.slice().sort(compareCategoriesByTierAndOrder);
 }
+
+export interface CategorySortItem {
+	id: string;
+	sort_order: number;
+}
+
+export interface SortShiftResult {
+	targetSortOrder: number;
+	shifts: { id: string; sort_order: number }[];
+}
+
+/**
+ * Calculates auto-shift for categories in the same tier when inserting or updating a category.
+ * If targetSortOrder collides with an existing category in the same tier, existing categories
+ * cascade-shift (+1) so that no duplicate sort weights exist within the tier.
+ */
+export function calculateTierSortShifts(
+	existingItemsInTier: CategorySortItem[],
+	targetId: string | null,
+	desiredSortOrder: number
+): SortShiftResult {
+	const cleanDesired = Math.max(1, Math.floor(desiredSortOrder) || 1);
+
+	// If updating an existing item and its sort_order hasn't changed, no shift needed
+	if (targetId) {
+		const current = existingItemsInTier.find((item) => item.id === targetId);
+		if (current && current.sort_order === cleanDesired) {
+			return {
+				targetSortOrder: cleanDesired,
+				shifts: []
+			};
+		}
+	}
+
+	// Exclude the target item itself if it exists
+	const others = existingItemsInTier
+		.filter((item) => item.id !== targetId)
+		.slice()
+		.sort((a, b) => a.sort_order - b.sort_order);
+
+	const shifts: { id: string; sort_order: number }[] = [];
+	let nextAvailable = cleanDesired;
+
+	for (const item of others) {
+		if (item.sort_order < cleanDesired) {
+			// Unaffected items before insertion point
+			continue;
+		}
+
+		if (item.sort_order <= nextAvailable) {
+			const newOrder = nextAvailable + 1;
+			shifts.push({ id: item.id, sort_order: newOrder });
+			nextAvailable = newOrder;
+		} else {
+			nextAvailable = item.sort_order;
+		}
+	}
+
+	return {
+		targetSortOrder: cleanDesired,
+		shifts
+	};
+}
+
