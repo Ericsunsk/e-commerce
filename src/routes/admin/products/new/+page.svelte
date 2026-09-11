@@ -631,31 +631,15 @@
 	<!-- Bottom Section: 售价与规格矩阵 (通栏满屏宽) -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-				<div class={ADMIN_CARDS.sectionHeader}>
-					<span class={ADMIN_CARDS.sectionIconWrap}>
-						<UiIcon icon={Layers} size={ICONS.sizeXl} />
-					</span>
-					<div>
-						<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-						<p class={ADMIN_CARDS.subtitle}>
-							支持按颜色和尺码独立定价与库存管理，基础价自动同步 Stripe
-						</p>
-					</div>
-				</div>
-
-				<div class="flex items-center gap-2 shrink-0">
-					<label for="new-curr" class="text-xs font-semibold text-zinc-600">结算货币:</label>
-					<select
-						id="new-curr"
-						bind:value={currency}
-						class="bg-white border border-zinc-200 hover:border-zinc-300 rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-900 focus:outline-none focus:border-zinc-900"
-					>
-						<option value="USD">USD - 美元 ($)</option>
-						<option value="EUR">EUR - 欧元 (€)</option>
-						<option value="GBP">GBP - 英镑 (£)</option>
-						<option value="CAD">CAD - 加元 ($)</option>
-					</select>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={Layers} size={ICONS.sizeXl} />
+				</span>
+				<div>
+					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
+					<p class={ADMIN_CARDS.subtitle}>
+						支持按颜色和尺码独立定价与库存管理，基础价自动同步 Stripe
+					</p>
 				</div>
 			</div>
 		</div>
