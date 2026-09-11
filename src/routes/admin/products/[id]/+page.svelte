@@ -234,20 +234,15 @@
 						<span class={ADMIN_BADGES.warning}>首页精选推荐</span>
 					{/if}
 				</div>
-				<div class="flex flex-wrap items-center gap-2 mt-2">
-					<span
-						class="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200"
-					>
-						/{data.product.slug}
-					</span>
-					{#if data.product.stripePriceId}
+				{#if data.product.stripePriceId}
+					<div class="flex flex-wrap items-center gap-2 mt-2">
 						<span
 							class="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200"
 						>
 							{data.product.stripePriceId}
 						</span>
-					{/if}
-				</div>
+					</div>
+				{/if}
 			</div>
 
 			<div class="flex items-center gap-2.5 flex-wrap">

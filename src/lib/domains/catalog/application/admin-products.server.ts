@@ -99,7 +99,9 @@ async function ensureUniqueSlug(pb: TypedPocketBase, base: string): Promise<stri
 			return candidate; // 404 → available.
 		}
 	}
-	throw { status: 409, message: `Slug 已被占用: ${base}` };
+	// Fallback to random unique suffix if base has 10+ collisions
+	const randomSuffix = Math.random().toString(36).substring(2, 8);
+	return `${base}-${randomSuffix}`;
 }
 
 async function syncVariantsWithClient(

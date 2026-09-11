@@ -525,9 +525,6 @@
 												</span>
 											{/if}
 										</div>
-										<p class="text-[11px] text-zinc-400 font-mono mt-0.5 truncate">
-											/{row.slug}
-										</p>
 									</div>
 								</div>
 							</td>
@@ -657,7 +654,6 @@
 						</h2>
 						<span class={ADMIN_BADGES.neutral}>规格明细</span>
 					</div>
-					<p class="text-xs text-zinc-400 font-mono mt-0.5">/{inspectProduct.slug}</p>
 				</div>
 				<button
 					type="button"
