@@ -554,119 +554,89 @@
 	<!-- Section 4: Pricing & Variant Matrix -->
 	<section class={ADMIN_CARDS.section}>
 		<div class={ADMIN_CARDS.header}>
-			<div class={ADMIN_CARDS.sectionHeader}>
-				<span class={ADMIN_CARDS.sectionIconWrap}>
-					<UiIcon icon={Layers} size={ICONS.sizeXl} />
-				</span>
-				<div>
-					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-					<p class={ADMIN_CARDS.subtitle}>
-						统一基础零售价联动 Stripe 自动计费，录入多规格与库存初始值
-					</p>
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+				<div class={ADMIN_CARDS.sectionHeader}>
+					<span class={ADMIN_CARDS.sectionIconWrap}>
+						<UiIcon icon={Layers} size={ICONS.sizeXl} />
+					</span>
+					<div>
+						<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
+						<p class={ADMIN_CARDS.subtitle}>
+							统一基础零售价联动 Stripe 自动计费，录入多规格与库存初始值
+						</p>
+					</div>
 				</div>
+				{#if variants.length > 0}
+					<span class={ADMIN_BADGES.neutral}>
+						总库存: {totalStock} 件
+					</span>
+				{/if}
 			</div>
 		</div>
 
 		<div class="space-y-6 pt-5">
-			<!-- Enhanced Pricing & Commercial Summary Deck -->
-			<div class="bg-zinc-50/80 border border-zinc-200/90 rounded-2xl p-5 space-y-4 shadow-2xs">
-				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-200/60 pb-3">
-					<div>
-						<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-							基础定价与商业参数
-						</h3>
-						<p class="text-[11px] text-zinc-500 mt-0.5">
-							统一基础售价联动 Stripe 自动计费，录入多规格与库存初始值
-						</p>
+			<!-- Pricing fields: Clean & Minimalist -->
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
+				<div>
+					<label for="new-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
+						基础统一售价 <span class="text-rose-500">*</span>
+					</label>
+					<div class="relative">
+						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+						<input
+							id="new-price"
+							bind:value={price}
+							type="number"
+							min="0"
+							step="0.01"
+							placeholder="120.00"
+							class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl pl-7 pr-3 py-2 text-sm font-mono font-medium text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs"
+						/>
 					</div>
-
-					{#if price && Number(price) > 0}
-						<div class="flex items-center gap-2 self-start sm:self-auto">
-							<span class="text-[11px] text-zinc-500 font-medium">总库存估值:</span>
-							<span class="text-xs font-bold font-mono text-zinc-900 bg-white px-2.5 py-1 rounded-xl border border-zinc-200 shadow-2xs">
-								${(totalStock * Number(price)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-							</span>
-						</div>
-					{/if}
+					<p class="text-[11px] text-zinc-400 mt-1">买家结算实付金额，联动 Stripe 扣款</p>
 				</div>
 
-				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					<!-- Sale Price -->
-					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
-						<div class="flex items-center justify-between">
-							<label for="new-price" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
-								基础统一售价 *
-							</label>
-							<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-								实付基准
+				<div>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="new-compare-at" class="block text-xs font-bold text-zinc-900">
+							划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
+						</label>
+						{#if compareAt && price && Number(compareAt) > Number(price)}
+							<span class="text-[10px] font-mono font-semibold text-emerald-700">
+								省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
 							</span>
-						</div>
-						<div class="relative flex items-center">
-							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
-							<input
-								id="new-price"
-								bind:value={price}
-								type="number"
-								min="0"
-								step="0.01"
-								placeholder="120.00"
-								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
-							/>
-						</div>
-						<p class="text-[11px] text-zinc-400">买家结算实付金额，联动 Stripe 扣款</p>
+						{/if}
 					</div>
+					<div class="relative">
+						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+						<input
+							id="new-compare-at"
+							bind:value={compareAt}
+							type="number"
+							min="0"
+							step="0.01"
+							placeholder="150.00"
+							class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl pl-7 pr-3 py-2 text-sm font-mono font-medium text-zinc-900 placeholder:text-zinc-400 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs"
+						/>
+					</div>
+					<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
+				</div>
 
-					<!-- Compare-at Price -->
-					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
-						<div class="flex items-center justify-between">
-							<label for="new-compare-at" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
-								划线建议原价
-							</label>
-							{#if compareAt && price && Number(compareAt) > Number(price)}
-								<span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-									省 ${(Number(compareAt) - Number(price)).toFixed(2)} ({Math.round((1 - Number(price) / Number(compareAt)) * 100)}% 折扣)
-								</span>
-							{:else}
-								<span class="text-[10px] text-zinc-400">选填</span>
-							{/if}
-						</div>
-						<div class="relative flex items-center">
-							<span class="text-zinc-400 font-semibold text-lg mr-1.5 font-mono">$</span>
-							<input
-								id="new-compare-at"
-								bind:value={compareAt}
-								type="number"
-								min="0"
-								step="0.01"
-								placeholder="150.00"
-								class="w-full bg-transparent border-none text-lg font-bold font-mono text-zinc-900 outline-none p-0"
-							/>
-						</div>
-						<p class="text-[11px] text-zinc-400">若高于现价，前台将展示划线折扣效果</p>
-					</div>
-
-					<!-- Currency -->
-					<div class="bg-white p-4 rounded-xl border border-zinc-200/90 shadow-2xs space-y-2 focus-within:border-zinc-900 transition-colors">
-						<div class="flex items-center justify-between">
-							<label for="new-curr" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
-								结算货币
-							</label>
-							<span class="text-[10px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full">
-								ISO 4217
-							</span>
-						</div>
-						<select
-							id="new-curr"
-							bind:value={currency}
-							class="w-full bg-transparent border-none text-sm font-semibold text-zinc-900 outline-none py-1.5 cursor-pointer"
-						>
-							<option value="USD">USD - 美元 ($)</option>
-							<option value="EUR">EUR - 欧元 (€)</option>
-							<option value="GBP">GBP - 英镑 (£)</option>
-							<option value="CAD">CAD - 加元 ($)</option>
-						</select>
-						<p class="text-[11px] text-zinc-400">Stripe PaymentIntent 计费货币</p>
-					</div>
+				<div>
+					<label for="new-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
+						结算货币
+					</label>
+					<select
+						id="new-curr"
+						bind:value={currency}
+						class="w-full bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl px-3 py-2 text-sm font-medium text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors shadow-2xs cursor-pointer"
+					>
+						<option value="USD">USD - 美元 ($)</option>
+						<option value="EUR">EUR - 欧元 (€)</option>
+						<option value="GBP">GBP - 英镑 (£)</option>
+						<option value="CAD">CAD - 加元 ($)</option>
+					</select>
+					<p class="text-[11px] text-zinc-400 mt-1">Stripe PaymentIntent 计费货币</p>
 				</div>
 			</div>
 

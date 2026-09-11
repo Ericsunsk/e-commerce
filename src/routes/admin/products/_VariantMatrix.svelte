@@ -15,7 +15,6 @@
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { getFileUrl } from '$shared/kernel';
-	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import {
 		DEFAULT_SIZE_PRESETS,
 		DEFAULT_COLOR_PRESETS,
@@ -417,20 +416,14 @@
 
 <div class="space-y-4">
 	<!-- Top Controls Toolbar -->
-	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-zinc-50/80 p-3 rounded-2xl border border-zinc-200/80">
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
 		<div class="flex items-center gap-2 flex-wrap">
-			<span class="text-xs font-bold uppercase tracking-wider text-zinc-800 flex items-center gap-1.5">
-				<UiIcon icon={Layers} size={15} class="text-zinc-600" />
-				规格变体管理
+			<span class="text-xs font-bold text-zinc-900 tracking-wide uppercase">
+				规格矩阵清单
 			</span>
-			<span class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-white border border-zinc-200 text-zinc-700 shadow-2xs">
-				{colorGroups.length} 颜色系列 · {variants.length} 规格组合
+			<span class="text-xs text-zinc-500 font-mono">
+				({colorGroups.length} 颜色 · {variants.length} 细分规格 · 共 {totalStock} 件在库)
 			</span>
-			{#if variants.length > 0}
-				<span class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono border {totalStock > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">
-					总在库: {totalStock} 件
-				</span>
-			{/if}
 		</div>
 
 		<div class="flex items-center gap-2 flex-wrap">
@@ -438,117 +431,110 @@
 				<button
 					type="button"
 					onclick={regenerateAllSkus}
-					title="根据当前产品代号统一重整所有规格 SKU"
-					class="{ADMIN_BUTTONS.secondarySm} text-xs font-medium"
+					title="根据产品代号重新生成所有规格 SKU"
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:text-zinc-900 hover:border-zinc-300 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
 				>
-					<UiIcon icon={RefreshCw} size={13} />
-					统一重排 SKU
+					<UiIcon icon={RefreshCw} size={12} />
+					<span>重整 SKU</span>
 				</button>
 			{/if}
 
 			<button
 				type="button"
 				onclick={() => (showGenerator = !showGenerator)}
-				class="{showGenerator ? ADMIN_BUTTONS.primarySm : ADMIN_BUTTONS.secondarySm} text-xs font-medium"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors shadow-2xs cursor-pointer {showGenerator ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'}"
 			>
-				<UiIcon icon={Wand2} size={13} />
-				<span>批量预设生成</span>
+				<UiIcon icon={Wand2} size={12} />
+				<span>预设批量生成</span>
 				{#if showGenerator}
-					<UiIcon icon={ChevronUp} size={13} />
+					<UiIcon icon={ChevronUp} size={12} />
 				{:else}
-					<UiIcon icon={ChevronDown} size={13} />
+					<UiIcon icon={ChevronDown} size={12} />
 				{/if}
 			</button>
 
-			<button type="button" onclick={addColor} class="{ADMIN_BUTTONS.primarySm} text-xs font-medium">
+			<button
+				type="button"
+				onclick={addColor}
+				class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+			>
 				<UiIcon icon={Plus} size={13} />
-				添加新颜色
+				<span>添加颜色</span>
 			</button>
 		</div>
 	</div>
 
 	<!-- Collapsible Batch Generator Panel -->
 	{#if showGenerator}
-		<div class="p-5 rounded-2xl bg-zinc-50/90 border border-zinc-300 shadow-sm space-y-4">
-			<div class="flex items-center justify-between border-b border-zinc-200/80 pb-3">
-				<div class="flex items-center gap-2.5">
-					<div class="w-8 h-8 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-xs">
-						<UiIcon icon={Wand2} size={15} />
-					</div>
-					<div>
-						<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-							变体矩阵组合生成器
-						</h3>
-						<p class="text-[11px] text-zinc-500">
-							勾选所需颜色与尺码预设，系统将自动进行笛卡尔乘积组合并生成规范 SKU
-						</p>
-					</div>
+		<div class="p-4 rounded-xl bg-zinc-50/80 border border-zinc-200 space-y-3.5 shadow-2xs">
+			<div class="flex items-center justify-between border-b border-zinc-200/80 pb-2.5">
+				<div>
+					<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+						变体矩阵组合生成器
+					</h3>
+					<p class="text-[11px] text-zinc-500">
+						勾选预设颜色与尺码，系统自动进行笛卡尔组合并生成标准 SKU
+					</p>
 				</div>
 
 				<button
 					type="button"
 					onclick={clearGeneratorSelections}
-					class="text-xs font-medium text-zinc-500 hover:text-zinc-900 hover:underline cursor-pointer"
+					class="text-xs font-medium text-zinc-400 hover:text-zinc-800 cursor-pointer"
 				>
 					清空已选
 				</button>
 			</div>
 
 			<!-- Step 1: Color Presets -->
-			<div class="space-y-2">
-				<div class="flex items-center justify-between">
-					<span class="text-xs font-bold uppercase tracking-wider text-zinc-800 flex items-center gap-1.5">
-						<span class="w-4 h-4 rounded-full bg-zinc-900 text-white text-[10px] flex items-center justify-center font-mono">1</span>
-						选择颜色预设 ({selectedColorPresets.length} 已选)
-					</span>
-				</div>
-
-				<div class="flex flex-wrap gap-2">
+			<div class="space-y-1.5">
+				<span class="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+					1. 选择颜色 ({selectedColorPresets.length} 已选)
+				</span>
+				<div class="flex flex-wrap gap-1.5">
 					{#each DEFAULT_COLOR_PRESETS as preset (preset.name)}
 						{@const isSelected = selectedColorPresets.some((c) => c.name === preset.name)}
 						<button
 							type="button"
 							onclick={() => toggleColorPreset(preset)}
-							class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer {isSelected
-								? 'bg-zinc-900 border-zinc-900 text-white shadow-xs'
-								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 shadow-2xs'}"
+							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors cursor-pointer {isSelected
+								? 'bg-zinc-900 border-zinc-900 text-white shadow-2xs'
+								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'}"
 						>
 							<span
-								class="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0 shadow-2xs"
+								class="w-3 h-3 rounded-full border border-black/20 shrink-0"
 								style="background-color: {preset.swatch};"
 							></span>
 							<span>{preset.name}</span>
-							<span class="text-[10px] font-mono {isSelected ? 'text-zinc-300' : 'text-zinc-400'}">({preset.slug})</span>
+							<span class="text-[10px] font-mono opacity-60">({preset.slug})</span>
 						</button>
 					{/each}
 				</div>
 			</div>
 
 			<!-- Step 2: Size Presets -->
-			<div class="space-y-2">
+			<div class="space-y-1.5">
 				<div class="flex items-center justify-between">
-					<span class="text-xs font-bold uppercase tracking-wider text-zinc-800 flex items-center gap-1.5">
-						<span class="w-4 h-4 rounded-full bg-zinc-900 text-white text-[10px] flex items-center justify-center font-mono">2</span>
-						选择尺码预设 ({selectedSizes.length} 已选)
+					<span class="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+						2. 选择尺码 ({selectedSizes.length} 已选)
 					</span>
 					<button
 						type="button"
 						onclick={selectApparelSizes}
-						class="text-xs font-semibold text-zinc-700 hover:text-zinc-900 underline underline-offset-2 cursor-pointer"
+						class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 underline cursor-pointer"
 					>
-						快速勾选常规服装码 (S - XL)
+						快速勾选 S - XL
 					</button>
 				</div>
-
-				<div class="flex flex-wrap gap-2">
+				<div class="flex flex-wrap gap-1.5">
 					{#each DEFAULT_SIZE_PRESETS as size (size)}
 						{@const isSelected = selectedSizes.includes(size)}
 						<button
 							type="button"
 							onclick={() => toggleSizePreset(size)}
-							class="min-w-10 px-3 py-1.5 rounded-xl border text-xs font-bold font-mono transition-all cursor-pointer {isSelected
-								? 'bg-zinc-900 border-zinc-900 text-white shadow-xs'
-								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50 shadow-2xs'}"
+							class="min-w-9 px-2.5 py-1 rounded-lg border text-xs font-mono font-bold transition-colors cursor-pointer {isSelected
+								? 'bg-zinc-900 border-zinc-900 text-white shadow-2xs'
+								: 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50'}"
 						>
 							{size}
 						</button>
@@ -556,33 +542,33 @@
 				</div>
 			</div>
 
-			<!-- Step 3: Options & Action Bar -->
-			<div class="pt-3.5 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
-				<div class="flex items-center gap-3 w-full sm:w-auto">
-					<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-zinc-200 shadow-2xs">
-						<span class="text-xs font-medium text-zinc-600">初始库存:</span>
+			<!-- Step 3: Generator Footer -->
+			<div class="pt-2.5 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+				<div class="flex items-center gap-3">
+					<div class="flex items-center gap-1.5">
+						<span class="text-xs text-zinc-600 font-medium">初始库存:</span>
 						<input
 							type="number"
 							min="0"
 							bind:value={generatorDefaultStock}
-							class="w-16 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 text-center"
+							class="w-16 bg-white border border-zinc-300 rounded-lg px-2 py-0.5 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 text-center"
 						/>
 						<span class="text-xs text-zinc-400">件</span>
 					</div>
-					<span class="text-xs text-zinc-500 font-medium">
-						将生成 <strong class="font-mono text-zinc-900 text-sm">{previewGeneratedCount}</strong> 个变体规格
+					<span class="text-xs text-zinc-500">
+						将生成 <strong class="font-mono text-zinc-900">{previewGeneratedCount}</strong> 个变体规格
 					</span>
 				</div>
 
-				<div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+				<div class="flex items-center gap-2">
 					{#if variants.length > 0}
 						<button
 							type="button"
 							onclick={() => applyGeneratedMatrix('append')}
 							disabled={selectedColorPresets.length === 0 && selectedSizes.length === 0}
-							class={ADMIN_BUTTONS.secondary}
+							class="px-3 py-1.5 rounded-lg border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50 text-xs font-semibold cursor-pointer disabled:opacity-40"
 						>
-							追加到现有列表
+							追加到现有规格
 						</button>
 					{/if}
 
@@ -590,10 +576,10 @@
 						type="button"
 						onclick={() => applyGeneratedMatrix('replace')}
 						disabled={selectedColorPresets.length === 0 && selectedSizes.length === 0}
-						class={ADMIN_BUTTONS.primary}
+						class="px-3.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold cursor-pointer disabled:opacity-40"
 					>
 						{#if variants.length > 0}
-							覆盖生成规格矩阵
+							覆盖生成矩阵
 						{:else}
 							一键生成规格矩阵
 						{/if}
@@ -603,19 +589,19 @@
 		</div>
 	{/if}
 
-	<!-- Color Group Cards List -->
+	<!-- Color Tables List -->
 	{#if colorGroups.length > 0}
 		<div class="space-y-4">
 			{#each colorGroups as group (group.key)}
-				<div class="bg-white rounded-2xl border border-zinc-200 shadow-xs hover:border-zinc-300 transition-all overflow-hidden">
-					<!-- Card Header: Color Swatch + Name + SKU Prefix + Quick Stock + Actions -->
-					<div class="bg-zinc-50/75 px-4 py-3 border-b border-zinc-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-						<!-- Left controls -->
+				<div class="bg-white border border-zinc-200/90 rounded-xl overflow-hidden shadow-2xs transition-all hover:border-zinc-300">
+					<!-- Color Banner Header -->
+					<div class="bg-zinc-50/70 border-b border-zinc-200/80 px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+						<!-- Left: Color Swatch + Color Name + SKU Prefix -->
 						<div class="flex items-center gap-3 flex-wrap">
 							<!-- Color swatch circle with native picker -->
 							<label
-								class="relative w-8 h-8 rounded-full border-2 border-white shadow-xs ring-1 ring-zinc-200 cursor-pointer overflow-hidden flex items-center justify-center shrink-0 transition-transform hover:scale-105"
-								title="点击更改此颜色色块"
+								class="relative w-6 h-6 rounded-full border border-black/15 shadow-2xs cursor-pointer overflow-hidden flex items-center justify-center shrink-0 hover:scale-105 transition-transform"
+								title="点击修改色值"
 							>
 								<input
 									type="color"
@@ -633,103 +619,35 @@
 							</label>
 
 							<!-- Color Name input -->
-							<div class="flex items-center gap-1.5">
-								<input
-									value={group.color}
-									oninput={(e) =>
-										updateGroupColor(group.key, {
-											color: (e.target as HTMLInputElement).value
-										})}
-									placeholder="颜色名称"
-									aria-label="颜色名称"
-									class="bg-white border border-zinc-200 rounded-lg px-2.5 py-1 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-colors w-32 shadow-2xs"
-								/>
-							</div>
+							<input
+								value={group.color}
+								oninput={(e) =>
+									updateGroupColor(group.key, {
+										color: (e.target as HTMLInputElement).value
+									})}
+								placeholder="颜色名称"
+								class="font-bold text-xs text-zinc-900 bg-white border border-zinc-200 hover:border-zinc-300 focus:border-zinc-900 px-2.5 py-1 rounded-lg outline-none transition-colors w-28 shadow-2xs"
+							/>
 
 							<!-- SKU Prefix Input -->
-							<div class="flex items-center gap-1.5 bg-white border border-zinc-200 rounded-lg px-2.5 py-1 text-xs text-zinc-500 font-mono shadow-2xs">
+							<div class="flex items-center gap-1 bg-white border border-zinc-200 rounded-lg px-2 py-1 text-xs font-mono shadow-2xs">
 								<span class="text-[10px] uppercase font-bold text-zinc-400">SKU前缀:</span>
 								<input
 									value={skuPrefixOf(group)}
 									oninput={(e) =>
 										applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
-									placeholder="SKU 前缀"
-									aria-label="SKU 前缀，可手动覆盖"
+									placeholder="前缀"
 									spellcheck={false}
-									class="bg-transparent border-none text-xs font-mono font-semibold text-zinc-800 outline-none w-28 p-0"
+									class="bg-transparent border-none text-xs font-mono font-medium text-zinc-700 outline-none w-24 p-0"
 									title="自动生成，可手动覆盖修改"
 								/>
 							</div>
 
-							<!-- Stock total badge for this color -->
-							<span class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono border {group.stockTotal > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}">
-								小计: {group.stockTotal} 件
-							</span>
-						</div>
-
-						<!-- Right action buttons -->
-						<div class="flex items-center gap-1.5 self-end sm:self-auto">
-							<button
-								type="button"
-								onclick={() => duplicateColor(group)}
-								title="复制此颜色及全部尺码规格"
-								aria-label="复制颜色"
-								class="{ADMIN_BUTTONS.secondarySm} text-xs font-medium"
-							>
-								<UiIcon icon={Copy} size={13} />
-								<span>复制系列</span>
-							</button>
-
-							{#if confirmDeleteColor === group.key}
-								<div class="flex items-center gap-1.5 shrink-0">
-									<button
-										type="button"
-										onclick={() => removeColor(group.key)}
-										class={ADMIN_BUTTONS.dangerSolidSm}
-									>
-										确认删除
-									</button>
-									<button
-										type="button"
-										onclick={() => (confirmDeleteColor = null)}
-										class={ADMIN_BUTTONS.secondarySm}
-									>
-										取消
-									</button>
-								</div>
-							{:else}
-								<button
-									type="button"
-									onclick={() => (confirmDeleteColor = group.key)}
-									title="删除此颜色及其全部尺码规格"
-									aria-label="删除颜色"
-									class="{ADMIN_BUTTONS.danger} shrink-0"
-								>
-									<UiIcon icon={Trash2} size={15} />
-								</button>
-							{/if}
-						</div>
-					</div>
-
-					<!-- Card Content: Two Column Split (Gallery Left, Sizes Right) -->
-					<div class="p-4 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-						<!-- Column 1: Color Gallery (3 or 4 cols) -->
-						<div class="lg:col-span-4 xl:col-span-3 space-y-2.5 border-b lg:border-b-0 lg:border-r border-zinc-100 pb-4 lg:pb-0 lg:pr-4">
-							<div class="flex items-center justify-between">
-								<span class="text-xs font-bold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
-									<UiIcon icon={ImageIcon} size={14} class="text-zinc-500" />
-									专属图集
-								</span>
-								<span class="text-[11px] font-mono text-zinc-400">
-									{group.gallery.length + group.pendingFiles.length} / {MAX_GALLERY_PER_VARIANT}
-								</span>
-							</div>
-
-							<!-- 4 Thumbnail slots in neat grid -->
-							<div class="grid grid-cols-4 gap-2">
+							<!-- Compact Gallery Thumbnails Strip -->
+							<div class="flex items-center gap-1.5 pl-2 border-l border-zinc-200" title="该颜色专属图集（前台选中该颜色时联动）">
 								{#each group.gallery.slice(0, MAX_GALLERY_PER_VARIANT) as name (name)}
 									{@const owner = group.entries[0]}
-									<div class="relative aspect-square rounded-xl overflow-hidden border border-zinc-200 bg-zinc-100 group/thumb shadow-2xs">
+									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-zinc-200 bg-zinc-100 group/thumb shadow-2xs shrink-0">
 										{#if owner?.row.id}
 											<img
 												src={galleryUrl(owner.row.id, name)}
@@ -738,15 +656,15 @@
 												loading="lazy"
 											/>
 										{:else}
-											<div class="w-full h-full flex items-center justify-center text-[9px] text-zinc-400 px-1 text-center break-all font-mono">
-												{name}
+											<div class="w-full h-full flex items-center justify-center text-[8px] text-zinc-400 font-mono">
+												IMG
 											</div>
 										{/if}
 										<button
 											type="button"
 											onclick={() => removeGroupGalleryImage(group, name)}
-											aria-label="移除图集图片"
-											class="absolute top-1 right-1 w-5 h-5 rounded-full bg-zinc-900/80 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity hover:bg-rose-600 shadow-xs"
+											aria-label="移除图片"
+											class="absolute inset-0 bg-black/60 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity"
 										>
 											<UiIcon icon={X} size={10} />
 										</button>
@@ -754,25 +672,25 @@
 								{/each}
 
 								{#each group.pendingFiles as item (item.file.name + item.file.size + item.file.lastModified)}
-									<div class="relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-zinc-400 bg-zinc-50 group/thumb shadow-2xs">
+									<div class="relative w-7 h-7 rounded-md overflow-hidden border border-dashed border-zinc-400 bg-zinc-50 group/thumb shadow-2xs shrink-0">
 										<img src={previewOf(item.file)} alt="" class="w-full h-full object-cover" />
 										<button
 											type="button"
 											onclick={() => removeGroupGalleryFile(item.ownerIndex, item.file)}
 											aria-label="移除待上传图片"
-											class="absolute top-1 right-1 w-5 h-5 rounded-full bg-zinc-900/80 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity hover:bg-rose-600 shadow-xs"
+											class="absolute inset-0 bg-black/60 text-white hidden group-hover/thumb:flex items-center justify-center cursor-pointer transition-opacity"
 										>
 											<UiIcon icon={X} size={10} />
 										</button>
 									</div>
 								{/each}
 
-								{#each Array.from({ length: Math.max(0, MAX_GALLERY_PER_VARIANT - group.gallery.length - group.pendingFiles.length) }) as _, slotIndex (slotIndex)}
+								{#if group.gallery.length + group.pendingFiles.length < MAX_GALLERY_PER_VARIANT}
 									<label
-										class="aspect-square rounded-xl border-2 border-dashed border-zinc-200 hover:border-zinc-900 text-zinc-400 hover:text-zinc-900 flex flex-col items-center justify-center gap-1 shrink-0 cursor-pointer transition-colors bg-zinc-50/50 hover:bg-white"
-										title="添加图片"
+										class="w-7 h-7 rounded-md border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white shadow-2xs"
+										title="上传颜色图集（最多 4 张）"
 									>
-										<UiIcon icon={ImagePlus} size={15} />
+										<UiIcon icon={ImagePlus} size={12} />
 										<input
 											type="file"
 											accept="image/jpeg,image/png,image/webp,image/avif"
@@ -784,80 +702,107 @@
 											}}
 										/>
 									</label>
-								{/each}
+								{/if}
 							</div>
-
-							<p class="text-[11px] text-zinc-400 leading-relaxed pt-0.5">
-								前台商品详情页中，买家选中该颜色时会自动联动展示这组专属图片。
-							</p>
 						</div>
 
-						<!-- Column 2: Sizes & Stock Matrix (8 or 9 cols) -->
-						<div class="lg:col-span-8 xl:col-span-9 space-y-3">
-							<div class="flex items-center justify-between">
-								<span class="text-xs font-bold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
-									<UiIcon icon={Layers} size={14} class="text-zinc-500" />
-									尺码与实时库存明细
-								</span>
-								<span class="text-[11px] font-mono text-zinc-400">
-									共 {group.entries.length} 个尺码规格
-								</span>
-							</div>
+						<!-- Right: Actions -->
+						<div class="flex items-center gap-2 self-end md:self-auto">
+							<span class="text-xs font-mono text-zinc-500 font-medium mr-1">
+								在库: <strong class="text-zinc-900">{group.stockTotal}</strong> 件
+							</span>
 
-							<!-- Size Cards Grid -->
-							<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+							<button
+								type="button"
+								onclick={() => duplicateColor(group)}
+								title="复制此颜色及全部尺码规格"
+								class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-300 text-xs font-medium transition-colors shadow-2xs cursor-pointer"
+							>
+								<UiIcon icon={Copy} size={11} />
+								<span>复制</span>
+							</button>
+
+							{#if confirmDeleteColor === group.key}
+								<div class="flex items-center gap-1 shrink-0">
+									<button
+										type="button"
+										onclick={() => removeColor(group.key)}
+										class="px-2 py-1 rounded-lg bg-rose-600 text-white text-xs font-medium hover:bg-rose-700 cursor-pointer"
+									>
+										确认删除
+									</button>
+									<button
+										type="button"
+										onclick={() => (confirmDeleteColor = null)}
+										class="px-2 py-1 rounded-lg border border-zinc-200 bg-white text-zinc-600 text-xs font-medium hover:bg-zinc-50 cursor-pointer"
+									>
+										取消
+									</button>
+								</div>
+							{:else}
+								<button
+									type="button"
+									onclick={() => (confirmDeleteColor = group.key)}
+									title="删除此颜色系列"
+									class="p-1.5 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+								>
+									<UiIcon icon={Trash2} size={14} />
+								</button>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Clean Sizes Table -->
+					<div class="overflow-x-auto">
+						<table class="w-full text-left border-collapse">
+							<thead>
+								<tr class="border-b border-zinc-100 bg-zinc-50/40 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+									<th class="py-2.5 px-4 w-36">尺码 (Size)</th>
+									<th class="py-2.5 px-4">完整 SKU 编码</th>
+									<th class="py-2.5 px-4 w-64">在库库存 (Stock)</th>
+									<th class="py-2.5 px-4 w-16 text-right">操作</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-zinc-100 text-xs">
 								{#each group.entries as entry (entry.index)}
-									<div class="bg-zinc-50/70 hover:bg-white border border-zinc-200/90 hover:border-zinc-300 rounded-xl p-3 flex flex-col justify-between gap-2.5 transition-all shadow-2xs hover:shadow-xs group/size">
-										<!-- Top row: Size Label + SKU + Refresh SKU + Remove -->
-										<div class="flex items-center justify-between gap-2">
-											<div class="flex items-center gap-2 min-w-0">
-												<input
-													value={entry.row.size}
-													oninput={(e) => {
-														const next = (e.target as HTMLInputElement).value;
-														const row = variants[entry.index];
-														if (row) variants[entry.index] = { ...row, size: next };
-													}}
-													class="bg-white border border-zinc-200 font-bold text-xs text-zinc-900 rounded-lg px-2 py-0.5 w-16 text-center outline-none focus:border-zinc-900 shadow-2xs"
-													placeholder="尺码"
-													title="可直接修改尺码名称"
-												/>
-												<span class="text-[10px] font-mono text-zinc-400 truncate" title={entry.row.sku}>
-													{entry.row.sku || 'SKU待生成'}
-												</span>
-											</div>
+									<tr class="hover:bg-zinc-50/50 transition-colors group/row">
+										<!-- Size Name Input -->
+										<td class="py-2.5 px-4">
+											<input
+												value={entry.row.size}
+												oninput={(e) => {
+													const next = (e.target as HTMLInputElement).value;
+													const row = variants[entry.index];
+													if (row) variants[entry.index] = { ...row, size: next };
+												}}
+												class="w-24 font-bold text-xs text-zinc-900 bg-zinc-100/80 border border-transparent hover:border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-lg px-2.5 py-1 outline-none transition-colors"
+												placeholder="尺码"
+											/>
+										</td>
 
-											<div class="flex items-center gap-1">
+										<!-- SKU Display + Refresh -->
+										<td class="py-2.5 px-4 font-mono text-zinc-600">
+											<div class="flex items-center gap-1.5">
+												<span>{entry.row.sku || '—'}</span>
 												<button
 													type="button"
 													onclick={() => refreshSizeSku(entry.index)}
-													title="重新生成此尺码 SKU"
-													aria-label="刷新 SKU"
-													class="text-zinc-300 hover:text-zinc-700 p-0.5 rounded transition-colors cursor-pointer opacity-0 group-hover/size:opacity-100"
+													title="根据前缀重新生成此 SKU"
+													class="text-zinc-300 hover:text-zinc-700 opacity-0 group-hover/row:opacity-100 transition-opacity cursor-pointer p-0.5"
 												>
 													<UiIcon icon={RefreshCw} size={11} />
 												</button>
-												<button
-													type="button"
-													onclick={() => removeSize(entry.index)}
-													class="text-zinc-300 hover:text-rose-600 p-0.5 rounded transition-colors cursor-pointer opacity-60 group-hover/size:opacity-100"
-													title="删除此尺码"
-													aria-label="删除此尺码"
-												>
-													<UiIcon icon={X} size={13} />
-												</button>
 											</div>
-										</div>
+										</td>
 
-										<!-- Bottom row: Direct Stock Stepper -->
-										<div class="flex items-center justify-between gap-2 pt-1 border-t border-zinc-100">
-											<span class="text-[11px] text-zinc-500 font-medium">库存:</span>
+										<!-- Stock Stepper Controls -->
+										<td class="py-2.5 px-4">
 											<div class="flex items-center gap-1">
 												<button
 													type="button"
 													onclick={() => modifyRowStock(entry.index, -1)}
-													class="w-6 h-6 rounded-lg bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer disabled:opacity-30 shadow-2xs"
 													disabled={Number(entry.row.stockQuantity) <= 0}
+													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs disabled:opacity-30 cursor-pointer shadow-2xs transition-colors"
 													title="库存 -1"
 												>
 													-
@@ -875,12 +820,12 @@
 																stockQuantity: Math.max(0, Math.floor(Number((e.target as HTMLInputElement).value) || 0))
 															};
 													}}
-													class="w-14 h-6 bg-white border border-zinc-200 rounded-lg text-center text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 shadow-2xs"
+													class="w-16 h-7 border border-zinc-200 rounded-lg text-center font-mono font-bold text-xs text-zinc-900 outline-none focus:border-zinc-900 shadow-2xs"
 												/>
 												<button
 													type="button"
 													onclick={() => modifyRowStock(entry.index, 1)}
-													class="w-6 h-6 rounded-lg bg-white border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+													class="w-7 h-7 rounded-lg border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:border-zinc-400 flex items-center justify-center font-bold text-xs cursor-pointer shadow-2xs transition-colors"
 													title="库存 +1"
 												>
 													+
@@ -888,137 +833,134 @@
 												<button
 													type="button"
 													onclick={() => modifyRowStock(entry.index, 10)}
-													class="h-6 px-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-[10px] font-mono font-semibold transition-colors cursor-pointer ml-1"
+													class="h-7 px-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 text-[11px] font-mono font-medium transition-colors cursor-pointer ml-1"
 													title="快捷补充 10 件库存"
 												>
 													+10
 												</button>
 											</div>
-										</div>
-									</div>
+										</td>
+
+										<!-- Remove Size -->
+										<td class="py-2.5 px-4 text-right">
+											<button
+												type="button"
+												onclick={() => removeSize(entry.index)}
+												class="text-zinc-300 hover:text-rose-600 p-1 rounded transition-colors cursor-pointer"
+												title="删除此规格"
+												aria-label="删除此规格"
+											>
+												<UiIcon icon={X} size={14} />
+											</button>
+										</td>
+									</tr>
 								{/each}
 
-								<!-- Add Size Tile (Inline) -->
-								{#if addingSizeFor === group.key}
-									<div class="bg-white border-2 border-zinc-900 rounded-xl p-3 flex flex-col justify-between gap-2.5 shadow-xs">
-										<div class="space-y-1.5">
-											<div class="flex items-center justify-between">
-												<span class="text-[11px] font-bold text-zinc-800">新建尺码规格</span>
-												<button
-													type="button"
-													onclick={() => (addingSizeFor = null)}
-													class="text-zinc-400 hover:text-zinc-700 cursor-pointer"
-													aria-label="关闭"
-												>
-													<UiIcon icon={X} size={12} />
-												</button>
-											</div>
-
-											<div class="flex items-center gap-2">
+								<!-- Quick Add Size Row inside the table -->
+								<tr class="bg-zinc-50/30">
+									<td colspan="4" class="py-2.5 px-4">
+										{#if addingSizeFor === group.key}
+											<div class="flex items-center gap-2 py-0.5 flex-wrap">
+												<span class="text-xs font-semibold text-zinc-700">新尺码:</span>
 												<input
 													bind:value={newSizeName}
 													placeholder="如 L 或 42"
+													class="w-24 bg-white border border-zinc-300 rounded-lg px-2 py-1 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900 shadow-2xs"
 													onkeydown={(e) => {
 														if (e.key === 'Enter') confirmAddSize(group);
 														if (e.key === 'Escape') addingSizeFor = null;
 													}}
-													class="flex-1 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 text-xs font-bold text-zinc-900 outline-none focus:border-zinc-900"
 												/>
+												<span class="text-xs font-medium text-zinc-500 ml-1">初始库存:</span>
 												<input
 													type="number"
 													min="0"
 													bind:value={newSizeStock}
-													placeholder="库存"
-													class="w-16 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 outline-none focus:border-zinc-900 text-center"
+													class="w-16 bg-white border border-zinc-300 rounded-lg px-2 py-1 text-xs font-mono font-bold text-zinc-900 text-center outline-none focus:border-zinc-900 shadow-2xs"
 												/>
-											</div>
-
-											<!-- Quick Preset Pills -->
-											<div class="flex flex-wrap gap-1 pt-0.5">
-												{#each COMMON_QUICK_SIZES as qs (qs)}
+												<div class="flex items-center gap-1 ml-1">
+													{#each COMMON_QUICK_SIZES as qs (qs)}
+														<button
+															type="button"
+															onclick={() => (newSizeName = qs)}
+															class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-600 cursor-pointer transition-colors"
+														>
+															{qs}
+														</button>
+													{/each}
+												</div>
+												<div class="flex items-center gap-1.5 ml-auto">
 													<button
 														type="button"
-														onclick={() => (newSizeName = qs)}
-														class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 cursor-pointer transition-colors"
+														onclick={() => confirmAddSize(group)}
+														disabled={!newSizeName.trim()}
+														class="px-3 py-1 bg-zinc-900 text-white rounded-lg text-xs font-semibold hover:bg-zinc-800 disabled:opacity-40 cursor-pointer transition-colors"
 													>
-														{qs}
+														确认添加
 													</button>
-												{/each}
+													<button
+														type="button"
+														onclick={() => (addingSizeFor = null)}
+														class="px-2.5 py-1 bg-zinc-100 text-zinc-600 rounded-lg text-xs font-medium hover:bg-zinc-200 cursor-pointer transition-colors"
+													>
+														取消
+													</button>
+												</div>
 											</div>
-										</div>
-
-										<div class="flex items-center gap-1.5 pt-1 border-t border-zinc-100">
+										{:else}
 											<button
 												type="button"
-												onclick={() => confirmAddSize(group)}
-												disabled={!newSizeName.trim()}
-												class="flex-1 py-1 bg-zinc-900 text-white rounded-lg text-xs font-bold hover:bg-zinc-800 disabled:opacity-40 transition-all cursor-pointer"
+												onclick={() => {
+													addingSizeFor = group.key;
+													newSizeName = '';
+													newSizeStock = 10;
+												}}
+												class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 cursor-pointer transition-colors py-0.5"
 											>
-												确认添加
+												<UiIcon icon={Plus} size={13} class="text-zinc-500" />
+												<span>为此颜色添加尺码规格...</span>
 											</button>
-											<button
-												type="button"
-												onclick={() => (addingSizeFor = null)}
-												class="px-2.5 py-1 bg-zinc-100 text-zinc-600 rounded-lg text-xs font-medium hover:bg-zinc-200 transition-colors cursor-pointer"
-											>
-												取消
-											</button>
-										</div>
-									</div>
-								{:else}
-									<button
-										type="button"
-										onclick={() => {
-											addingSizeFor = group.key;
-											newSizeName = '';
-											newSizeStock = 10;
-										}}
-										class="min-h-[82px] border-2 border-dashed border-zinc-200 hover:border-zinc-900 bg-zinc-50/40 hover:bg-white rounded-xl flex flex-col items-center justify-center gap-1 text-zinc-500 hover:text-zinc-900 cursor-pointer transition-all p-3"
-									>
-										<div class="w-6 h-6 rounded-full bg-zinc-100 text-zinc-600 flex items-center justify-center">
-											<UiIcon icon={Plus} size={13} />
-										</div>
-										<span class="text-xs font-semibold">添加尺码</span>
-									</button>
-								{/if}
-							</div>
-						</div>
+										{/if}
+									</td>
+								</tr>
+							</tbody>
+						</table>
 					</div>
 				</div>
 			{/each}
 		</div>
 	{:else}
-		<!-- Empty State with Quick Starter -->
-		<div class="py-12 px-6 text-center border-2 border-dashed border-zinc-200 rounded-2xl bg-white space-y-4 shadow-xs">
-			<div class="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-400 mx-auto">
-				<UiIcon icon={Layers} size={24} />
+		<!-- Clean Empty State -->
+		<div class="py-10 px-6 text-center border border-dashed border-zinc-200 rounded-xl bg-white space-y-3">
+			<div class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 mx-auto">
+				<UiIcon icon={Layers} size={20} />
 			</div>
-			<div class="space-y-1 max-w-md mx-auto">
-				<h3 class="text-sm font-bold text-zinc-900 uppercase tracking-wider">当前暂未配置细分规格</h3>
-				<p class="text-xs text-zinc-500 leading-relaxed">
-					若无细分规格，商品将直接按单一整体库存销售。如需售卖不同颜色或尺码，可点击下方一键开启预设配置。
+			<div class="space-y-1 max-w-sm mx-auto">
+				<h4 class="text-xs font-bold text-zinc-800 uppercase tracking-wider">暂无细分商品规格</h4>
+				<p class="text-[11px] text-zinc-400">
+					未设置多规格时，商品将按单一统一库存售卖。点击下方按钮即可快速配置颜色与尺码。
 				</p>
 			</div>
 
-			<div class="flex items-center justify-center gap-3 pt-2">
+			<div class="flex items-center justify-center gap-2 pt-1">
 				<button
 					type="button"
 					onclick={() => {
 						showGenerator = true;
 						selectApparelSizes();
 					}}
-					class={ADMIN_BUTTONS.primary}
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-medium cursor-pointer shadow-2xs transition-colors"
 				>
-					<UiIcon icon={Wand2} size={14} />
-					一键开启服装规格预设 (S - XL)
+					<UiIcon icon={Wand2} size={12} />
+					<span>快速填充服装常用码 (S-XL)</span>
 				</button>
 				<button
 					type="button"
 					onclick={addColor}
-					class={ADMIN_BUTTONS.secondary}
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:text-zinc-900 text-xs font-medium cursor-pointer shadow-2xs transition-colors"
 				>
-					<UiIcon icon={Plus} size={14} />
-					手动添加自定义颜色
+					<UiIcon icon={Plus} size={12} />
+					<span>添加新颜色</span>
 				</button>
 			</div>
 		</div>
