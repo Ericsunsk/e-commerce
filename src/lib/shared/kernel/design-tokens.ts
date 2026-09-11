@@ -94,7 +94,89 @@ export const RADIUS = {
 export const ADMIN_CARDS = {
 	base: 'bg-white border border-zinc-200/80 rounded-card shadow-xs',
 	kpi: 'bg-white border border-zinc-200/80 rounded-card p-5 shadow-xs flex flex-col justify-between hover:border-zinc-300 transition-colors',
-	section: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between'
+	section: 'bg-white border border-zinc-200/80 rounded-card p-6 shadow-xs flex flex-col justify-between',
+	table: 'bg-white border border-zinc-200 rounded-card shadow-xs overflow-hidden',
+	header: 'flex items-center justify-between border-b border-zinc-100 pb-4',
+	title: 'text-xs font-bold uppercase tracking-wider text-zinc-900',
+	subtitle: 'text-[11px] text-zinc-400',
+	iconBox: 'w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700 shrink-0'
+} as const;
+
+export const ADMIN_PAGE = {
+	container: 'space-y-8 pb-24',
+	header: 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4',
+	title: 'text-2xl font-display font-bold uppercase tracking-widest text-zinc-900',
+	subtitle: 'text-xs text-zinc-500 mt-1',
+	sectionTitle: 'text-lg font-display font-bold uppercase tracking-wider text-zinc-900',
+	sectionSubtitle: 'text-xs text-zinc-500'
+} as const;
+
+export const ADMIN_SEGMENTED = {
+	wrapper: 'flex items-center bg-zinc-100 p-1 rounded-card border border-zinc-200/70 self-start sm:self-auto',
+	itemActive: 'px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer bg-white text-zinc-900 font-semibold shadow-xs',
+	itemInactive: 'px-3 py-1.5 rounded-card-inner text-xs tracking-wider transition-all duration-150 cursor-pointer text-zinc-500 hover:text-zinc-900 font-normal'
+} as const;
+
+export const ADMIN_BADGES = {
+	success: 'inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 font-mono',
+	danger: 'inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60 font-mono',
+	warning: 'inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60 font-mono',
+	info: 'inline-flex items-center gap-1 text-[10px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200/60 font-mono',
+	neutral: 'inline-flex items-center gap-1 text-[10px] font-medium text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-full border border-zinc-200/60 font-mono'
+} as const;
+
+export const ADMIN_FORMS = {
+	label: 'block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5',
+	input: 'w-full bg-white border border-zinc-300 rounded-xl px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 transition-all',
+	select: 'w-full bg-white border border-zinc-300 rounded-xl px-3 py-2 text-xs text-zinc-900 outline-none focus:border-zinc-900',
+	textarea: 'w-full bg-white border border-zinc-300 rounded-xl p-3 text-xs text-zinc-900 font-mono outline-none focus:border-zinc-900',
+	help: 'block text-[11px] text-zinc-400 mt-1',
+	counter: 'text-[11px] text-zinc-400 font-mono',
+	switchBase: 'relative inline-flex w-10 h-6 items-center rounded-full transition-colors',
+	switchTrackActive: 'bg-emerald-500',
+	switchTrackInactive: 'bg-zinc-300',
+	switchThumb: 'inline-block w-4 h-4 rounded-full bg-white transition-transform'
+} as const;
+
+export const ADMIN_BUTTONS = {
+	primary: 'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	secondary: 'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+	danger: 'p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
+	icon: 'p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer'
+} as const;
+
+export const ADMIN_TABLE = {
+	wrapper: 'overflow-x-auto',
+	table: 'w-full text-left text-xs text-zinc-600 border-collapse',
+	headerRow: 'border-b border-zinc-200 bg-zinc-50/80 font-semibold uppercase tracking-wider text-zinc-500 text-xs',
+	headerCell: 'py-3 px-4',
+	body: 'divide-y divide-zinc-100',
+	row: 'hover:bg-zinc-50/60 transition-colors',
+	cell: 'py-3.5 px-4'
+} as const;
+
+export const ADMIN_FLOATING_BAR = {
+	container: 'fixed bottom-0 left-0 lg:left-52 right-0 z-30 bg-white/90 backdrop-blur-md border-t border-zinc-200 px-6 py-3.5 shadow-lg flex items-center justify-between'
+} as const;
+
+export const ADMIN_DRAWER = {
+	backdrop: 'fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end',
+	panel: 'w-full max-w-xl bg-white h-full shadow-2xl flex flex-col overflow-hidden',
+	header: 'px-6 py-4 border-b border-zinc-200 flex items-center justify-between bg-zinc-50',
+	body: 'p-6 overflow-y-auto space-y-5 flex-1 text-xs text-zinc-700',
+	footer: 'p-4 border-t border-zinc-200 bg-zinc-50 flex items-center justify-end gap-3'
+} as const;
+
+export const ADMIN_TOKENS = {
+	page: ADMIN_PAGE,
+	segmented: ADMIN_SEGMENTED,
+	cards: ADMIN_CARDS,
+	badges: ADMIN_BADGES,
+	forms: ADMIN_FORMS,
+	buttons: ADMIN_BUTTONS,
+	table: ADMIN_TABLE,
+	floatingBar: ADMIN_FLOATING_BAR,
+	drawer: ADMIN_DRAWER
 } as const;
 
 
