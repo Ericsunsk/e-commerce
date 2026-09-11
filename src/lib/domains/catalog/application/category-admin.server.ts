@@ -52,15 +52,30 @@ export async function saveAdminCategory(
 ): Promise<{ id: string }> {
 	const data = normalizeCategory(input);
 	return withAdmin(async (pb) => {
-		const targetTier = getCategoryTier({ slug: data.slug, name: data.name });
-
 		// Fetch all existing categories to check the same tier for sort collisions
 		const allRecords = (await pb
 			.collection(Collections.Categories)
 			.getFullList()) as CategoriesResponse[];
 
+		const existing = id ? allRecords.find((r) => r.id === id) : null;
+		const finalSlug = existing ? existing.slug : data.slug;
+
+		const targetTier = getCategoryTier({
+			slug: finalSlug,
+			name: data.name,
+			description: data.description,
+			tier: data.tier
+		});
+
 		const sameTierItems = allRecords
-			.filter((r) => getCategoryTier({ slug: r.slug, name: r.name }) === targetTier)
+			.filter(
+				(r) =>
+					getCategoryTier({
+						slug: r.slug,
+						name: r.name,
+						description: r.description
+					}) === targetTier
+			)
 			.map((r) => ({
 				id: r.id,
 				sort_order: Number(r.sort_order) || 0
@@ -81,7 +96,7 @@ export async function saveAdminCategory(
 
 		const payload = {
 			name: data.name,
-			slug: data.slug,
+			slug: finalSlug,
 			description: data.description || undefined,
 			sort_order: targetSortOrder,
 			is_visible: data.is_visible

@@ -30,7 +30,13 @@ describe('category hierarchy domain', () => {
 		expect(getCategoryTier({ slug: 'custom-sub', name: 'Custom Sub', parent: 'parent-id' })).toBe('subcategory');
 	});
 
-	it('falls back to other for unrecognized custom categories', () => {
+	it('identifies tier via explicit tier field or description tag', () => {
+		expect(getCategoryTier({ name: '自定义男士专区', slug: 'custom-1', tier: 'gender' })).toBe('gender');
+		expect(getCategoryTier({ name: '自定义主品类', slug: 'custom-2', description: 'tier:primary' })).toBe('primary');
+		expect(getCategoryTier({ name: '自定义三级分类', slug: 'custom-3', description: 'tier:subcategory | 备注' })).toBe('subcategory');
+	});
+
+	it('falls back to other for unrecognized custom categories without tier tag', () => {
 		expect(getCategoryTier({ slug: 'limited-edition', name: 'Limited Edition' })).toBe('other');
 	});
 

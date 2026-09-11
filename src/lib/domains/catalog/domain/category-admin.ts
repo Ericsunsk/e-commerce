@@ -2,6 +2,8 @@
  * Category admin model (pure domain).
  */
 
+import type { CategoryHierarchyTier } from './category-hierarchy';
+
 function throwCategoryIssue(message: string): never {
 	throw { status: 400, message };
 }
@@ -12,6 +14,7 @@ export interface NormalizedCategory {
 	description: string;
 	sort_order: number;
 	is_visible: boolean;
+	tier?: CategoryHierarchyTier;
 }
 
 /** Validate the admin category payload. */
@@ -21,24 +24,41 @@ export function normalizeCategory(input: unknown): NormalizedCategory {
 	const name = String(data.name ?? '').trim();
 	if (name.length < 2 || name.length > 60) throwCategoryIssue('分类名需为 2–60 个字符');
 
-	const slugRaw = String(data.slug ?? '')
+	const tier = (data.tier as CategoryHierarchyTier) || undefined;
+
+	let slugRaw = String(data.slug ?? '')
 		.trim()
 		.toLowerCase();
-	const slug = slugRaw || slugify(name);
-	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throwCategoryIssue('slug 需为小写字母/数字/连字符');
+
+	if (!slugRaw) {
+		const base = slugify(name);
+		if (base && base !== 'category') {
+			slugRaw = base;
+		} else {
+			const prefix = tier ? (tier === 'gender' ? 'l1' : tier === 'primary' ? 'l2' : 'l3') : 'cat';
+			slugRaw = `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+		}
+	}
+
+	if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slugRaw)) throwCategoryIssue('slug 需为小写字母/数字/连字符');
 
 	const order = Number(data.sort_order ?? data.order ?? 0);
 	if (!Number.isInteger(order) || order < 0 || order > 9999) {
 		throwCategoryIssue('排序必须是不小于 0 的整数');
 	}
+
+	let description = String(data.description ?? '').trim().slice(0, 500);
+	if (tier && !description.includes(`tier:${tier}`)) {
+		description = description ? `tier:${tier} | ${description}` : `tier:${tier}`;
+	}
+
 	return {
 		name,
-		slug,
-		description: String(data.description ?? '')
-			.trim()
-			.slice(0, 500),
+		slug: slugRaw,
+		description,
 		sort_order: order,
-		is_visible: data.is_visible === undefined ? true : data.is_visible === true
+		is_visible: data.is_visible === undefined ? true : data.is_visible === true,
+		tier
 	};
 }
 
@@ -61,6 +81,8 @@ export interface CategoryRow {
 	sortOrder: number;
 	isActive: boolean;
 	productCount: number;
+	description?: string;
+	tier?: CategoryHierarchyTier;
 }
 
 /** Pure row projection with usage count. */
@@ -71,6 +93,7 @@ export function toCategoryRow(
 		slug: string;
 		sort_order?: number;
 		is_visible?: boolean;
+		description?: string;
 	},
 	productCount: number
 ): CategoryRow {
@@ -80,6 +103,7 @@ export function toCategoryRow(
 		slug: record.slug,
 		sortOrder: Number(record.sort_order) || 0,
 		isActive: record.is_visible !== false,
-		productCount
+		productCount,
+		description: record.description
 	};
 }

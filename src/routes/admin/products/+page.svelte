@@ -32,7 +32,12 @@
 		ADMIN_DRAWER
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
-	import { getCategoryTier, sortCategoriesByHierarchy, type AdminProductRow } from '$domains/catalog';
+	import {
+		getCategoryTier,
+		sortCategoriesByHierarchy,
+		type CategoryHierarchyTier,
+		type AdminProductRow
+	} from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
 
@@ -287,16 +292,34 @@
 	let categoryModalOpen = $state(false);
 	let categoryLoading = $state(false);
 	let categorySaving = $state(false);
+	type CategoryTierOption = 'gender' | 'primary' | 'subcategory';
+
 	let categoryModalError = $state('');
 	let categoryEditingId = $state<string | null>(null);
-	let categoryForm = $state({
+	let categoryForm = $state<{
+		tier: CategoryTierOption;
+		name: string;
+		sort_order: number;
+	}>({
+		tier: 'gender',
 		name: '',
-		slug: '',
-		sort_order: 0,
-		description: '',
-		is_visible: true
+		sort_order: 1
 	});
 	let showCategoryForm = $state(false);
+
+	function getNextTierSortOrder(tier: CategoryHierarchyTier): number {
+		const tierCategories = categories.filter((c) => getCategoryTier(c) === tier);
+		if (tierCategories.length === 0) return 1;
+		const max = Math.max(...tierCategories.map((c) => c.sortOrder ?? 0));
+		return max + 1;
+	}
+
+	function onCategoryTierChange(newTier: CategoryTierOption) {
+		categoryForm.tier = newTier;
+		if (!categoryEditingId) {
+			categoryForm.sort_order = getNextTierSortOrder(newTier);
+		}
+	}
 
 	async function refreshCategories() {
 		categoryLoading = true;
@@ -325,12 +348,11 @@
 
 	function openNewCategory() {
 		categoryEditingId = null;
+		const defaultTier: CategoryTierOption = 'gender';
 		categoryForm = {
+			tier: defaultTier,
 			name: '',
-			slug: '',
-			sort_order: 1,
-			description: '',
-			is_visible: true
+			sort_order: getNextTierSortOrder(defaultTier)
 		};
 		categoryModalError = '';
 		showCategoryForm = true;
@@ -338,12 +360,11 @@
 
 	function openEditCategory(cat: CategoryItem) {
 		categoryEditingId = cat.id;
+		const tier = getCategoryTier(cat);
 		categoryForm = {
+			tier: (tier === 'other' ? 'gender' : tier) as CategoryTierOption,
 			name: cat.name,
-			slug: cat.slug,
-			sort_order: cat.sortOrder ?? 0,
-			description: cat.description ?? '',
-			is_visible: cat.isActive !== false
+			sort_order: cat.sortOrder ?? 1
 		};
 		categoryModalError = '';
 		showCategoryForm = true;
@@ -363,7 +384,11 @@
 			const res = await fetch(url, {
 				method: categoryEditingId ? 'PATCH' : 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(categoryForm)
+				body: JSON.stringify({
+					name: categoryForm.name.trim(),
+					tier: categoryForm.tier,
+					sort_order: Number(categoryForm.sort_order) || 1
+				})
 			});
 			const body = await res.json().catch(() => ({}));
 			if (!res.ok) throw new Error(body.error || '保存分类失败');
@@ -1175,13 +1200,26 @@
 							</button>
 						</div>
 
-						<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+						<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+							<label class="block space-y-1">
+								<span class="text-[11px] font-semibold text-zinc-700">类目层级 *</span>
+								<select
+									value={categoryForm.tier}
+									onchange={(e) => onCategoryTierChange(e.currentTarget.value as CategoryTierOption)}
+									class="w-full bg-white border border-zinc-300 rounded-card px-2.5 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900 cursor-pointer"
+								>
+									<option value="gender">一级类目</option>
+									<option value="primary">二级类目</option>
+									<option value="subcategory">三级类目</option>
+								</select>
+							</label>
+
 							<label class="block space-y-1">
 								<span class="text-[11px] font-semibold text-zinc-700">分类名称 *</span>
 								<input
 									type="text"
 									bind:value={categoryForm.name}
-									placeholder="例如：男装系列"
+									placeholder="例如：男装 / 上装 / 连帽衫"
 									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900"
 								/>
 							</label>
@@ -1190,45 +1228,15 @@
 								<span class="text-[11px] font-semibold text-zinc-700">排序权重 (同类目下越小越靠前)</span>
 								<input
 									type="number"
-									min="0"
+									min="1"
 									bind:value={categoryForm.sort_order}
 									class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
 								/>
-								<span class="block text-[10px] text-zinc-400">同层级若权重重复将自动顺延已有分类</span>
+								<span class="block text-[10px] text-zinc-400">同层级若重复将自动顺延已有分类</span>
 							</label>
 						</div>
 
-						<label class="block space-y-1">
-							<span class="text-[11px] font-semibold text-zinc-700">URL 路径标识 (Slug, 留空将自动生成)</span>
-							<input
-								type="text"
-								bind:value={categoryForm.slug}
-								placeholder="例如：mens-wear"
-								class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs font-mono text-zinc-900 outline-none focus:border-zinc-900"
-							/>
-						</label>
-
-						<label class="block space-y-1">
-							<span class="text-[11px] font-semibold text-zinc-700">分类描述 (可选)</span>
-							<textarea
-								bind:value={categoryForm.description}
-								rows="2"
-								placeholder="简要描述该分类定位..."
-								class="w-full bg-white border border-zinc-300 rounded-card px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-zinc-900 resize-none"
-							></textarea>
-						</label>
-
-						<div class="flex items-center justify-between pt-1">
-							<label class="flex items-center gap-2 cursor-pointer select-none">
-								<input
-									type="checkbox"
-									bind:checked={categoryForm.is_visible}
-									class="w-4 h-4 accent-zinc-900 rounded"
-								/>
-								<span class="text-xs font-medium text-zinc-700">允许前台展示</span>
-							</label>
-
-							<div class="flex items-center gap-2">
+						<div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-200/60">
 								<button
 									type="button"
 									onclick={() => (showCategoryForm = false)}
@@ -1251,7 +1259,6 @@
 								</button>
 							</div>
 						</div>
-					</div>
 				{/if}
 
 				<!-- Categories Table -->

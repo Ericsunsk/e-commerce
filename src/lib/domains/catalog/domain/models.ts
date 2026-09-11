@@ -12,6 +12,7 @@ export const CategorySchema = z.object({
 	name: z.string().optional(),
 	slug: z.string(),
 	parent: z.string().optional(),
+	description: z.string().optional(),
 	isVisible: z.boolean().default(true),
 	sortOrder: z.number().default(0),
 	image: z.string().optional()

@@ -8,6 +8,12 @@ describe('category admin model', () => {
 			slug: 'mens',
 			is_visible: true
 		});
+		const autoNorm = normalizeCategory({ name: '夏季特惠', tier: 'primary', sort_order: 1 });
+		expect(autoNorm.name).toBe('夏季特惠');
+		expect(autoNorm.tier).toBe('primary');
+		expect(autoNorm.slug).toMatch(/^l2-/);
+		expect(autoNorm.description).toContain('tier:primary');
+		expect(autoNorm.sort_order).toBe(1);
 		expect(slugify('Summer Sale 2026')).toBe('summer-sale-2026');
 		expect(slugify('男装')).toBe('category');
 		for (const bad of [

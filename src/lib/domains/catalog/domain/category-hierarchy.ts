@@ -168,7 +168,19 @@ export function getCategoryTier(category: {
 	name?: string;
 	slug?: string;
 	parent?: string;
+	description?: string;
+	tier?: string;
 }): CategoryHierarchyTier {
+	if (category.tier === 'gender' || category.tier === 'primary' || category.tier === 'subcategory' || category.tier === 'other') {
+		return category.tier;
+	}
+
+	const desc = (category.description || '').trim();
+	const tierMatch = desc.match(/(?:^|\b|\[)tier:(gender|primary|subcategory|other)(?:\b|\]|$)/i);
+	if (tierMatch) {
+		return tierMatch[1].toLowerCase() as CategoryHierarchyTier;
+	}
+
 	if (category.parent && category.parent.trim().length > 0) {
 		return 'subcategory';
 	}

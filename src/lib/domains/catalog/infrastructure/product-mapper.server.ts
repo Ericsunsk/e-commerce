@@ -164,7 +164,8 @@ export function mapRecordToCategory(record: CategoriesResponse): Category {
 		slug: record.slug,
 		image: record.image ? getFileUrl('categories', record.id, record.image) : undefined,
 		isVisible: !!record.is_visible,
-		sortOrder: record.sort_order || 0
+		sortOrder: record.sort_order || 0,
+		description: record.description
 	};
 }
 
@@ -187,6 +188,7 @@ export function mapCategoriesFromExpand(
 			slug: c.slug,
 			image: c.image ? getFileUrl('categories', c.id, c.image) : undefined,
 			isVisible: !!c.is_visible,
-			sortOrder: c.sort_order || 0
+			sortOrder: c.sort_order || 0,
+			description: c.description
 		}));
 }
