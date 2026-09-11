@@ -2,6 +2,7 @@
  * CMS pages + navigation admin (server-only).
  */
 import { withAdmin } from '$shared/infrastructure/server';
+import { getFileUrl } from '$shared/kernel';
 import {
 	Collections,
 	type PagesResponse,
@@ -117,19 +118,31 @@ export async function listAdminSections(pageId?: string): Promise<SectionRow[]> 
 			sort: 'sort_order',
 			...(pageId ? { filter: `page = "${pageId}"` } : {})
 		});
-		return (records as Array<UiSectionsResponse & { updated?: string }>).map((r) =>
-			toSectionRow({
+		return (records as Array<UiSectionsResponse & { updated?: string }>).map((r) => {
+			const images = Array.isArray(r.image) ? r.image : r.image ? [r.image] : [];
+			const settings = (r.settings && typeof r.settings === 'object' ? r.settings : {}) as Record<
+				string,
+				any
+			>;
+			let imageUrl = images[0] ? getFileUrl(Collections.UiSections, r.id, images[0]) : '';
+			if (!imageUrl && settings.external?.image_url) {
+				imageUrl = String(settings.external.image_url);
+			}
+			return toSectionRow({
 				id: r.id,
 				page: r.page,
 				type: r.type,
 				heading: r.heading,
 				subheading: r.subheading,
+				content: r.content,
 				sort_order: r.sort_order,
 				is_active: r.is_active,
 				image: r.image,
+				imageUrl,
+				settings: r.settings,
 				updated: String(r.updated ?? '')
-			})
-		);
+			});
+		});
 	}, []);
 }
 

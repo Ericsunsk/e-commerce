@@ -8,7 +8,8 @@
 		Layers,
 		ArrowUp,
 		ArrowDown,
-		ImageIcon
+		ImageIcon,
+		ShoppingBag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { ADMIN_BUTTONS } from '$shared/kernel';
@@ -60,12 +61,27 @@
 		new Map(data.pages.map((p) => [p.id, p]))
 	);
 
-	// Filtered sections
+	// Filtered sections (ordered by sortOrder)
 	let filteredSections = $derived(
-		selectedPageId === 'all'
+		(selectedPageId === 'all'
 			? sections
 			: sections.filter((s) => s.pageId === selectedPageId)
+		).slice().sort((a, b) => a.sortOrder - b.sortOrder)
 	);
+
+	let previewUrl = $derived.by(() => {
+		if (selectedPageId === 'all') return '/';
+		const page = pageMap.get(selectedPageId);
+		if (!page || page.slug === 'home' || page.slug === 'index') return '/';
+		return `/${page.slug}`;
+	});
+
+	let previewLabel = $derived.by(() => {
+		if (selectedPageId === 'all') return '前台首页';
+		const page = pageMap.get(selectedPageId);
+		if (!page || page.slug === 'home' || page.slug === 'index') return '前台首页';
+		return page.title || page.slug;
+	});
 
 	function getPageName(pageId: string) {
 		const p = pageMap.get(pageId);
@@ -301,14 +317,26 @@
 			</p>
 		</div>
 
-		<button
-			type="button"
-			onclick={openNew}
-			class={ADMIN_BUTTONS.primary}
-		>
-			<UiIcon icon={Plus} size={14} />
-			<span>新建区块</span>
-		</button>
+		<div class="flex items-center gap-3">
+			<a
+				href={previewUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				class={ADMIN_BUTTONS.secondary}
+				title={`在新标签页打开 ${previewLabel} 实时前台页面`}
+			>
+				<UiIcon icon={ExternalLink} size={14} />
+				<span>在新标签页预览 ({previewLabel})</span>
+			</a>
+			<button
+				type="button"
+				onclick={openNew}
+				class={ADMIN_BUTTONS.primary}
+			>
+				<UiIcon icon={Plus} size={14} />
+				<span>新建区块</span>
+			</button>
+		</div>
 	</div>
 
 	<!-- Page Filter Tabs -->
@@ -350,131 +378,378 @@
 		</p>
 	{/if}
 
-	<!-- Sections List Table -->
-	<section class="bg-white border border-zinc-200 rounded-card overflow-hidden">
+	<!-- Visual Block Stream -->
+	<div class="space-y-4">
 		{#if filteredSections.length === 0}
-			<div class="p-12 text-center text-zinc-400">
-				<UiIcon icon={Layers} size={36} className="mx-auto mb-3 opacity-40" />
-				<p class="text-sm font-medium">当前页面暂无已配置的区块</p>
-				<p class="text-xs mt-1">点击右上角「新建区块」可添加新布局</p>
+			<div class="bg-white border border-zinc-200 rounded-card p-12 text-center text-zinc-400">
+				<UiIcon icon={Layers} size={40} className="mx-auto mb-3 opacity-40" />
+				<p class="text-sm font-medium text-zinc-600">当前页面暂无已配置的区块</p>
+				<p class="text-xs mt-1 text-zinc-400">点击右上角「新建区块」可添加新布局</p>
+				<button
+					type="button"
+					onclick={openNew}
+					class="{ADMIN_BUTTONS.secondary} mt-4"
+				>
+					<UiIcon icon={Plus} size={14} />
+					<span>新建第一个区块</span>
+				</button>
 			</div>
 		{:else}
-			<div class="overflow-x-auto">
-				<table class="w-full text-left text-xs text-zinc-600 border-collapse">
-					<thead>
-						<tr class="border-b border-zinc-200 bg-zinc-50/80 font-semibold uppercase tracking-wider text-zinc-500">
-							<th class="py-3 px-4 w-24">排序</th>
-							<th class="py-3 px-4 w-44">区块类型</th>
-							<th class="py-3 px-4 min-w-[200px]">主标题 / 副标题</th>
-							<th class="py-3 px-4 w-36">所属页面</th>
-							<th class="py-3 px-4 w-24 text-center">状态</th>
-							<th class="py-3 px-4 w-32 text-right">操作</th>
-						</tr>
-					</thead>
-					<tbody class="divide-y divide-zinc-100">
-						{#each filteredSections as row (row.id)}
-							<tr class="hover:bg-zinc-50/60 transition-colors">
-								<!-- Sort order with quick up/down -->
-								<td class="py-3.5 px-4 font-mono font-medium text-zinc-700">
-									<div class="flex items-center gap-1.5">
-										<span class="w-6 text-center">{row.sortOrder}</span>
-										<div class="flex flex-col gap-0.5">
-											<button
-												type="button"
-												onclick={() => quickAdjustSort(row.id, -1)}
-												title="升序（靠前）"
-												class="p-0.5 hover:bg-zinc-200 rounded text-zinc-400 hover:text-zinc-700 transition-colors"
-											>
-												<UiIcon icon={ArrowUp} size={11} />
-											</button>
-											<button
-												type="button"
-												onclick={() => quickAdjustSort(row.id, 1)}
-												title="降序（靠后）"
-												class="p-0.5 hover:bg-zinc-200 rounded text-zinc-400 hover:text-zinc-700 transition-colors"
-											>
-												<UiIcon icon={ArrowDown} size={11} />
-											</button>
-										</div>
-									</div>
-								</td>
-
-								<!-- Type Badge -->
-								<td class="py-3.5 px-4">
-									<span
-										class="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium border {getTypeBadgeClass(
-											row.type
-										)}"
-									>
-										{SECTION_TYPE_LABELS[row.type] || row.type}
-									</span>
-								</td>
-
-								<!-- Heading & Subheading -->
-								<td class="py-3.5 px-4">
-									<div class="font-medium text-zinc-900 text-sm">
-										{row.heading || '（无主标题）'}
-									</div>
-									{#if row.subheading}
-										<div class="text-[11px] text-zinc-400 mt-0.5">
-											{row.subheading}
-										</div>
-									{/if}
-								</td>
-
-								<!-- Page -->
-								<td class="py-3.5 px-4 text-zinc-600 font-medium">
-									{getPageName(row.pageId)}
-								</td>
-
-								<!-- Active Switch -->
-								<td class="py-3.5 px-4 text-center">
+			{#each filteredSections as row (row.id)}
+				<article
+					class="bg-white border border-zinc-200/90 rounded-card overflow-hidden transition-all duration-200 hover:border-zinc-300 hover:shadow-xs group {row.isActive
+						? ''
+						: 'opacity-75 bg-zinc-50/50'}"
+				>
+					<!-- Card Header: Metadata + Controls -->
+					<div
+						class="px-5 py-3 border-b border-zinc-100 flex flex-wrap items-center justify-between gap-3 bg-zinc-50/60"
+					>
+						<div class="flex items-center gap-3 min-w-0">
+							<!-- Sort Badge with Quick Micro-adjust -->
+							<div
+								class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-zinc-200/80 text-xs font-mono font-semibold text-zinc-700 shadow-2xs"
+							>
+								<span class="min-w-[1.75rem] text-center">#{row.sortOrder}</span>
+								<div class="flex flex-col ml-0.5">
 									<button
 										type="button"
-										role="switch"
-										aria-checked={row.isActive}
-										aria-label="切换启用状态"
-										onclick={() => toggleActive(row.id, row.isActive)}
-										class="relative inline-flex w-9 h-5 items-center rounded-full transition-colors {row.isActive
-											? 'bg-emerald-500'
-											: 'bg-zinc-300'}"
+										onclick={() => quickAdjustSort(row.id, -1)}
+										title="升序（靠前）"
+										class="p-0.5 hover:bg-zinc-100 rounded text-zinc-400 hover:text-zinc-800 transition-colors"
 									>
-										<span
-											class="inline-block w-3.5 h-3.5 rounded-full bg-white transition-transform {row.isActive
-												? 'translate-x-4.5'
-												: 'translate-x-1'}"
-										></span>
+										<UiIcon icon={ArrowUp} size={10} />
 									</button>
-								</td>
+									<button
+										type="button"
+										onclick={() => quickAdjustSort(row.id, 1)}
+										title="降序（靠后）"
+										class="p-0.5 hover:bg-zinc-100 rounded text-zinc-400 hover:text-zinc-800 transition-colors"
+									>
+										<UiIcon icon={ArrowDown} size={10} />
+									</button>
+								</div>
+							</div>
 
-								<!-- Actions -->
-								<td class="py-3.5 px-4 text-right">
-									<div class="inline-flex items-center gap-1">
-										<button
-											type="button"
-											onclick={() => openEdit(row.id)}
-											class={ADMIN_BUTTONS.icon}
-											title="编辑区块"
-										>
-											<UiIcon icon={Pencil} size={14} />
-										</button>
-										<button
-											type="button"
-											onclick={() => remove(row.id, row.heading)}
-											class={ADMIN_BUTTONS.danger}
-											title="删除区块"
-										>
-											<UiIcon icon={Trash2} size={14} />
-										</button>
+							<!-- Section Type Badge -->
+							<span
+								class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border {getTypeBadgeClass(
+									row.type
+								)}"
+							>
+								{SECTION_TYPE_LABELS[row.type] || row.type}
+							</span>
+
+							<!-- Heading & Page Scope -->
+							<div class="flex items-baseline gap-2 min-w-0 truncate">
+								<h3
+									class="font-semibold text-sm text-zinc-900 truncate"
+									title={row.heading || '（无主标题）'}
+								>
+									{row.heading || '（无主标题）'}
+								</h3>
+								<span class="text-[11px] text-zinc-400 shrink-0 font-normal">
+									· {getPageName(row.pageId)}
+								</span>
+							</div>
+						</div>
+
+						<!-- Right Controls -->
+						<div class="flex items-center gap-3 shrink-0">
+							<!-- Visibility Switch -->
+							<div class="flex items-center gap-2">
+								<span class="text-[11px] font-medium text-zinc-500">
+									{row.isActive ? '前台展示' : '已下架'}
+								</span>
+								<button
+									type="button"
+									role="switch"
+									aria-checked={row.isActive}
+									aria-label="切换启用状态"
+									onclick={() => toggleActive(row.id, row.isActive)}
+									class="relative inline-flex w-8 h-4.5 items-center rounded-full transition-colors {row.isActive
+										? 'bg-emerald-500'
+										: 'bg-zinc-300'}"
+								>
+									<span
+										class="inline-block w-3.5 h-3.5 rounded-full bg-white transition-transform {row.isActive
+											? 'translate-x-4'
+											: 'translate-x-0.5'}"
+									></span>
+								</button>
+							</div>
+
+							<div class="h-3.5 w-px bg-zinc-200"></div>
+
+							<!-- Edit & Delete -->
+							<div class="inline-flex items-center gap-1">
+								<button
+									type="button"
+									onclick={() => openEdit(row.id)}
+									class={ADMIN_BUTTONS.icon}
+									title="编辑区块配置"
+								>
+									<UiIcon icon={Pencil} size={14} />
+								</button>
+								<button
+									type="button"
+									onclick={() => remove(row.id, row.heading)}
+									class={ADMIN_BUTTONS.danger}
+									title="删除区块"
+								>
+									<UiIcon icon={Trash2} size={14} />
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Card Body: Miniature Visual Preview -->
+					<div class="p-4 sm:p-5 bg-zinc-50/40">
+						{#if row.type === 'hero'}
+							<!-- Hero Section Preview -->
+							<div
+								class="relative w-full h-44 sm:h-52 rounded-xl overflow-hidden bg-zinc-950 flex items-center justify-center text-center p-6 select-none border border-zinc-900/10 shadow-inner"
+							>
+								{#if row.imageUrl}
+									<img
+										src={row.imageUrl}
+										alt={row.heading}
+										class="absolute inset-0 w-full h-full object-cover opacity-60"
+									/>
+								{:else}
+									<div
+										class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800"
+									>
+										<div
+											class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"
+										></div>
 									</div>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+								{/if}
+								<div class="absolute inset-0 bg-black/40 backdrop-blur-[0.5px]"></div>
+
+								<div class="relative z-10 max-w-lg mx-auto space-y-2 text-white">
+									{#if row.subheading}
+										<p class="text-[10px] uppercase font-mono tracking-[0.25em] text-zinc-300">
+											{row.subheading}
+										</p>
+									{/if}
+									<h4
+										class="text-lg sm:text-2xl font-display font-bold uppercase tracking-widest text-white leading-tight"
+									>
+										{row.heading || 'HERO MAIN FOCUS'}
+									</h4>
+									<div class="pt-1.5 flex items-center justify-center gap-2">
+										<span
+											class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-white text-zinc-900 shadow-xs"
+										>
+											{row.settings?.actions?.[0]?.text || 'EXPLORE NOW'}
+										</span>
+									</div>
+								</div>
+							</div>
+						{:else if row.type === 'split_showcase'}
+							<!-- Split Showcase Preview -->
+							<div class="grid grid-cols-2 gap-3 h-40 sm:h-48 select-none">
+								<div
+									class="relative rounded-xl overflow-hidden bg-zinc-900 flex flex-col justify-end p-4 text-white border border-zinc-800"
+								>
+									{#if row.imageUrl}
+										<img
+											src={row.imageUrl}
+											alt=""
+											class="absolute inset-0 w-full h-full object-cover opacity-75"
+										/>
+									{:else}
+										<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-zinc-950"></div>
+									{/if}
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
+									></div>
+									<div class="relative z-10">
+										<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
+											>ATELIER 01</span
+										>
+										<p
+											class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
+										>
+											{row.heading || 'WOMEN COLLECTION'}
+										</p>
+									</div>
+								</div>
+
+								<div
+									class="relative rounded-xl overflow-hidden bg-zinc-950 flex flex-col justify-end p-4 text-white border border-zinc-800"
+								>
+									<div class="absolute inset-0 bg-gradient-to-b from-zinc-800 to-black"></div>
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"
+									></div>
+									<div class="relative z-10">
+										<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400"
+											>ATELIER 02</span
+										>
+										<p
+											class="text-xs sm:text-sm font-display font-bold uppercase tracking-wider text-white"
+										>
+											{row.subheading || 'MEN SELECTION'}
+										</p>
+									</div>
+								</div>
+							</div>
+						{:else if row.type === 'feature_split'}
+							<!-- Feature Split Preview -->
+							<div
+								class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-zinc-200/80 items-center select-none"
+							>
+								<div
+									class="relative rounded-lg overflow-hidden h-32 bg-zinc-100 flex items-center justify-center border border-zinc-200/50"
+								>
+									{#if row.imageUrl}
+										<img src={row.imageUrl} alt="" class="w-full h-full object-cover" />
+									{:else}
+										<div class="text-zinc-400 flex flex-col items-center gap-1.5">
+											<UiIcon icon={ImageIcon} size={22} />
+											<span class="text-[10px] font-mono">EDITORIAL VISUAL</span>
+										</div>
+									{/if}
+								</div>
+								<div class="space-y-1.5 py-1 pr-2">
+									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+										{row.subheading || 'HERITAGE CRAFT'}
+									</span>
+									<h4
+										class="text-sm sm:text-base font-display font-bold uppercase text-zinc-900 tracking-wider"
+									>
+										{row.heading || 'DESIGN PHILOSOPHY'}
+									</h4>
+									<p class="text-xs text-zinc-500 line-clamp-2 leading-relaxed">
+										{row.content ||
+											'探索优雅与前卫工艺的融合，每一道剪裁皆经过手工雕琢，呈现历久弥新的高定风尚。'}
+									</p>
+									<div class="pt-0.5">
+										<span
+											class="text-[10px] font-bold uppercase tracking-wider text-zinc-900 underline underline-offset-4"
+										>
+											{row.settings?.actions?.[0]?.text || 'READ THE STORY'} →
+										</span>
+									</div>
+								</div>
+							</div>
+						{:else if row.type === 'product_grid'}
+							<!-- Product Grid Preview -->
+							<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
+								<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+									<div>
+										<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
+											>SHOWCASE</span
+										>
+										<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+											{row.heading || 'CURATED SELECTION'}
+										</h4>
+									</div>
+									<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
+										>VIEW ALL (16)</span
+									>
+								</div>
+								<div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+									{#each [{ title: 'Wool Tailored Blazer', price: '¥ 3,490' }, { title: 'Silk Pleated Dress', price: '¥ 2,850' }, { title: 'Cashmere Knit Top', price: '¥ 1,980' }, { title: 'Leather Mini Bag', price: '¥ 4,200' }] as item}
+										<div
+											class="bg-zinc-50/80 rounded-lg p-2 border border-zinc-200/40 text-center space-y-1.5"
+										>
+											<div
+												class="aspect-3/4 rounded bg-zinc-200/60 flex items-center justify-center text-zinc-400"
+											>
+												<UiIcon icon={ShoppingBag} size={16} className="opacity-50" />
+											</div>
+											<div class="text-[10px] font-medium text-zinc-800 truncate">{item.title}</div>
+											<div class="text-[9px] font-mono font-bold text-zinc-500">{item.price}</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{:else if row.type === 'category_grid'}
+							<!-- Category Grid Preview -->
+							<div class="bg-white p-4 rounded-xl border border-zinc-200/80 space-y-3 select-none">
+								<div class="flex items-center justify-between border-b border-zinc-100 pb-2">
+									<div>
+										<span class="text-[9px] font-mono uppercase tracking-widest text-zinc-400"
+											>CATEGORIES</span
+										>
+										<h4 class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+											{row.heading || 'EXPLORE BY CATEGORY'}
+										</h4>
+									</div>
+									<span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider"
+										>3 COLLECTIONS</span
+									>
+								</div>
+								<div class="grid grid-cols-3 gap-2.5">
+									{#each ['OUTERWEAR', 'LEATHER GOODS', 'ACCESSORIES'] as cat, idx}
+										<div
+											class="relative h-20 sm:h-24 rounded-lg overflow-hidden bg-zinc-900 flex items-end p-2.5 text-white border border-zinc-800"
+										>
+											<div
+												class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/60 to-transparent"
+											></div>
+											<div class="relative z-10">
+												<span class="text-[8px] font-mono text-zinc-400">0{idx + 1}</span>
+												<div class="text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+													{cat}
+												</div>
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{:else if row.type === 'cta_banner'}
+							<!-- CTA Banner Preview -->
+							<div
+								class="bg-zinc-900 text-white p-4 sm:p-5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-zinc-800 select-none shadow-xs"
+							>
+								<div class="space-y-1">
+									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+										{row.subheading || 'NEWSLETTER & EXCLUSIVES'}
+									</span>
+									<h4
+										class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-white"
+									>
+										{row.heading || 'JOIN THE PRIVILEGE CLUB'}
+									</h4>
+								</div>
+								<span
+									class="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-white text-zinc-900 text-xs font-bold tracking-wider uppercase shrink-0 shadow-xs"
+								>
+									{row.settings?.actions?.[0]?.text || 'SUBSCRIBE NOW'}
+								</span>
+							</div>
+						{:else}
+							<!-- Rich Text Preview -->
+							<div
+								class="bg-white p-6 rounded-xl border border-zinc-200/80 text-center max-w-xl mx-auto space-y-2 select-none"
+							>
+								{#if row.subheading}
+									<span class="text-[9px] font-mono tracking-widest uppercase text-zinc-400">
+										{row.subheading}
+									</span>
+								{/if}
+								<h4
+									class="text-sm sm:text-base font-display font-bold uppercase tracking-wider text-zinc-900"
+								>
+									{row.heading || 'EDITORIAL STORY'}
+								</h4>
+								<p
+									class="text-xs text-zinc-600 line-clamp-3 leading-relaxed font-serif italic max-w-md mx-auto"
+								>
+									{row.content ||
+										'“真正的奢华无需繁复的堆砌，而是经由纯粹线条与高级质感唤醒的内在从容。”'}
+								</p>
+							</div>
+						{/if}
+					</div>
+				</article>
+			{/each}
 		{/if}
-	</section>
+	</div>
 
 	<!-- Media Asset Notice -->
 	<div class="p-4 bg-zinc-50 border border-zinc-200 rounded-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-zinc-600">

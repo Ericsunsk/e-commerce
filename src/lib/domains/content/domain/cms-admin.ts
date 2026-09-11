@@ -186,9 +186,13 @@ export interface SectionRow {
 	type: SectionType;
 	heading: string;
 	subheading: string;
+	content?: string;
 	sortOrder: number;
 	isActive: boolean;
 	imageCount: number;
+	images?: string[];
+	imageUrl?: string;
+	settings?: UISectionSettings;
 	updated: string;
 }
 
@@ -198,9 +202,12 @@ export function toSectionRow(record: {
 	type?: string;
 	heading?: string;
 	subheading?: string;
+	content?: string;
 	sort_order?: number;
 	is_active?: boolean;
 	image?: string[] | string;
+	imageUrl?: string;
+	settings?: unknown;
 	updated?: string;
 }): SectionRow {
 	const imageList = Array.isArray(record.image)
@@ -216,9 +223,15 @@ export function toSectionRow(record: {
 			: 'hero') as SectionType,
 		heading: record.heading || '',
 		subheading: record.subheading || '',
+		content: record.content || '',
 		sortOrder: Number(record.sort_order) || 0,
 		isActive: record.is_active !== false,
 		imageCount: imageList.length,
+		images: imageList,
+		imageUrl: record.imageUrl || '',
+		settings: (record.settings && typeof record.settings === 'object'
+			? record.settings
+			: {}) as UISectionSettings,
 		updated: record.updated || ''
 	};
 }
