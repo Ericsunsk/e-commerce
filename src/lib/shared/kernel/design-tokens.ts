@@ -178,10 +178,22 @@ export const ADMIN_BUTTONS = {
 		'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 shadow-xs transition-colors cursor-pointer',
 	icon:
 		'inline-flex items-center justify-center w-8 h-8 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
+	iconActive:
+		'inline-flex items-center justify-center w-8 h-8 rounded-card border border-zinc-900 bg-zinc-900 text-white transition-colors cursor-pointer',
+	iconInactive:
+		'inline-flex items-center justify-center w-8 h-8 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer',
+	iconToolbar:
+		'h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0',
+	iconToolbarActive:
+		'h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-900 bg-zinc-900 text-white transition-colors cursor-pointer shrink-0',
+	iconToolbarInactive:
+		'h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors cursor-pointer shrink-0',
+	iconBadge:
+		'absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-zinc-900 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white leading-none',
 	pill:
 		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border text-xs font-medium transition-colors cursor-pointer',
 	pillActive:
-		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer',
+		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold transition-colors cursor-pointer',
 	pillInactive:
 		'inline-flex items-center gap-1.5 h-8 px-3 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs transition-colors cursor-pointer'
 } as const;

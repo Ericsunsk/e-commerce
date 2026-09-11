@@ -16,7 +16,6 @@
 		X,
 		Layers,
 		Sparkles,
-		RotateCcw,
 		Pencil,
 		Trash2,
 		ListFilter,
@@ -522,17 +521,15 @@
 					}}
 					title="多维筛选 (分类/上架/库存)"
 					aria-label="多维筛选"
-					class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 relative {activeFilterCount > 0
-						? 'bg-zinc-900 text-white border-zinc-900'
+					class="relative {activeFilterCount > 0
+						? ADMIN_BUTTONS.iconToolbarActive
 						: isFilterOpen
-							? 'bg-zinc-100 text-zinc-900 border-zinc-300'
-							: 'bg-white text-zinc-600 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+							? 'h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-300 bg-zinc-100 text-zinc-900 transition-colors cursor-pointer shrink-0'
+							: ADMIN_BUTTONS.iconToolbarInactive}"
 				>
 					<UiIcon icon={ListFilter} size={15} />
 					{#if activeFilterCount > 0}
-						<span
-							class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white leading-none"
-						>
+						<span class={ADMIN_BUTTONS.iconBadge}>
 							{activeFilterCount}
 						</span>
 					{/if}
@@ -667,42 +664,42 @@
 									type="button"
 									onclick={() => toggleStockFilter('in_stock')}
 									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('in_stock')
-										? 'bg-emerald-700 text-white border-emerald-700 font-medium'
+										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
 										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
 								>
 									{#if selectedStocks.includes('in_stock')}
 										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
 									{/if}
 									<span>库存充足</span>
-									<span class="text-[10px] {selectedStocks.includes('in_stock') ? 'text-emerald-200' : 'text-zinc-400'}">({inStockProducts})</span>
+									<span class="text-[10px] {selectedStocks.includes('in_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({inStockProducts})</span>
 								</button>
 
 								<button
 									type="button"
 									onclick={() => toggleStockFilter('low_stock')}
 									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('low_stock')
-										? 'bg-amber-600 text-white border-amber-600 font-medium'
+										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
 										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
 								>
 									{#if selectedStocks.includes('low_stock')}
 										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
 									{/if}
 									<span>库存紧张</span>
-									<span class="text-[10px] {selectedStocks.includes('low_stock') ? 'text-amber-200' : 'text-zinc-400'}">({lowStockProducts})</span>
+									<span class="text-[10px] {selectedStocks.includes('low_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({lowStockProducts})</span>
 								</button>
 
 								<button
 									type="button"
 									onclick={() => toggleStockFilter('out_of_stock')}
 									class="px-2.5 py-1 text-xs rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer {selectedStocks.includes('out_of_stock')
-										? 'bg-rose-600 text-white border-rose-600 font-medium'
+										? 'bg-zinc-900 text-white border-zinc-900 font-medium'
 										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:border-zinc-300 hover:bg-zinc-100'}"
 								>
 									{#if selectedStocks.includes('out_of_stock')}
 										<UiIcon icon={Check} size={11} class="text-white shrink-0" />
 									{/if}
 									<span>已售罄</span>
-									<span class="text-[10px] {selectedStocks.includes('out_of_stock') ? 'text-rose-200' : 'text-zinc-400'}">({outOfStockProducts})</span>
+									<span class="text-[10px] {selectedStocks.includes('out_of_stock') ? 'text-zinc-300' : 'text-zinc-400'}">({outOfStockProducts})</span>
 								</button>
 							</div>
 						</div>
@@ -727,9 +724,7 @@
 				onclick={() => (onlyFeatured = !onlyFeatured)}
 				title={onlyFeatured ? '显示全部商品' : '仅看精选推荐'}
 				aria-label="仅看精选推荐"
-				class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 {onlyFeatured
-					? 'bg-amber-500 text-white border-amber-500'
-					: 'bg-white text-zinc-600 border-zinc-200 hover:text-amber-600 hover:bg-zinc-50'}"
+				class={onlyFeatured ? ADMIN_BUTTONS.iconToolbarActive : ADMIN_BUTTONS.iconToolbarInactive}
 			>
 				<UiIcon icon={Sparkles} size={15} />
 			</button>
@@ -744,11 +739,11 @@
 					}}
 					title="排序方式"
 					aria-label="排序方式"
-					class="h-9 w-9 inline-flex items-center justify-center rounded-card border transition-colors cursor-pointer shrink-0 relative {sortBy !== 'default'
-						? 'bg-zinc-900 text-white border-zinc-900'
+					class="relative {sortBy !== 'default'
+						? ADMIN_BUTTONS.iconToolbarActive
 						: isSortOpen
-							? 'bg-zinc-100 text-zinc-900 border-zinc-300'
-							: 'bg-white text-zinc-600 border-zinc-200 hover:text-zinc-900 hover:bg-zinc-50'}"
+							? 'h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-300 bg-zinc-100 text-zinc-900 transition-colors cursor-pointer shrink-0'
+							: ADMIN_BUTTONS.iconToolbarInactive}"
 				>
 					<UiIcon icon={ArrowUpDown} size={15} />
 				</button>
@@ -786,19 +781,6 @@
 					</div>
 				{/if}
 			</div>
-
-			<!-- 重置 (Reset) Icon Button (shown when search, filter, featured, or sort active) -->
-			{#if hasActiveControls}
-				<button
-					type="button"
-					onclick={resetAll}
-					title="重置所有筛选和排序"
-					aria-label="重置所有筛选和排序"
-					class="h-9 w-9 inline-flex items-center justify-center rounded-card border border-zinc-200 bg-white text-zinc-500 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
-				>
-					<UiIcon icon={RotateCcw} size={15} />
-				</button>
-			{/if}
 		</div>
 	</div>
 
