@@ -133,13 +133,13 @@ export const SECTION_TYPES: SectionType[] = [
 ];
 
 export const SECTION_TYPE_LABELS: Record<SectionType, string> = {
-	hero: '焦点主视觉 (Hero)',
-	feature_split: '图文分屏故事 (Feature Split)',
-	product_grid: '商品橱窗网格 (Product Grid)',
-	category_grid: '核心品类网格 (Category Grid)',
-	rich_text: '富文本排版 (Rich Text)',
-	cta_banner: '行动号召横幅 (CTA Banner)',
-	split_showcase: '双拼沉浸大片 (Split Showcase)'
+	hero: '焦点主视觉',
+	feature_split: '图文故事',
+	product_grid: '商品橱窗',
+	category_grid: '品类网格',
+	rich_text: '富文本',
+	cta_banner: '行动横幅',
+	split_showcase: '双拼大片'
 };
 
 export interface NormalizedSection {
@@ -234,4 +234,31 @@ export function toSectionRow(record: {
 			: {}) as UISectionSettings,
 		updated: record.updated || ''
 	};
+}
+
+/**
+ * Swap a section with its neighbour in display order and return the two
+ * rows with exchanged ranks (null when the move is out of bounds).
+ * Equal ranks are nudged apart so the order stays deterministic.
+ */
+export function swapSectionRank(
+	rows: { id: string; sortOrder: number }[],
+	id: string,
+	dir: -1 | 1
+): { id: string; sortOrder: number }[] | null {
+	const idx = rows.findIndex((r) => r.id === id);
+	const other = idx + dir;
+	if (idx < 0 || other < 0 || other >= rows.length) return null;
+	const a = rows[idx];
+	const b = rows[other];
+	if (a.sortOrder === b.sortOrder) {
+		return [
+			{ id: a.id, sortOrder: a.sortOrder + dir },
+			{ id: b.id, sortOrder: b.sortOrder }
+		];
+	}
+	return [
+		{ id: a.id, sortOrder: b.sortOrder },
+		{ id: b.id, sortOrder: a.sortOrder }
+	];
 }

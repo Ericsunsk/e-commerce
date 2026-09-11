@@ -5,7 +5,8 @@ import {
 	toPageRow,
 	toNavRow,
 	normalizeSectionInput,
-	toSectionRow
+	toSectionRow,
+	swapSectionRank
 } from './cms-admin';
 
 describe('cms admin model', () => {
@@ -99,5 +100,39 @@ describe('cms admin model', () => {
 		expect(() =>
 			normalizeSectionInput({ page: 'p1', type: 'invalid_type_unknown' })
 		).toThrow();
+	});
+
+	it('swaps a section with its neighbour', () => {
+		const rows = [
+			{ id: 'a', sortOrder: 10 },
+			{ id: 'b', sortOrder: 20 },
+			{ id: 'c', sortOrder: 30 }
+		];
+		expect(swapSectionRank(rows, 'b', -1)).toEqual([
+			{ id: 'b', sortOrder: 10 },
+			{ id: 'a', sortOrder: 20 }
+		]);
+		expect(swapSectionRank(rows, 'b', 1)).toEqual([
+			{ id: 'b', sortOrder: 30 },
+			{ id: 'c', sortOrder: 20 }
+		]);
+		// Out of bounds
+		expect(swapSectionRank(rows, 'a', -1)).toBeNull();
+		expect(swapSectionRank(rows, 'c', 1)).toBeNull();
+		expect(swapSectionRank(rows, 'missing', 1)).toBeNull();
+		// Equal ranks nudge apart deterministically
+		expect(
+			swapSectionRank(
+				[
+					{ id: 'a', sortOrder: 10 },
+					{ id: 'b', sortOrder: 10 }
+				],
+				'a',
+				1
+			)
+		).toEqual([
+			{ id: 'a', sortOrder: 11 },
+			{ id: 'b', sortOrder: 10 }
+		]);
 	});
 });
