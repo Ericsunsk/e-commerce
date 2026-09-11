@@ -643,7 +643,7 @@
 				{@const gallerySlots = getGroupGallerySlots(group)}
 				<div class={ADMIN_MATRIX.colorCard}>
 					<!-- Color Banner Header -->
-					<div class="bg-zinc-50/70 border-b border-zinc-200/80 px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+					<div class="bg-zinc-50/70 border-b border-zinc-200/80 rounded-t-xl px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
 						<!-- Left: Color Swatch + Color Name + SKU Prefix -->
 						<div class="flex items-center gap-3 flex-wrap">
 							<!-- Color swatch circle with native picker -->

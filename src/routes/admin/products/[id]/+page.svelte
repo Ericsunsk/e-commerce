@@ -390,364 +390,465 @@
 		</div>
 	{/if}
 
-	<!-- Section 1: Product Information -->
-	<section class={ADMIN_CARDS.section}>
-		<div class="{ADMIN_CARDS.header} gap-4 flex-wrap">
-			<div class={ADMIN_CARDS.sectionHeader}>
-				<span class={ADMIN_CARDS.sectionIconWrap}>
-					<UiIcon icon={FileText} size={ICONS.sizeXl} />
-				</span>
-				<div>
-					<h2 class={ADMIN_CARDS.title}>商品信息</h2>
-					<p class={ADMIN_CARDS.subtitle}>设置商品核心标题、文案介绍、所属类目与前台展示状态</p>
-				</div>
-			</div>
-			<div class="ml-auto flex min-w-0 max-w-full">
-				{#if data.categories && data.categories.length > 0}
-					<div
-						class="flex min-w-0 max-w-full flex-nowrap justify-start gap-1.5 overflow-x-auto px-0.5 py-1 -my-1"
-					>
-						{#each data.categories as cat (cat.id)}
-							{@const checked = selectedCategories.includes(cat.id)}
-							<button
-								type="button"
-								onclick={() => toggleCategory(cat.id)}
-								class="{checked
-									? ADMIN_BUTTONS.pillActive
-									: ADMIN_BUTTONS.pillInactive} shrink-0 whitespace-nowrap"
-							>
-								<span>{cat.name}</span>
-							</button>
-						{/each}
+	<!-- Two-Column Product Layout -->
+	<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+		<!-- Left Main Column (2 cols) -->
+		<div class="lg:col-span-2 space-y-6 min-w-0">
+			<!-- Section 1: 基本信息 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<span class={ADMIN_CARDS.sectionIconWrap}>
+							<UiIcon icon={FileText} size={ICONS.sizeXl} />
+						</span>
+						<div>
+							<h2 class={ADMIN_CARDS.title}>基本信息</h2>
+							<p class={ADMIN_CARDS.subtitle}>设置面向顾客展示的核心标题、图文描述与规格属性</p>
+						</div>
 					</div>
-				{:else}
-					<span class="text-[11px] text-zinc-400">暂无可用分类</span>
-				{/if}
-			</div>
-		</div>
-
-		<div class="space-y-5 pt-5">
-			<div>
-				<div class="flex items-center justify-between mb-1.5">
-					<label for="edit-title" class={ADMIN_FORMS.label}> 商品标题 * </label>
-					<span class={ADMIN_FORMS.counter}>{title.length}/120</span>
-				</div>
-				<input
-					id="edit-title"
-					bind:value={title}
-					maxlength="120"
-					placeholder="例如：极简重磅亚麻西装"
-					class={ADMIN_FORMS.input}
-				/>
-			</div>
-
-			<div>
-				<label for="edit-desc" class={ADMIN_FORMS.label}> 商品详细描述 </label>
-				<textarea
-					id="edit-desc"
-					bind:value={description}
-					rows="4"
-					placeholder="填写剪裁版型、搭配建议等面向顾客的整体介绍..."
-					class={ADMIN_FORMS.textarea}
-				></textarea>
-			</div>
-
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-				<div>
-					<div class="flex items-center justify-between mb-1.5">
-						<label for="edit-material" class={ADMIN_FORMS.label}> 面料材质 </label>
-						<span class={ADMIN_FORMS.counter}>{material.length}/300</span>
-					</div>
-					<input
-						id="edit-material"
-						bind:value={material}
-						maxlength="300"
-						placeholder="例如：100% 重磅亚麻"
-						class={ADMIN_FORMS.input}
-					/>
 				</div>
 
-				<div>
-					<div class="flex items-center justify-between mb-1.5">
-						<label for="edit-care" class={ADMIN_FORMS.label}> 护理说明 </label>
-						<span class={ADMIN_FORMS.counter}>{care.length}/500</span>
-					</div>
-					<input
-						id="edit-care"
-						bind:value={care}
-						maxlength="500"
-						placeholder="例如：冷水机洗，平铺晾干"
-						class={ADMIN_FORMS.input}
-					/>
-				</div>
-			</div>
-
-			<div>
-				<label for="edit-details" class={ADMIN_FORMS.label}>
-					细节条目 <span class="normal-case font-normal text-zinc-400">(一行一条，前台逐条展示)</span>
-				</label>
-				<textarea
-					id="edit-details"
-					bind:value={detailsText}
-					rows="3"
-					placeholder="法式剪裁&#10;预缩处理&#10;天然贝壳扣"
-					class={ADMIN_FORMS.textarea}
-				></textarea>
-			</div>
-		</div>
-
-		<div class="pt-6 mt-6 border-t border-zinc-100">
-			<!-- Status pills -->
-			<div class="flex items-center gap-2 flex-wrap">
-				<button
-					type="button"
-					role="switch"
-					aria-checked={isActive}
-					aria-label="发布到店铺前台开关"
-					onclick={() => (isActive = !isActive)}
-					class={isActive ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
-				>
-					<span>{isActive ? '在售' : '下架'}</span>
-				</button>
-
-				<button
-					type="button"
-					role="switch"
-					aria-checked={isFeatured}
-					aria-label="首页精选推荐开关"
-					onclick={() => (isFeatured = !isFeatured)}
-					class={isFeatured ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
-				>
-					<span>{isFeatured ? '精选' : '常规'}</span>
-				</button>
-			</div>
-		</div>
-	</section>
-
-	<!-- Section 2: Main Image & Media Assets -->
-	<section class={ADMIN_CARDS.section}>
-		<div class={ADMIN_CARDS.header}>
-			<div class={ADMIN_CARDS.sectionHeader}>
-				<span class={ADMIN_CARDS.sectionIconWrap}>
-					<UiIcon icon={ImageIcon} size={ICONS.sizeXl} />
-				</span>
-				<div>
-					<h2 class={ADMIN_CARDS.title}>主图与媒体资产</h2>
-					<p class={ADMIN_CARDS.subtitle}>管理商品在列表封面与详情主视觉呈现的高清图</p>
-				</div>
-			</div>
-		</div>
-
-		<div class="space-y-5 pt-5">
-			<!-- Hidden File Input -->
-			<input
-				type="file"
-				accept="image/jpeg,image/png,image/webp,image/avif"
-				class="hidden"
-				bind:this={fileInputRef}
-				onchange={handleFileSelect}
-			/>
-
-			{#if activeDisplayImage}
-				<div
-					class="p-4 rounded-xl border border-zinc-200/80 bg-zinc-50/40 flex flex-col sm:flex-row items-center sm:items-start gap-5"
-				>
-					<div
-						class="w-36 h-36 rounded-xl border border-zinc-200 bg-white overflow-hidden shrink-0 flex items-center justify-center relative group"
-					>
-						<img
-							src={activeDisplayImage}
-							alt={title}
-							class="w-full h-full object-cover object-center"
+				<div class="space-y-5 pt-5">
+					<div>
+						<div class="flex items-center justify-between mb-1.5">
+							<label for="edit-title" class={ADMIN_FORMS.label}> 商品标题 * </label>
+							<span class={ADMIN_FORMS.counter}>{title.length}/120</span>
+						</div>
+						<input
+							id="edit-title"
+							bind:value={title}
+							maxlength="120"
+							placeholder="例如：极简重磅亚麻西装"
+							class={ADMIN_FORMS.input}
 						/>
 					</div>
 
-					<div class="space-y-3 flex-1 text-center sm:text-left">
-						<div class="space-y-1">
-							<div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-								<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
-									商品主图
-								</span>
-								{#if newImageFile}
-									<span class={ADMIN_BADGES.info}>待保存新图: {newImageFile.name}</span>
-								{:else}
-									<span class={ADMIN_BADGES.success}>已云端同步</span>
-								{/if}
+					<div>
+						<label for="edit-desc" class={ADMIN_FORMS.label}> 商品详细描述 </label>
+						<textarea
+							id="edit-desc"
+							bind:value={description}
+							rows="4"
+							placeholder="填写剪裁版型、搭配建议等面向顾客的整体介绍..."
+							class={ADMIN_FORMS.textarea}
+						></textarea>
+					</div>
+
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div>
+							<div class="flex items-center justify-between mb-1.5">
+								<label for="edit-material" class={ADMIN_FORMS.label}> 面料材质 </label>
+								<span class={ADMIN_FORMS.counter}>{material.length}/300</span>
 							</div>
-							<p class="text-[11px] text-zinc-400">
-								尺寸建议 1200×1200 像素以上纯色或干净背景正方形图，支持 JPG、PNG、WebP 与 AVIF。
+							<input
+								id="edit-material"
+								bind:value={material}
+								maxlength="300"
+								placeholder="例如：100% 重磅亚麻"
+								class={ADMIN_FORMS.input}
+							/>
+						</div>
+
+						<div>
+							<div class="flex items-center justify-between mb-1.5">
+								<label for="edit-care" class={ADMIN_FORMS.label}> 护理说明 </label>
+								<span class={ADMIN_FORMS.counter}>{care.length}/500</span>
+							</div>
+							<input
+								id="edit-care"
+								bind:value={care}
+								maxlength="500"
+								placeholder="例如：冷水机洗，平铺晾干"
+								class={ADMIN_FORMS.input}
+							/>
+						</div>
+					</div>
+
+					<div>
+						<label for="edit-details" class={ADMIN_FORMS.label}>
+							细节条目 <span class="normal-case font-normal text-zinc-400">(一行一条，前台逐条展示)</span>
+						</label>
+						<textarea
+							id="edit-details"
+							bind:value={detailsText}
+							rows="3"
+							placeholder="法式剪裁&#10;预缩处理&#10;天然贝壳扣"
+							class={ADMIN_FORMS.textarea}
+						></textarea>
+					</div>
+				</div>
+			</section>
+
+			<!-- Section 2: 主图与媒体资产 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<span class={ADMIN_CARDS.sectionIconWrap}>
+							<UiIcon icon={ImageIcon} size={ICONS.sizeXl} />
+						</span>
+						<div>
+							<h2 class={ADMIN_CARDS.title}>主图与媒体资产</h2>
+							<p class={ADMIN_CARDS.subtitle}>管理商品在列表封面与详情主视觉呈现的高清图</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="space-y-5 pt-5">
+					<input
+						type="file"
+						accept="image/jpeg,image/png,image/webp,image/avif"
+						class="hidden"
+						bind:this={fileInputRef}
+						onchange={handleFileSelect}
+					/>
+
+					{#if activeDisplayImage}
+						<div
+							class="p-4 rounded-xl border border-zinc-200 bg-zinc-50/40 flex flex-col sm:flex-row items-center sm:items-start gap-5"
+						>
+							<div
+								class="w-36 h-36 rounded-xl border border-zinc-200 bg-white overflow-hidden shrink-0 flex items-center justify-center relative group"
+							>
+								<img
+									src={activeDisplayImage}
+									alt={title}
+									class="w-full h-full object-cover object-center"
+								/>
+							</div>
+
+							<div class="space-y-3 flex-1 text-center sm:text-left">
+								<div class="space-y-1">
+									<div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+										<span class="text-xs font-bold uppercase tracking-wider text-zinc-900">
+											商品主图
+										</span>
+										{#if newImageFile}
+											<span class={ADMIN_BADGES.info}>待保存新图: {newImageFile.name}</span>
+										{:else}
+											<span class={ADMIN_BADGES.success}>已云端同步</span>
+										{/if}
+									</div>
+									<p class="text-[11px] text-zinc-400">
+										尺寸建议 1200×1200 像素以上纯色或干净背景正方形图，支持 JPG、PNG、WebP 与 AVIF。
+									</p>
+								</div>
+
+								<div class="flex items-center justify-center sm:justify-start gap-2.5 pt-1">
+									<button
+										type="button"
+										onclick={() => fileInputRef?.click()}
+										class={ADMIN_BUTTONS.secondarySm}
+									>
+										<UiIcon icon={RefreshCw} size={13} />
+										替换图片
+									</button>
+
+									<button
+										type="button"
+										onclick={removeImage}
+										class={ADMIN_BUTTONS.dangerSecondary}
+									>
+										<UiIcon icon={Trash2} size={13} />
+										移除主图
+									</button>
+								</div>
+							</div>
+						</div>
+					{:else}
+						<div
+							role="button"
+							tabindex="0"
+							onclick={() => fileInputRef?.click()}
+							onkeydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') fileInputRef?.click();
+							}}
+							class="w-full py-10 px-6 border-2 border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl bg-zinc-50/50 hover:bg-zinc-50 transition-all text-center flex flex-col items-center justify-center cursor-pointer group"
+						>
+							<div
+								class="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:border-zinc-400 transition-colors mb-3"
+							>
+								<UiIcon icon={Upload} size={20} />
+							</div>
+							<p class="text-xs font-bold uppercase tracking-wider text-zinc-800">
+								点击或拖拽上传商品主图
+							</p>
+							<p class="text-[11px] text-zinc-400 mt-1">
+								支持 JPG、PNG、WebP、AVIF 格式，建议比例 1:1 正方形
 							</p>
 						</div>
+					{/if}
+				</div>
+			</section>
 
-						<div class="flex items-center justify-center sm:justify-start gap-2.5 pt-1">
-							<button
-								type="button"
-								onclick={() => fileInputRef?.click()}
-								class={ADMIN_BUTTONS.secondary}
-							>
-								<UiIcon icon={RefreshCw} size={14} />
-								替换图片
-							</button>
-
-							<button type="button" onclick={removeImage} class={ADMIN_BUTTONS.dangerSecondary}>
-								<UiIcon icon={Trash2} size={14} />
-								移除主图
-							</button>
+			<!-- Section 3: 售价与规格矩阵 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<span class={ADMIN_CARDS.sectionIconWrap}>
+							<UiIcon icon={Layers} size={ICONS.sizeXl} />
+						</span>
+						<div>
+							<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
+							<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
 						</div>
 					</div>
 				</div>
-			{:else}
-				<div
-					role="button"
-					tabindex="0"
-					onclick={() => fileInputRef?.click()}
-					onkeydown={(e) => {
-						if (e.key === 'Enter' || e.key === ' ') fileInputRef?.click();
-					}}
-					class="w-full py-10 px-6 border-2 border-dashed border-zinc-300 hover:border-zinc-900 rounded-xl bg-zinc-50/50 hover:bg-zinc-50 transition-all text-center flex flex-col items-center justify-center cursor-pointer group"
-				>
-					<div
-						class="w-12 h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center text-zinc-400 group-hover:text-zinc-900 group-hover:border-zinc-400 transition-colors mb-3"
-					>
-						<UiIcon icon={Upload} size={20} />
+
+				<div class="space-y-6 pt-5">
+					<!-- Pricing fields: Clean & Minimalist -->
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
+						<div>
+							<label for="edit-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
+								当前售价 <span class="text-rose-500">*</span>
+							</label>
+							<div class="relative">
+								<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+								<input
+									id="edit-price"
+									bind:value={price}
+									type="number"
+									min="0"
+									step="0.01"
+									placeholder="120.00"
+									class={ADMIN_FORMS.priceInput}
+								/>
+							</div>
+							<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
+						</div>
+
+						<div>
+							<div class="flex items-center justify-between mb-1.5">
+								<label for="edit-compare-at" class="block text-xs font-bold text-zinc-900">
+									划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
+								</label>
+								{#if compareAt && price && Number(compareAt) > Number(price)}
+									<span class="text-[10px] font-mono font-semibold text-emerald-700">
+										省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
+									</span>
+								{/if}
+							</div>
+							<div class="relative">
+								<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+								<input
+									id="edit-compare-at"
+									bind:value={compareAt}
+									type="number"
+									min="0"
+									step="0.01"
+									placeholder="150.00"
+									class={ADMIN_FORMS.priceInput}
+								/>
+							</div>
+							<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
+						</div>
+
+						<div>
+							<label for="edit-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
+								结算货币
+							</label>
+							<select
+								id="edit-curr"
+								bind:value={currency}
+								class={ADMIN_FORMS.currencySelect}
+							>
+								<option value="USD">USD - 美元 ($)</option>
+								<option value="EUR">EUR - 欧元 (€)</option>
+								<option value="GBP">GBP - 英镑 (£)</option>
+								<option value="CAD">CAD - 加元 ($)</option>
+							</select>
+							<p class="text-[11px] text-zinc-400 mt-1">Stripe 支付网关计费法定货币</p>
+						</div>
 					</div>
-					<p class="text-xs font-bold uppercase tracking-wider text-zinc-800">
-						点击或拖拽上传商品主图
+
+					<!-- Variant Matrix -->
+					<div>
+						<VariantMatrix bind:variants productSlug={data.product.slug} />
+					</div>
+				</div>
+			</section>
+		</div>
+
+		<!-- Right Sidebar Column (1 col) -->
+		<div class="space-y-6">
+			<!-- Card 1: 状态与曝光 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<div>
+							<h2 class={ADMIN_CARDS.title}>发布状态与曝光</h2>
+							<p class={ADMIN_CARDS.subtitle}>控制商品前台可售状态与首页推荐</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="space-y-4 pt-4">
+					<!-- 在售/下架 Toggle -->
+					<div class="flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+						<div class="space-y-0.5">
+							<div class="flex items-center gap-2">
+								<span class="text-xs font-semibold text-zinc-800">店铺前台销售</span>
+								{#if isActive}
+									<span class={ADMIN_BADGES.success}>在售</span>
+								{:else}
+									<span class={ADMIN_BADGES.neutral}>已下架</span>
+								{/if}
+							</div>
+							<p class="text-[11px] text-zinc-400">开启后顾客可浏览并加购结算</p>
+						</div>
+						<button
+							type="button"
+							role="switch"
+							aria-checked={isActive}
+							aria-label="发布到店铺前台开关"
+							onclick={() => (isActive = !isActive)}
+							class="{ADMIN_FORMS.switchBase} {isActive ? ADMIN_FORMS.switchTrackActive : ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
+						>
+							<span class="{ADMIN_FORMS.switchThumb} {isActive ? 'translate-x-5' : 'translate-x-1'}"></span>
+						</button>
+					</div>
+
+					<!-- 首页精选 Toggle -->
+					<div class="flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+						<div class="space-y-0.5">
+							<div class="flex items-center gap-2">
+								<span class="text-xs font-semibold text-zinc-800">首页精选推荐</span>
+								{#if isFeatured}
+									<span class={ADMIN_BADGES.warning}>精选</span>
+								{:else}
+									<span class={ADMIN_BADGES.neutral}>常规</span>
+								{/if}
+							</div>
+							<p class="text-[11px] text-zinc-400">优先展现在店铺首页精选专区</p>
+						</div>
+						<button
+							type="button"
+							role="switch"
+							aria-checked={isFeatured}
+							aria-label="首页精选推荐开关"
+							onclick={() => (isFeatured = !isFeatured)}
+							class="{ADMIN_FORMS.switchBase} {isFeatured ? 'bg-amber-500' : ADMIN_FORMS.switchTrackInactive} shrink-0 cursor-pointer"
+						>
+							<span class="{ADMIN_FORMS.switchThumb} {isFeatured ? 'translate-x-5' : 'translate-x-1'}"></span>
+						</button>
+					</div>
+
+					{#if isActive}
+						<a
+							href="/shop/{data.product.slug}"
+							target="_blank"
+							rel="noreferrer"
+							class="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 hover:text-zinc-900 transition-colors"
+						>
+							<UiIcon icon={ExternalLink} size={13} />
+							<span>在独立站前台查看此商品</span>
+						</a>
+					{/if}
+				</div>
+			</section>
+
+			<!-- Card 2: 商品分类 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<div>
+							<div class="flex items-center justify-between gap-2">
+								<h2 class={ADMIN_CARDS.title}>所属分类</h2>
+								<span class="text-[11px] font-mono text-zinc-400">已选 {selectedCategories.length} 个</span>
+							</div>
+							<p class={ADMIN_CARDS.subtitle}>绑定商品所属类目标签，支持多选</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="pt-4">
+					{#if data.categories && data.categories.length > 0}
+						<div class="flex flex-wrap gap-2">
+							{#each data.categories as cat (cat.id)}
+								{@const checked = selectedCategories.includes(cat.id)}
+								<button
+									type="button"
+									onclick={() => toggleCategory(cat.id)}
+									class="{checked
+										? ADMIN_BUTTONS.pillActive
+										: ADMIN_BUTTONS.pillInactive} text-xs cursor-pointer"
+								>
+									<span>{cat.name}</span>
+								</button>
+							{/each}
+						</div>
+					{:else}
+						<div class="py-4 px-3 rounded-lg border border-dashed border-zinc-200 text-center text-[11px] text-zinc-400">
+							暂无可用的商品分类，可在分类管理中添加
+						</div>
+					{/if}
+				</div>
+			</section>
+
+			<!-- Card 3: 规格与库存速览 -->
+			<section class={ADMIN_CARDS.section}>
+				<div class={ADMIN_CARDS.header}>
+					<div class={ADMIN_CARDS.sectionHeader}>
+						<div>
+							<h2 class={ADMIN_CARDS.title}>规格与库存速览</h2>
+							<p class={ADMIN_CARDS.subtitle}>实时统计当前多规格配置数据</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-2 gap-3 pt-4">
+					<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+						<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">总在库库存</span>
+						<span class="text-lg font-mono font-bold text-zinc-900">{totalStock}</span>
+						<span class="text-[10px] text-zinc-400 ml-1 font-mono">件</span>
+					</div>
+
+					<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
+						<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">细分规格款数</span>
+						<span class="text-lg font-mono font-bold text-zinc-900">{variants.length}</span>
+						<span class="text-[10px] text-zinc-400 ml-1 font-mono">款</span>
+					</div>
+				</div>
+			</section>
+
+			<!-- Card 4: 危险操作区 -->
+			<section class="rounded-xl border border-rose-200 bg-rose-50/40 p-4 space-y-3">
+				<div>
+					<h3 class="text-xs font-bold uppercase tracking-wider text-rose-800">危险操作区</h3>
+					<p class="text-[11px] text-rose-600/80 leading-relaxed mt-0.5">
+						删除将移除商品及其全部规格，Stripe 商品同步停用，不可撤销。
 					</p>
-					<p class="text-[11px] text-zinc-400 mt-1">
-						支持 JPG、PNG、WebP、AVIF 格式，建议比例 1:1 正方形
-					</p>
 				</div>
-			{/if}
-		</div>
-	</section>
 
-	<!-- Section 3: Pricing & Variant Matrix -->
-	<section class={ADMIN_CARDS.section}>
-		<div class={ADMIN_CARDS.header}>
-			<div class={ADMIN_CARDS.sectionHeader}>
-				<span class={ADMIN_CARDS.sectionIconWrap}>
-					<UiIcon icon={Layers} size={ICONS.sizeXl} />
-				</span>
-				<div>
-					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-					<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
-				</div>
-			</div>
-		</div>
-
-		<div class="space-y-6 pt-5">
-			<!-- Pricing fields: Clean & Minimalist -->
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
-				<div>
-					<label for="edit-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
-						当前售价 <span class="text-rose-500">*</span>
-					</label>
-					<div class="relative">
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-						<input
-							id="edit-price"
-							bind:value={price}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="120.00"
-							class={ADMIN_FORMS.priceInput}
-						/>
+				{#if confirmDelete}
+					<div class="flex items-center gap-2">
+						<button
+							type="button"
+							onclick={() => (confirmDelete = false)}
+							disabled={deleting}
+							class="{ADMIN_BUTTONS.secondarySm} flex-1"
+						>
+							取消
+						</button>
+						<button
+							type="button"
+							onclick={removeProduct}
+							disabled={deleting}
+							class="flex-1 py-1.5 px-3 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
+						>
+							{deleting ? '删除中...' : '确认删除'}
+						</button>
 					</div>
-					<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
-				</div>
-
-				<div>
-					<div class="flex items-center justify-between mb-1.5">
-						<label for="edit-compare-at" class="block text-xs font-bold text-zinc-900">
-							划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
-						</label>
-						{#if compareAt && price && Number(compareAt) > Number(price)}
-							<span class="text-[10px] font-mono font-semibold text-emerald-700">
-								省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
-							</span>
-						{/if}
-					</div>
-					<div class="relative">
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-						<input
-							id="edit-compare-at"
-							bind:value={compareAt}
-							type="number"
-							min="0"
-							step="0.01"
-							placeholder="150.00"
-							class={ADMIN_FORMS.priceInput}
-						/>
-					</div>
-					<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
-				</div>
-
-				<div>
-					<label for="edit-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
-						结算货币
-					</label>
-					<select
-						id="edit-curr"
-						bind:value={currency}
-						class={ADMIN_FORMS.currencySelect}
-					>
-						<option value="USD">USD - 美元 ($)</option>
-						<option value="EUR">EUR - 欧元 (€)</option>
-						<option value="GBP">GBP - 英镑 (£)</option>
-						<option value="CAD">CAD - 加元 ($)</option>
-					</select>
-					<p class="text-[11px] text-zinc-400 mt-1">Stripe 支付网关计费法定货币</p>
-				</div>
-			</div>
-
-			<!-- Variant Matrix -->
-			<div>
-				<VariantMatrix bind:variants productSlug={data.product.slug} />
-			</div>
-		</div>
-	</section>
-
-	<!-- Danger zone -->
-	<section class="rounded-xl border border-red-200 bg-red-50/50 p-5">
-		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-			<div class="space-y-1">
-				<h2 class="text-xs font-bold uppercase tracking-wider text-red-800">危险操作区</h2>
-				<p class="text-[11px] text-red-600/80 leading-relaxed">
-					删除将移除商品及其全部规格（含图集），Stripe
-					商品同步停用。历史订单快照不受影响，此操作不可撤销。
-				</p>
-			</div>
-			{#if confirmDelete}
-				<div class="flex items-center gap-2 shrink-0">
-					<button
-						type="button"
-						onclick={() => (confirmDelete = false)}
-						disabled={deleting}
-						class="{ADMIN_BUTTONS.secondary} text-xs font-semibold"
-					>
-						取消
-					</button>
+				{:else}
 					<button
 						type="button"
 						onclick={removeProduct}
-						disabled={deleting}
-						class="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-700 disabled:opacity-50"
+						class="w-full py-1.5 px-3 rounded-lg border border-rose-300 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
 					>
-						{deleting ? '删除中...' : '确认删除'}
+						<UiIcon icon={Trash2} size={13} />
+						<span>删除此商品</span>
 					</button>
-				</div>
-			{:else}
-				<button
-					type="button"
-					onclick={removeProduct}
-					class="px-4 py-2 rounded-lg border border-red-300 text-red-700 text-xs font-bold uppercase tracking-wider hover:bg-red-100 shrink-0"
-				>
-					<UiIcon icon={Trash2} size={14} class="inline mr-1.5 -mt-0.5" />
-					删除此商品
-				</button>
-			{/if}
+				{/if}
+			</section>
 		</div>
-	</section>
+	</div>
 </div>

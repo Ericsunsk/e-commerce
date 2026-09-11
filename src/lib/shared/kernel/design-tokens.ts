@@ -168,7 +168,7 @@ export const ADMIN_FORMS = {
 
 export const ADMIN_MATRIX = {
 	/** Color card wrapper (flat, clean, no shadow). */
-	colorCard: 'bg-white border border-zinc-200 rounded-xl transition-all hover:border-zinc-300',
+	colorCard: 'bg-white border border-zinc-200 rounded-xl overflow-hidden transition-all hover:border-zinc-300',
 	/** Generator card wrapper (flat, clean, no shadow). */
 	generatorCard: 'p-4 rounded-xl bg-zinc-50/80 border border-zinc-200 space-y-3.5',
 	/** Color name field in the matrix row / banner. */
