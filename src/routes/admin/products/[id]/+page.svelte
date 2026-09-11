@@ -579,93 +579,6 @@
 					{/if}
 				</div>
 			</section>
-
-			<!-- Section 3: 售价与规格矩阵 -->
-			<section class={ADMIN_CARDS.section}>
-				<div class={ADMIN_CARDS.header}>
-					<div class={ADMIN_CARDS.sectionHeader}>
-						<span class={ADMIN_CARDS.sectionIconWrap}>
-							<UiIcon icon={Layers} size={ICONS.sizeXl} />
-						</span>
-						<div>
-							<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
-							<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-6 pt-5">
-					<!-- Pricing fields: Clean & Minimalist -->
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
-						<div>
-							<label for="edit-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
-								当前售价 <span class="text-rose-500">*</span>
-							</label>
-							<div class="relative">
-								<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-								<input
-									id="edit-price"
-									bind:value={price}
-									type="number"
-									min="0"
-									step="0.01"
-									placeholder="120.00"
-									class={ADMIN_FORMS.priceInput}
-								/>
-							</div>
-							<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
-						</div>
-
-						<div>
-							<div class="flex items-center justify-between mb-1.5">
-								<label for="edit-compare-at" class="block text-xs font-bold text-zinc-900">
-									划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
-								</label>
-								{#if compareAt && price && Number(compareAt) > Number(price)}
-									<span class="text-[10px] font-mono font-semibold text-emerald-700">
-										省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
-									</span>
-								{/if}
-							</div>
-							<div class="relative">
-								<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
-								<input
-									id="edit-compare-at"
-									bind:value={compareAt}
-									type="number"
-									min="0"
-									step="0.01"
-									placeholder="150.00"
-									class={ADMIN_FORMS.priceInput}
-								/>
-							</div>
-							<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
-						</div>
-
-						<div>
-							<label for="edit-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
-								结算货币
-							</label>
-							<select
-								id="edit-curr"
-								bind:value={currency}
-								class={ADMIN_FORMS.currencySelect}
-							>
-								<option value="USD">USD - 美元 ($)</option>
-								<option value="EUR">EUR - 欧元 (€)</option>
-								<option value="GBP">GBP - 英镑 (£)</option>
-								<option value="CAD">CAD - 加元 ($)</option>
-							</select>
-							<p class="text-[11px] text-zinc-400 mt-1">Stripe 支付网关计费法定货币</p>
-						</div>
-					</div>
-
-					<!-- Variant Matrix -->
-					<div>
-						<VariantMatrix bind:variants productSlug={data.product.slug} />
-					</div>
-				</div>
-			</section>
 		</div>
 
 		<!-- Right Sidebar Column (1 col) -->
@@ -809,46 +722,133 @@
 					</div>
 				</div>
 			</section>
-
-			<!-- Card 4: 危险操作区 -->
-			<section class="rounded-xl border border-rose-200 bg-rose-50/40 p-4 space-y-3">
-				<div>
-					<h3 class="text-xs font-bold uppercase tracking-wider text-rose-800">危险操作区</h3>
-					<p class="text-[11px] text-rose-600/80 leading-relaxed mt-0.5">
-						删除将移除商品及其全部规格，Stripe 商品同步停用，不可撤销。
-					</p>
-				</div>
-
-				{#if confirmDelete}
-					<div class="flex items-center gap-2">
-						<button
-							type="button"
-							onclick={() => (confirmDelete = false)}
-							disabled={deleting}
-							class="{ADMIN_BUTTONS.secondarySm} flex-1"
-						>
-							取消
-						</button>
-						<button
-							type="button"
-							onclick={removeProduct}
-							disabled={deleting}
-							class="flex-1 py-1.5 px-3 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
-						>
-							{deleting ? '删除中...' : '确认删除'}
-						</button>
-					</div>
-				{:else}
-					<button
-						type="button"
-						onclick={removeProduct}
-						class="w-full py-1.5 px-3 rounded-lg border border-rose-300 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-					>
-						<UiIcon icon={Trash2} size={13} />
-						<span>删除此商品</span>
-					</button>
-				{/if}
-			</section>
 		</div>
 	</div>
+
+	<!-- Bottom Section: 售价与规格矩阵 (通栏满屏宽) -->
+	<section class={ADMIN_CARDS.section}>
+		<div class={ADMIN_CARDS.header}>
+			<div class={ADMIN_CARDS.sectionHeader}>
+				<span class={ADMIN_CARDS.sectionIconWrap}>
+					<UiIcon icon={Layers} size={ICONS.sizeXl} />
+				</span>
+				<div>
+					<h2 class={ADMIN_CARDS.title}>售价与规格矩阵</h2>
+					<p class={ADMIN_CARDS.subtitle}>基础售价联动 Stripe 自动计费，多规格管理实时库存与 SKU</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="space-y-6 pt-5">
+			<!-- Pricing fields: Clean & Minimalist -->
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-5 pb-6 border-b border-zinc-100">
+				<div>
+					<label for="edit-price" class="block text-xs font-bold text-zinc-900 mb-1.5">
+						当前售价 <span class="text-rose-500">*</span>
+					</label>
+					<div class="relative">
+						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+						<input
+							id="edit-price"
+							bind:value={price}
+							type="number"
+							min="0"
+							step="0.01"
+							placeholder="120.00"
+							class={ADMIN_FORMS.priceInput}
+						/>
+					</div>
+					<p class="text-[11px] text-zinc-400 mt-1">实付结算基准价（联动 Stripe 扣款）</p>
+				</div>
+
+				<div>
+					<div class="flex items-center justify-between mb-1.5">
+						<label for="edit-compare-at" class="block text-xs font-bold text-zinc-900">
+							划线建议原价 <span class="text-zinc-400 font-normal text-[11px]">(选填)</span>
+						</label>
+						{#if compareAt && price && Number(compareAt) > Number(price)}
+							<span class="text-[10px] font-mono font-semibold text-emerald-700">
+								省 ${(Number(compareAt) - Number(price)).toFixed(2)} (-{Math.round((1 - Number(price) / Number(compareAt)) * 100)}%)
+							</span>
+						{/if}
+					</div>
+					<div class="relative">
+						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm font-semibold">$</span>
+						<input
+							id="edit-compare-at"
+							bind:value={compareAt}
+							type="number"
+							min="0"
+							step="0.01"
+							placeholder="150.00"
+							class={ADMIN_FORMS.priceInput}
+						/>
+					</div>
+					<p class="text-[11px] text-zinc-400 mt-1">若高于现价，前台展示划线折扣</p>
+				</div>
+
+				<div>
+					<label for="edit-curr" class="block text-xs font-bold text-zinc-900 mb-1.5">
+						结算货币
+					</label>
+					<select
+						id="edit-curr"
+						bind:value={currency}
+						class={ADMIN_FORMS.currencySelect}
+					>
+						<option value="USD">USD - 美元 ($)</option>
+						<option value="EUR">EUR - 欧元 (€)</option>
+						<option value="GBP">GBP - 英镑 (£)</option>
+						<option value="CAD">CAD - 加元 ($)</option>
+					</select>
+					<p class="text-[11px] text-zinc-400 mt-1">Stripe 支付网关计费法定货币</p>
+				</div>
+			</div>
+
+			<!-- Variant Matrix -->
+			<div>
+				<VariantMatrix bind:variants productSlug={data.product.slug} />
+			</div>
+		</div>
+	</section>
+
+	<!-- Danger zone (通栏底部警示) -->
+	<section class="rounded-xl border border-rose-200 bg-rose-50/40 p-4 space-y-3">
+		<div>
+			<h3 class="text-xs font-bold uppercase tracking-wider text-rose-800">危险操作区</h3>
+			<p class="text-[11px] text-rose-600/80 leading-relaxed mt-0.5">
+				删除将移除商品及其全部规格，Stripe 商品同步停用，不可撤销。
+			</p>
+		</div>
+
+		{#if confirmDelete}
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					onclick={() => (confirmDelete = false)}
+					disabled={deleting}
+					class="{ADMIN_BUTTONS.secondarySm} flex-1"
+				>
+					取消
+				</button>
+				<button
+					type="button"
+					onclick={removeProduct}
+					disabled={deleting}
+					class="flex-1 py-1.5 px-3 rounded-lg bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50 transition-colors cursor-pointer"
+				>
+					{deleting ? '删除中...' : '确认删除'}
+				</button>
+			</div>
+		{:else}
+			<button
+				type="button"
+				onclick={removeProduct}
+				class="w-full py-1.5 px-3 rounded-lg border border-rose-300 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+			>
+				<UiIcon icon={Trash2} size={13} />
+				<span>删除此商品</span>
+			</button>
+		{/if}
+	</section>
 </div>
