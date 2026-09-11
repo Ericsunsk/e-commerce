@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { ArrowLeft, CircleAlert } from 'lucide-svelte';
 	import { AdminLogo, UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel/design-tokens';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -95,7 +96,7 @@
 				<button
 					type="submit"
 					disabled={loading}
-					class="w-full bg-zinc-900 text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed mt-2"
+					class="{ADMIN_BUTTONS.primary} w-full mt-2"
 				>
 					{#if loading}
 						<span

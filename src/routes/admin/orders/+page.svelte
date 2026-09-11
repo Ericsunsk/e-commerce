@@ -3,6 +3,7 @@
 	import { UiIcon } from '$shared/ui';
 	import { goto } from '$app/navigation';
 	import { getOrderStatusBadgeClass, getOrderStatusLabel } from '$domains/order';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -50,9 +51,7 @@
 				{@const active = data.status === tab.id}
 				<button
 					onclick={() => goto(`?status=${tab.id}`)}
-					class="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer {active
-						? 'bg-zinc-900 text-white shadow-xs'
-						: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'}"
+					class={active ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 				>
 					{tab.label}
 				</button>

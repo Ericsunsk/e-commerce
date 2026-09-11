@@ -2,6 +2,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import { CircleAlert, Plus, Tag, X } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel/design-tokens';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -106,8 +107,9 @@
 			<p class="text-xs text-zinc-500 mt-1">管理营销折扣码、使用上限与过期时间</p>
 		</div>
 		<button
+			type="button"
 			onclick={() => (drawerOpen = true)}
-			class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
+			class={ADMIN_BUTTONS.primary}
 		>
 			<UiIcon icon={Plus} size={16} />
 			新建优惠券
@@ -224,8 +226,9 @@
 						<p class="text-xs text-zinc-500 mt-0.5">生成可在结账时使用的促销码</p>
 					</div>
 					<button
+						type="button"
 						onclick={() => (drawerOpen = false)}
-						class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+						class={ADMIN_BUTTONS.icon}
 						aria-label="关闭"
 					>
 						<UiIcon icon={X} size={20} />
@@ -350,7 +353,7 @@
 				<button
 					type="button"
 					onclick={() => (drawerOpen = false)}
-					class="flex-1 py-3 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
+					class="{ADMIN_BUTTONS.secondary} flex-1"
 				>
 					取消
 				</button>
@@ -358,7 +361,7 @@
 					type="button"
 					onclick={createCoupon}
 					disabled={saving || !form.code.trim() || !form.value}
-					class="flex-1 py-3 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+					class="{ADMIN_BUTTONS.primary} flex-1"
 				>
 					{saving ? '创建中…' : '创建优惠券'}
 				</button>

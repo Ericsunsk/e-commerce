@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Info, Eye, EyeOff, Copy, Check, PlugZap } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel/design-tokens';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -476,7 +477,7 @@
 					type="button"
 					onclick={saveGateway}
 					disabled={saving}
-					class="px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+					class={ADMIN_BUTTONS.primary}
 				>
 					{saving ? '保存中…' : '保存配置'}
 				</button>
@@ -484,7 +485,7 @@
 					type="button"
 					onclick={testConnection}
 					disabled={testing}
-					class="px-5 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 disabled:opacity-50 inline-flex items-center gap-2"
+					class={ADMIN_BUTTONS.secondary}
 				>
 					<UiIcon icon={PlugZap} size={14} />
 					{testing ? '测试中…' : '测试连接'}
@@ -513,7 +514,7 @@
 						type="button"
 						onclick={copyWebhookUrl}
 						aria-label="复制 Webhook 地址"
-						class="p-2 rounded-lg border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+						class={ADMIN_BUTTONS.icon}
 					>
 						<UiIcon icon={copied ? Check : Copy} size={14} />
 					</button>
@@ -668,7 +669,7 @@
 					type="button"
 					onclick={saveSmtp}
 					disabled={smtpSaving}
-					class="px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+					class={ADMIN_BUTTONS.primary}
 				>
 					{smtpSaving ? '保存中…' : '保存配置'}
 				</button>
@@ -697,7 +698,7 @@
 						type="button"
 						onclick={sendTestMail}
 						disabled={mailTesting || !mailTo.trim()}
-						class="px-5 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 disabled:opacity-50"
+						class={ADMIN_BUTTONS.secondary}
 					>
 						{mailTesting ? '发送中…' : '发送测试'}
 					</button>
@@ -830,7 +831,7 @@
 					type="button"
 					onclick={saveS3}
 					disabled={s3Saving}
-					class="px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+					class={ADMIN_BUTTONS.primary}
 				>
 					{s3Saving ? '保存中…' : '保存 S3'}
 				</button>
@@ -838,7 +839,7 @@
 					type="button"
 					onclick={() => testS3('storage')}
 					disabled={s3Testing}
-					class="px-5 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 disabled:opacity-50"
+					class={ADMIN_BUTTONS.secondary}
 				>
 					{s3Testing ? '测试中…' : '测试存储连通'}
 				</button>
@@ -846,7 +847,7 @@
 					type="button"
 					onclick={() => testS3('backups')}
 					disabled={s3Testing}
-					class="px-5 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 disabled:opacity-50"
+					class={ADMIN_BUTTONS.secondary}
 				>
 					测试备份连通
 				</button>
@@ -889,7 +890,7 @@
 						type="button"
 						onclick={saveSchedule}
 						disabled={scheduleSaving}
-						class="px-5 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+						class={ADMIN_BUTTONS.primary}
 					>
 						{scheduleSaving ? '保存中…' : '保存计划'}
 					</button>

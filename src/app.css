@@ -19,6 +19,7 @@
 	/* Radius Design Tokens */
 	--radius-card: 0.5rem; /* 8px - unified card corner radius */
 	--radius-card-inner: 0.375rem; /* 6px - nested element corner radius */
+	--radius-btn: 0.5rem; /* 8px - unified button corner radius matching card */
 
 	/* Fonts */
 	--font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;

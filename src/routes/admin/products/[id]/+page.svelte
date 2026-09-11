@@ -481,9 +481,7 @@
 							<button
 								type="button"
 								onclick={() => toggleCategory(cat.id)}
-								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs transition-all cursor-pointer {checked
-									? 'bg-zinc-900 text-white border-zinc-900 font-semibold shadow-xs'
-									: 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50'}"
+								class={checked ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 							>
 								<span>{cat.name}</span>
 							</button>
@@ -569,7 +567,7 @@
 							<button
 								type="button"
 								onclick={removeImage}
-								class="inline-flex items-center gap-1.5 px-3 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 transition-colors cursor-pointer shadow-xs"
+								class={ADMIN_BUTTONS.dangerSecondary}
 							>
 								<UiIcon icon={Trash2} size={14} />
 								移除主图

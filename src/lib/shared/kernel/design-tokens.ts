@@ -29,13 +29,13 @@ export const COLORS = {
 
 export const BUTTON_STYLES = {
 	outline:
-		'border border-primary dark:border-white text-primary dark:text-white hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-primary transition-colors duration-300',
+		'border border-primary dark:border-white text-primary dark:text-white hover:bg-primary hover:text-white dark:hover:bg-white dark:hover:text-primary rounded-card transition-colors duration-300',
 	solid:
-		'bg-primary text-white dark:bg-white dark:text-primary hover:opacity-90 transition-opacity',
-	base: 'font-bold uppercase tracking-widest cursor-pointer inline-flex items-center justify-center',
-	sizeSm: 'h-10 px-4 text-[10px] tracking-[0.15em]',
-	sizeMd: 'h-12 px-6 text-[10px] tracking-[0.2em]',
-	sizeLg: 'h-14 px-10 text-xs tracking-widest'
+		'bg-primary text-white dark:bg-white dark:text-primary hover:opacity-90 rounded-card transition-opacity',
+	base: 'font-bold uppercase tracking-widest cursor-pointer inline-flex items-center justify-center rounded-card',
+	sizeSm: 'h-10 px-4 text-[10px] tracking-[0.15em] rounded-card',
+	sizeMd: 'h-12 px-6 text-[10px] tracking-[0.2em] rounded-card',
+	sizeLg: 'h-14 px-10 text-xs tracking-widest rounded-card'
 } as const;
 
 export const TRANSITIONS = {
@@ -88,6 +88,8 @@ export const ICONS = {
 export const RADIUS = {
 	card: 'rounded-card',
 	cardInner: 'rounded-card-inner',
+	btn: 'rounded-card',
+	button: 'rounded-card',
 	pill: 'rounded-full'
 } as const;
 
@@ -139,10 +141,34 @@ export const ADMIN_FORMS = {
 } as const;
 
 export const ADMIN_BUTTONS = {
-	primary: 'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-card bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
-	secondary: 'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
-	danger: 'p-1.5 rounded-card text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
-	icon: 'p-1.5 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer'
+	primary:
+		'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-card bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	primarySm:
+		'inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-card bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	secondary:
+		'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+	secondarySm:
+		'inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-card text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 shadow-xs transition-colors cursor-pointer',
+	ghost:
+		'inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-card text-xs font-semibold text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
+	ghostSm:
+		'inline-flex items-center justify-center gap-1 px-2 py-1 rounded-card text-xs font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
+	danger:
+		'p-1.5 rounded-card text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer',
+	dangerSolid:
+		'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-card bg-rose-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	dangerSolidSm:
+		'inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-card bg-rose-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-rose-700 disabled:opacity-50 shadow-xs transition-all cursor-pointer',
+	dangerSecondary:
+		'inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-card text-xs font-semibold uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:text-rose-700 shadow-xs transition-colors cursor-pointer',
+	icon:
+		'p-1.5 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer',
+	pill:
+		'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs font-medium transition-colors cursor-pointer',
+	pillActive:
+		'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border border-zinc-900 bg-zinc-900 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer',
+	pillInactive:
+		'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50 text-xs transition-colors cursor-pointer'
 } as const;
 
 export const ADMIN_TABLE = {

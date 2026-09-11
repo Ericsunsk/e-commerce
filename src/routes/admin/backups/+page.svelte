@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DatabaseBackup, Download, RefreshCw } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel/design-tokens';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -52,7 +53,7 @@
 			type="button"
 			onclick={triggerBackup}
 			disabled={creating}
-			class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 disabled:opacity-50"
+			class={ADMIN_BUTTONS.primary}
 		>
 			<UiIcon icon={RefreshCw} size={14} class={creating ? 'animate-spin' : ''} />
 			{creating ? '备份中…' : '手动备份'}
@@ -81,7 +82,7 @@
 						</div>
 						<a
 							href="/api/admin/backups/download?key={encodeURIComponent(row.key)}"
-							class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-zinc-200 text-zinc-600 text-[11px] font-semibold uppercase tracking-wider hover:bg-zinc-50 shrink-0"
+							class="{ADMIN_BUTTONS.secondarySm} shrink-0"
 						>
 							<UiIcon icon={Download} size={14} />
 							下载

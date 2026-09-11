@@ -11,6 +11,7 @@
 		ImageIcon
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import {
 		SECTION_TYPES,
 		SECTION_TYPE_LABELS,
@@ -303,7 +304,7 @@
 		<button
 			type="button"
 			onclick={openNew}
-			class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 shadow-xs transition-colors shrink-0"
+			class={ADMIN_BUTTONS.primary}
 		>
 			<UiIcon icon={Plus} size={14} />
 			<span>新建区块</span>
@@ -318,10 +319,9 @@
 		<button
 			type="button"
 			onclick={() => (selectedPageId = 'all')}
-			class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 {selectedPageId ===
-			'all'
-				? 'bg-zinc-900 text-white'
-				: 'text-zinc-600 hover:bg-zinc-100'}"
+			class={selectedPageId === 'all'
+				? ADMIN_BUTTONS.pillActive
+				: ADMIN_BUTTONS.pillInactive}
 		>
 			全部页面 ({sections.length})
 		</button>
@@ -330,12 +330,11 @@
 			<button
 				type="button"
 				onclick={() => (selectedPageId = page.id)}
-				class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0 {selectedPageId ===
-				page.id
-					? 'bg-zinc-900 text-white'
-					: 'text-zinc-600 hover:bg-zinc-100'}"
+				class={selectedPageId === page.id
+					? ADMIN_BUTTONS.pillActive
+					: ADMIN_BUTTONS.pillInactive}
 			>
-				{page.title ? `${page.title}` : page.slug} ({count})
+				{page.title || page.slug} ({count})
 			</button>
 		{/each}
 	</div>
@@ -454,7 +453,7 @@
 										<button
 											type="button"
 											onclick={() => openEdit(row.id)}
-											class="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+											class={ADMIN_BUTTONS.icon}
 											title="编辑区块"
 										>
 											<UiIcon icon={Pencil} size={14} />
@@ -462,7 +461,7 @@
 										<button
 											type="button"
 											onclick={() => remove(row.id, row.heading)}
-											class="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+											class={ADMIN_BUTTONS.danger}
 											title="删除区块"
 										>
 											<UiIcon icon={Trash2} size={14} />
@@ -518,7 +517,7 @@
 				<button
 					type="button"
 					onclick={() => (drawerOpen = false)}
-					class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200/60"
+					class={ADMIN_BUTTONS.icon}
 				>
 					<UiIcon icon={X} size={18} />
 				</button>
@@ -675,7 +674,7 @@
 							<button
 								type="button"
 								onclick={() => removeAction(idx)}
-								class="p-1.5 rounded text-rose-500 hover:bg-rose-50"
+								class={ADMIN_BUTTONS.danger}
 								title="移除该按钮"
 							>
 								<UiIcon icon={Trash2} size={13} />
@@ -709,7 +708,7 @@
 				<button
 					type="button"
 					onclick={() => (drawerOpen = false)}
-					class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-200/60"
+					class={ADMIN_BUTTONS.secondary}
 				>
 					取消
 				</button>
@@ -717,7 +716,7 @@
 					type="button"
 					onclick={save}
 					disabled={saving}
-					class="px-5 py-2 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+					class={ADMIN_BUTTONS.primary}
 				>
 					{saving ? '保存中…' : '保存区块'}
 				</button>

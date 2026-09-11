@@ -2,6 +2,7 @@
 	import { ArrowLeft, CircleAlert, Clock, Image as ImageIcon, Truck } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { getOrderStatusBadgeClass, getOrderStatusLabel } from '$domains/order';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -123,7 +124,7 @@
 			{#if canRefund}
 				<button
 					onclick={() => (refundOpen = true)}
-					class="px-4 py-2.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-semibold uppercase tracking-wider hover:bg-rose-100 transition-colors cursor-pointer"
+					class={ADMIN_BUTTONS.dangerSecondary}
 				>
 					发起退款
 				</button>
@@ -131,7 +132,7 @@
 			{#if canFulfill}
 				<button
 					onclick={() => (modalOpen = true)}
-					class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 shadow-xs transition-colors cursor-pointer"
+					class={ADMIN_BUTTONS.primary}
 				>
 					<UiIcon icon={Truck} size={16} />
 					标记发货
@@ -328,7 +329,7 @@
 				<button
 					type="button"
 					onclick={() => (modalOpen = false)}
-					class="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
+					class="flex-1 {ADMIN_BUTTONS.secondary}"
 				>
 					取消
 				</button>
@@ -336,7 +337,7 @@
 					type="button"
 					onclick={submitFulfillment}
 					disabled={saving || !carrier.trim() || !trackingNumber.trim()}
-					class="flex-1 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+					class="flex-1 {ADMIN_BUTTONS.primary}"
 				>
 					{saving ? '保存中…' : '确认发货'}
 				</button>
@@ -363,11 +364,11 @@
 				<p class="text-xs text-zinc-500 mt-1">直接通过 Stripe API 退回该笔交易</p>
 			</div>
 
-			<div class="grid grid-cols-2 gap-2 bg-zinc-100 p-1 rounded-xl">
+			<div class="grid grid-cols-2 gap-2 bg-zinc-100 p-1 rounded-card">
 				<button
 					type="button"
 					onclick={() => (refundMode = 'full')}
-					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
+					class="py-2 rounded-card-inner text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
 					'full'
 						? 'bg-white text-zinc-900 shadow-xs'
 						: 'text-zinc-600 hover:text-zinc-900'}"
@@ -377,7 +378,7 @@
 				<button
 					type="button"
 					onclick={() => (refundMode = 'partial')}
-					class="py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
+					class="py-2 rounded-card-inner text-xs font-bold uppercase tracking-wider transition-all cursor-pointer {refundMode ===
 					'partial'
 						? 'bg-white text-zinc-900 shadow-xs'
 						: 'text-zinc-600 hover:text-zinc-900'}"
@@ -425,7 +426,7 @@
 				<button
 					type="button"
 					onclick={() => (refundOpen = false)}
-					class="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50 transition-colors cursor-pointer"
+					class="flex-1 {ADMIN_BUTTONS.secondary}"
 				>
 					取消
 				</button>
@@ -433,7 +434,7 @@
 					type="button"
 					onclick={submitRefund}
 					disabled={refunding || (refundMode === 'partial' && !refundAmount)}
-					class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-rose-700 disabled:opacity-50 transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+					class="flex-1 {ADMIN_BUTTONS.dangerSolid}"
 				>
 					{refunding ? '退款中…' : '确认退款'}
 				</button>

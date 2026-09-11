@@ -3,6 +3,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { Search, Users } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -58,7 +59,7 @@
 		</div>
 		<button
 			type="submit"
-			class="px-5 py-2 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800"
+			class={ADMIN_BUTTONS.primarySm}
 		>
 			搜索
 		</button>
@@ -95,14 +96,14 @@
 					<button
 						disabled={data.page <= 1}
 						onclick={() => gotoPage(data.page - 1)}
-						class="px-4 py-2 rounded-lg border border-zinc-200 text-xs font-semibold uppercase tracking-wider disabled:opacity-40 hover:bg-zinc-50"
+						class={ADMIN_BUTTONS.secondarySm}
 					>
 						上一页
 					</button>
 					<button
 						disabled={data.page >= data.totalPages}
 						onclick={() => gotoPage(data.page + 1)}
-						class="px-4 py-2 rounded-lg border border-zinc-200 text-xs font-semibold uppercase tracking-wider disabled:opacity-40 hover:bg-zinc-50"
+						class={ADMIN_BUTTONS.secondarySm}
 					>
 						下一页
 					</button>

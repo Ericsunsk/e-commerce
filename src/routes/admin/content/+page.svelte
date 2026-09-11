@@ -14,6 +14,7 @@
 		ImageIcon
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -374,10 +375,9 @@
 								<button
 									type="button"
 									onclick={() => applyCurrencyPreset(preset.code, preset.symbol)}
-									class="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors {values.currency_code ===
-									preset.code
-										? 'bg-zinc-900 text-white border-zinc-900'
-										: 'bg-zinc-50 text-zinc-600 border-zinc-200 hover:bg-zinc-100'}"
+									class={values.currency_code === preset.code
+										? ADMIN_BUTTONS.pillActive
+										: ADMIN_BUTTONS.pillInactive}
 								>
 									{preset.label}
 								</button>
@@ -533,7 +533,7 @@
 				<button
 					type="button"
 					onclick={() => (values = { ...initialValues })}
-					class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-600 hover:bg-zinc-100 transition-colors"
+					class={ADMIN_BUTTONS.secondary}
 				>
 					放弃更改
 				</button>
@@ -542,7 +542,7 @@
 				type="button"
 				onclick={save}
 				disabled={saving || !isDirty}
-				class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50 shadow-xs transition-all"
+				class={ADMIN_BUTTONS.primary}
 			>
 				{#if saving}
 					<span>保存中…</span>

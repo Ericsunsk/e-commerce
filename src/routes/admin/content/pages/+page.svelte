@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Plus, Pencil, Trash2, X, ExternalLink } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
+	import { ADMIN_BUTTONS } from '$shared/kernel';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -120,7 +121,7 @@
 		<button
 			type="button"
 			onclick={openNew}
-			class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800"
+			class={ADMIN_BUTTONS.primary}
 		>
 			<UiIcon icon={Plus} size={14} />
 			新建页面
@@ -147,7 +148,7 @@
 								type="button"
 								onclick={() => openEdit(row.id)}
 								aria-label="编辑{row.slug}"
-								class="p-2 rounded-lg border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50"
+								class={ADMIN_BUTTONS.icon}
 							>
 								<UiIcon icon={Pencil} size={14} />
 							</button>
@@ -155,7 +156,7 @@
 								type="button"
 								onclick={() => remove(row.id, row.slug)}
 								aria-label="删除{row.slug}"
-								class="p-2 rounded-lg border border-zinc-200 text-zinc-500 hover:text-rose-600 hover:bg-rose-50"
+								class={ADMIN_BUTTONS.danger}
 							>
 								<UiIcon icon={Trash2} size={14} />
 							</button>
@@ -177,7 +178,7 @@
 				</h2>
 				<button
 					onclick={() => (drawerOpen = false)}
-					class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+					class={ADMIN_BUTTONS.icon}
 					aria-label="关闭"
 				>
 					<UiIcon icon={X} size={20} />
@@ -227,7 +228,7 @@
 				<button
 					type="button"
 					onclick={() => (drawerOpen = false)}
-					class="flex-1 py-3 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-semibold uppercase tracking-wider hover:bg-zinc-50"
+					class="flex-1 {ADMIN_BUTTONS.secondary}"
 				>
 					取消
 				</button>
@@ -235,7 +236,7 @@
 					type="button"
 					onclick={save}
 					disabled={saving || !form.slug.trim() || !form.title.trim()}
-					class="flex-1 py-3 rounded-xl bg-zinc-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 disabled:opacity-50"
+					class="flex-1 {ADMIN_BUTTONS.primary}"
 				>
 					{saving ? '保存中…' : '保存'}
 				</button>

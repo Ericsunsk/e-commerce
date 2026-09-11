@@ -555,7 +555,7 @@
 								<button
 									type="button"
 									onclick={() => (inspectProduct = row)}
-									class="inline-flex items-center gap-1 px-2.5 py-1 rounded-card text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 transition-colors cursor-pointer"
+									class={ADMIN_BUTTONS.secondarySm}
 									title="点击查看所有变体尺码与 SKU 详情"
 								>
 									<UiIcon icon={Layers} size={12} class="text-zinc-500" />
@@ -607,7 +607,7 @@
 										href="/shop/{row.slug}"
 										target="_blank"
 										rel="noopener noreferrer"
-										class="p-1.5 rounded-card text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-colors"
+										class={ADMIN_BUTTONS.icon}
 										title="在新标签页查看前台商品详情"
 									>
 										<UiIcon icon={ExternalLink} size={14} />
@@ -616,7 +616,7 @@
 									<!-- Edit details -->
 									<a
 										href="/admin/products/{row.id}"
-										class="px-2.5 py-1 rounded-card border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-700 shadow-2xs transition-colors"
+										class={ADMIN_BUTTONS.secondarySm}
 									>
 										编辑
 									</a>
@@ -780,7 +780,7 @@
 						<button
 							type="button"
 							onclick={openNewCategory}
-							class="inline-flex items-center gap-1 px-3 py-1.5 rounded-card bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+							class={ADMIN_BUTTONS.primarySm}
 						>
 							<UiIcon icon={Plus} size={14} />
 							<span>新建分类</span>
@@ -789,7 +789,7 @@
 					<button
 						type="button"
 						onclick={() => (categoryModalOpen = false)}
-						class="p-1.5 rounded-card text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200/60 cursor-pointer"
+						class={ADMIN_BUTTONS.icon}
 						aria-label="关闭"
 					>
 						<UiIcon icon={X} size={18} />
@@ -964,7 +964,7 @@
 													onclick={() => openEditCategory(cat)}
 													title="编辑分类"
 													aria-label="编辑{cat.name}"
-													class="p-1.5 rounded-card text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors cursor-pointer"
+													class={ADMIN_BUTTONS.icon}
 												>
 													<UiIcon icon={Pencil} size={13} />
 												</button>
@@ -973,7 +973,7 @@
 													onclick={() => deleteCategory(cat)}
 													title="删除分类"
 													aria-label="删除{cat.name}"
-													class="p-1.5 rounded-card text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+													class={ADMIN_BUTTONS.danger}
 												>
 													<UiIcon icon={Trash2} size={13} />
 												</button>

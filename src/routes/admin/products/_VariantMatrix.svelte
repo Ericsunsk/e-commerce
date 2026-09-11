@@ -178,7 +178,7 @@
 					type="button"
 					onclick={regenerateAllSkus}
 					title="根据当前前缀统一重整所有规格条码"
-					class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-card bg-white border border-zinc-200 text-zinc-600 text-xs font-medium hover:text-zinc-900 hover:bg-zinc-100 transition-colors shadow-xs cursor-pointer"
+					class={ADMIN_BUTTONS.secondarySm}
 				>
 					<UiIcon icon={RefreshCw} size={13} />
 					统一重排 SKU
@@ -188,9 +188,7 @@
 			<button
 				type="button"
 				onclick={() => (showGenerator = !showGenerator)}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card border text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer {showGenerator
-					? 'bg-zinc-900 text-white border-zinc-900 shadow-xs'
-					: 'bg-white border-zinc-300 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 shadow-xs'}"
+				class={showGenerator ? ADMIN_BUTTONS.primarySm : ADMIN_BUTTONS.secondarySm}
 			>
 				<UiIcon icon={Wand2} size={13} />
 				<span>批量预设生成</span>
@@ -204,7 +202,7 @@
 			<button
 				type="button"
 				onclick={addRow}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-card bg-zinc-900 text-white text-xs font-semibold uppercase tracking-wider hover:bg-zinc-800 transition-colors shadow-xs cursor-pointer"
+				class={ADMIN_BUTTONS.primarySm}
 			>
 				<UiIcon icon={Plus} size={13} />
 				添加单行
@@ -253,9 +251,7 @@
 						<button
 							type="button"
 							onclick={() => toggleColorPreset(preset)}
-							class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-card border text-xs transition-all cursor-pointer {isSelected
-								? 'bg-zinc-900 text-white border-zinc-900 font-semibold shadow-xs'
-								: 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100'}"
+							class={isSelected ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 						>
 							<span
 								class="w-3 h-3 rounded-full border border-black/20 shrink-0"
@@ -289,9 +285,7 @@
 						<button
 							type="button"
 							onclick={() => toggleSizePreset(size)}
-							class="px-3 py-1.5 rounded-card border text-xs font-mono transition-all cursor-pointer {isSelected
-								? 'bg-zinc-900 text-white border-zinc-900 font-bold shadow-xs'
-								: 'bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-100'}"
+							class={isSelected ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 						>
 							{size}
 						</button>
@@ -487,14 +481,14 @@
 								<button
 									type="button"
 									onclick={() => removeRow(index)}
-									class="px-2 py-1 rounded-card bg-rose-600 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-rose-700 shadow-xs cursor-pointer"
+									class={ADMIN_BUTTONS.dangerSolidSm}
 								>
 									确认删除
 								</button>
 								<button
 									type="button"
 									onclick={() => (confirmDeleteIndex = null)}
-									class="px-2 py-1 rounded-card bg-zinc-100 text-zinc-600 text-[11px] hover:bg-zinc-200 cursor-pointer"
+									class={ADMIN_BUTTONS.secondarySm}
 								>
 									取消
 								</button>
@@ -505,7 +499,7 @@
 								onclick={() => (confirmDeleteIndex = index)}
 								title="删除此规格行"
 								aria-label="删除规格行"
-								class="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-card transition-colors cursor-pointer"
+								class={ADMIN_BUTTONS.danger}
 							>
 								<UiIcon icon={Trash2} size={15} />
 							</button>
