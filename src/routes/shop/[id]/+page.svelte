@@ -3,9 +3,10 @@
 	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { ProductListGrid } from '$domains/catalog';
+	import { getCompareAtPrice, getDiscountPercent } from '$domains/catalog/domain/pricing';
 	import { Heart } from 'lucide-svelte';
 	import { RemoteImage, toastStore, UiIcon } from '$shared/ui';
-	import { MESSAGES, COLORS } from '$shared/kernel';
+	import { MESSAGES, COLORS, formatCurrency } from '$shared/kernel';
 
 	const cart = useCart();
 	const wishlist = useWishlist();
@@ -13,6 +14,8 @@
 	let { data } = $props();
 	let product = $derived(data.product);
 	let relatedProducts = $derived(data.related);
+	let discountPercent = $derived(getDiscountPercent(product));
+	let compareAtPrice = $derived(getCompareAtPrice(product));
 
 	let selectedSize = $state('');
 	let selectedColor = $state('');
@@ -308,6 +311,16 @@
 
 					<div class="text-base font-sans text-primary dark:text-white">
 						{product.price}
+						{#if discountPercent !== null && compareAtPrice !== null}
+							<span class="line-through opacity-60 ml-2 text-sm">
+								{formatCurrency(compareAtPrice, { currency: 'USD', locale: 'en-US' })}
+							</span>
+							<span
+								class="ml-2 inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded tracking-wider"
+							>
+								-{discountPercent}% OFF
+							</span>
+						{/if}
 					</div>
 				</div>
 
@@ -405,7 +418,7 @@
 					<!-- Description -->
 					<div class="py-4">
 						<div
-							class="prose prose-sm dark:prose-invert max-w-none text-primary/80 dark:text-white/80 leading-relaxed"
+							class="prose prose-sm dark:prose-invert max-w-none text-primary/80 dark:text-white/80 leading-relaxed whitespace-pre-line"
 						>
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html product.description}
