@@ -9,6 +9,7 @@ export * from './domain/pricing';
 export * from './domain/filters';
 export * from './domain/query-keys';
 export * from './domain/admin-product-row';
+export * from './domain/category-hierarchy';
 
 // UI Components
 export { default as ProductCard } from './ui/ProductCard.svelte';

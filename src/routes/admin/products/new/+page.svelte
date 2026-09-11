@@ -18,6 +18,7 @@
 	} from '$shared/kernel';
 	import type { PageData } from './$types';
 	import VariantMatrix, { type VariantRow } from '../_VariantMatrix.svelte';
+	import { groupCategoriesByHierarchy } from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
 
@@ -32,6 +33,7 @@
 	let isActive = $state(true);
 	let isFeatured = $state(false);
 	let selectedCategories = $state<string[]>([]);
+	let categoryTierGroups = $derived(groupCategoriesByHierarchy(data.categories || []));
 	let variants = $state<VariantRow[]>([]);
 
 	// First SKU / Variant Image (drives product cover image)
@@ -413,27 +415,39 @@
 								<h2 class={ADMIN_CARDS.title}>所属分类</h2>
 								<span class="text-[11px] font-mono text-zinc-400">已选 {selectedCategories.length} 个</span>
 							</div>
-							<p class={ADMIN_CARDS.subtitle}>绑定商品所属类目标签，支持多选</p>
+							<p class={ADMIN_CARDS.subtitle}>绑定商品所属类目标签，按层级分类多选</p>
 						</div>
 					</div>
 				</div>
 
-				<div class="pt-4">
-					{#if data.categories && data.categories.length > 0}
-						<div class="flex flex-wrap gap-2">
-							{#each data.categories as cat (cat.id)}
-								{@const checked = selectedCategories.includes(cat.id)}
-								<button
-									type="button"
-									onclick={() => toggleCategory(cat.id)}
-									class="{checked
-										? ADMIN_BUTTONS.pillActive
-										: ADMIN_BUTTONS.pillInactive} text-xs cursor-pointer"
-								>
-									<span>{cat.name}</span>
-								</button>
-							{/each}
-						</div>
+				<div class="space-y-3.5 pt-4">
+					{#if categoryTierGroups.length > 0}
+						{#each categoryTierGroups as group (group.id)}
+							<div class="space-y-1.5">
+								<div class="flex items-center justify-between">
+									<span class="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+										{group.label}
+									</span>
+									<span class="text-[10px] font-mono text-zinc-400">
+										已选 {group.categories.filter((c) => selectedCategories.includes(c.id)).length}
+									</span>
+								</div>
+								<div class="flex flex-wrap gap-2">
+									{#each group.categories as cat (cat.id)}
+										{@const checked = selectedCategories.includes(cat.id)}
+										<button
+											type="button"
+											onclick={() => toggleCategory(cat.id)}
+											class="{checked
+												? ADMIN_BUTTONS.pillActive
+												: ADMIN_BUTTONS.pillInactive} text-xs cursor-pointer"
+										>
+											<span>{cat.name || cat.slug}</span>
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/each}
 					{:else}
 						<div class="py-4 px-3 rounded-lg border border-dashed border-zinc-200 text-center text-[11px] text-zinc-400">
 							暂无可用的商品分类，可在分类管理中添加
