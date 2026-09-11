@@ -595,48 +595,6 @@
 					{/if}
 				</div>
 			</section>
-
-			<!-- Card 3: 规格与库存速览 -->
-			<section class={ADMIN_CARDS.section}>
-				<div class={ADMIN_CARDS.header}>
-					<div class={ADMIN_CARDS.sectionHeader}>
-						<div>
-							<h2 class={ADMIN_CARDS.title}>规格与库存速览</h2>
-							<p class={ADMIN_CARDS.subtitle}>实时统计当前多规格配置数据</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-3 pt-4">
-					{#if firstVariantImage}
-						<div class="flex items-center gap-3 p-2.5 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<img
-								src={firstVariantImage}
-								alt="商品封面"
-								class="w-12 h-12 rounded-lg object-cover border border-zinc-200 bg-white shrink-0"
-							/>
-							<div class="min-w-0 flex-1">
-								<span class="text-xs font-semibold text-zinc-900 block truncate">商品封面主图</span>
-								<span class="text-[11px] text-zinc-500 block">自动取自矩阵首款规格图</span>
-							</div>
-						</div>
-					{/if}
-
-					<div class="grid grid-cols-2 gap-3">
-						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">总在库库存</span>
-							<span class="text-lg font-mono font-bold text-zinc-900">{totalStock}</span>
-							<span class="text-[10px] text-zinc-400 ml-1 font-mono">件</span>
-						</div>
-
-						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">细分规格款数</span>
-							<span class="text-lg font-mono font-bold text-zinc-900">{variants.length}</span>
-							<span class="text-[10px] text-zinc-400 ml-1 font-mono">款</span>
-						</div>
-					</div>
-				</div>
-			</section>
 		</div>
 	</div>
 

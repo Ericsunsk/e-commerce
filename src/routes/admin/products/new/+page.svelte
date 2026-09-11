@@ -189,6 +189,10 @@
 						{#if isFeatured}
 							<span class={ADMIN_BADGES.warning}>首页精选推荐</span>
 						{/if}
+						{#if variants.length > 0}
+							<span class={ADMIN_BADGES.neutral}>总库存: {totalStock} 件</span>
+							<span class={ADMIN_BADGES.neutral}>规格: {variants.length} 款</span>
+						{/if}
 					</div>
 					<p class={ADMIN_PAGE.subtitle}>
 						录入商品核心资料、绑定分类与多规格图，提交时将自动在 Stripe 开通 Product 与统一计费 Price。
@@ -438,49 +442,7 @@
 				</div>
 			</section>
 
-			<!-- Card 3: 规格与库存速览 -->
-			<section class={ADMIN_CARDS.section}>
-				<div class={ADMIN_CARDS.header}>
-					<div class={ADMIN_CARDS.sectionHeader}>
-						<div>
-							<h2 class={ADMIN_CARDS.title}>规格与库存速览</h2>
-							<p class={ADMIN_CARDS.subtitle}>实时统计当前多规格配置数据</p>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-3 pt-4">
-					{#if firstVariantImage}
-						<div class="flex items-center gap-3 p-2.5 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<img
-								src={firstVariantImage}
-								alt="商品封面"
-								class="w-12 h-12 rounded-lg object-cover border border-zinc-200 bg-white shrink-0"
-							/>
-							<div class="min-w-0 flex-1">
-								<span class="text-xs font-semibold text-zinc-900 block truncate">商品封面主图</span>
-								<span class="text-[11px] text-zinc-500 block">自动取自矩阵首款规格图</span>
-							</div>
-						</div>
-					{/if}
-
-					<div class="grid grid-cols-2 gap-3">
-						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">总在库库存</span>
-							<span class="text-lg font-mono font-bold text-zinc-900">{totalStock}</span>
-							<span class="text-[10px] text-zinc-400 ml-1 font-mono">件</span>
-						</div>
-
-						<div class="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-							<span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block mb-1">细分规格款数</span>
-							<span class="text-lg font-mono font-bold text-zinc-900">{variants.length}</span>
-							<span class="text-[10px] text-zinc-400 ml-1 font-mono">款</span>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<!-- Card 4: 创建提交快捷卡片 -->
+			<!-- Card 3: 创建提交快捷卡片 -->
 			<section class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
 				<div>
 					<h3 class="text-xs font-bold uppercase tracking-wider text-zinc-900">操作</h3>
