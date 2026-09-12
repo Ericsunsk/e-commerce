@@ -10,9 +10,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           # Node 22 only. This previously ran a [20, 22] matrix, but
           # @cloudflare/kv-asset-handler requires >=22.0.0, so `npm ci` failed
