@@ -61,12 +61,16 @@ module.exports = {
 
 		{
 			// Principle IX: "domain/ MUST NOT import ... another context's domain/."
-			// The domain layer is the pure model; it may reach $shared/kernel only.
+			// The domain layer is the pure model; it may reach $shared/kernel and the
+			// generated PocketBase *types* only. `pocketbase-types.ts` is a pure
+			// generated module (enums + interfaces, no runtime import of pocketbase),
+			// so reaching it keeps domain/ testable with no harness.
 			name: 'domain-purity',
 			severity: 'error',
 			comment:
-				'domain/ is the pure model: no PocketBase, no .server.ts, no Svelte, ' +
-				'no shared infrastructure, no shared ui. It may import $shared/kernel only. ' +
+				'domain/ is the pure model: no PocketBase runtime, no .server.ts, no ' +
+				'Svelte, no shared infrastructure, no shared ui. It may import ' +
+				'$shared/kernel and $shared/infrastructure/pocketbase-types only. ' +
 				'See Constitution Principle IX.',
 			from: { path: '^src/lib/domains/[^/]+/domain/' },
 			to: {
@@ -75,19 +79,24 @@ module.exports = {
 					'^src/lib/.*\\.server\\.ts$',
 					'^src/lib/.*\\.svelte\\.ts$',
 					'^src/lib/.*\\.svelte$',
-					'^src/lib/shared/infrastructure/',
+					'^src/lib/shared/infrastructure/(?!pocketbase-types)',
 					'^src/lib/shared/ui/'
 				]
 			}
 		},
 
 		{
-			// Principle IX: "Kernel ... MUST be pure and framework-free."
+			// Principle IX: "Kernel ... MUST stay pure."
+			// `$env/dynamic/public` is deliberately allowed: public env vars are
+			// isomorphic by definition (they ship to the browser), so reading one
+			// does not make kernel impure or untestable. `$env/dynamic/private`
+			// would — that is the line this rule draws.
 			name: 'kernel-purity',
 			severity: 'error',
 			comment:
 				'src/lib/shared/kernel is cross-context primitives and must stay pure: ' +
-				'no $env, no $app, no PocketBase, no bounded context. ' +
+				'no PocketBase, no .server.ts, no Svelte, no bounded context. ' +
+				'Public env is allowed; private env is not. ' +
 				'See Constitution Principle IX.',
 			from: { path: '^src/lib/shared/kernel/' },
 			to: {

@@ -188,9 +188,15 @@ contexts, and the rule forbidding it was silent.
 - **Contexts Are Server-Only By Default (MUST)**: A context has an `index.ts` only if it has a
   `ui/` layer. `admin`, `payment`, and `platform` are server-only and expose only `server.ts`.
 - **Kernel Is Not A Context (MUST)**: `src/lib/shared/kernel/` holds cross-context primitives
-  (price, date, slug, errors, messages). Kernel code MUST be pure and framework-free — it
-  MUST NOT import `$env`, `$app/*`, `pocketbase`, or any context. Anything that is not
-  genuinely universal belongs in a context instead.
+  (price, date, slug, errors, messages, image URL building). Kernel code MUST be pure — it
+  MUST NOT import `pocketbase`, any `.server.ts` module, Svelte, `$shared/infrastructure`,
+  `$shared/ui`, or any bounded context.
+    - **Public env is permitted** (MUST): kernel MAY read `$env/dynamic/public`. Public
+      variables are isomorphic by definition — they ship to the browser — so reading one
+      does not make kernel impure, and the alternative (threading a config object through
+      every call site) buys nothing. **Private env is forbidden** (MUST NOT): reading
+      `$env/dynamic/private` from kernel is a real leak.
+    - Anything not genuinely universal belongs in a context instead.
 - **Enforcement (MUST)**: These rules are enforced by `.dependency-cruiser.cjs` via
   `npm run depcruise`, which MUST be green before commit. Rule changes MUST be reviewed as
   seriously as code changes.

@@ -1,4 +1,4 @@
-import { Collections } from '$shared/infrastructure';
+import { Collections } from '$shared/infrastructure/pocketbase-types';
 import type { UISection, SectionType, UISectionSettings } from './models';
 
 function createCodeSection(data: {

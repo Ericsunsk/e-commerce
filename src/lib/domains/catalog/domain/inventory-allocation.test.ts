@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { withKeyedLock } from '$shared/infrastructure/server/locks.server';
+import { withTestKeyedLock as withKeyedLock } from '../../../../test/test-lock';
 import { allocateInventory, type InventoryClient } from './inventory-allocation';
 
 describe('InventoryAllocation domain module', () => {

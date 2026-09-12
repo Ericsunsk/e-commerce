@@ -4,7 +4,7 @@ import type {
 	PagesResponse,
 	UiSectionsResponse,
 	UiAssetsResponse
-} from '$shared/infrastructure';
+} from '$shared/infrastructure/pocketbase-types';
 
 export type GlobalSettings = Omit<GlobalSettingsResponse, 'icon'> & {
 	storyImage?: string;
