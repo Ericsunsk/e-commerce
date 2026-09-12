@@ -13,7 +13,7 @@ JEVARIE 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能�
 | **SvelteKit 2** | **缝合器 (The Gluer)** | SSR 渲染、服务端业务逻辑 (Server Hooks Auth Sync) 与 Webhook 调度。 |
 | **PocketBase** | **全能后端 (CMS + DB)** | 三层存储：核心展示层、运营统计层、JSON 扩展层。 |
 | **Stripe** | **财务大脑 (FinGate)** | 价格源头、支付状态机、库存同步引擎、自动税务计算。 |
-| **Spec Kit** | **开发管理 (The Spec)** | 通过规范驱动开发，标准化需求、计划与任务流。 |
+| **dependency-cruiser** | **架构门禁** | 强制限界上下文边界与分层，见 CONTEXT.md 与 ADR-0001。 |
 
 ---
 
@@ -26,32 +26,41 @@ JEVARIE 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能�
 - **支付**: Stripe Elements / Tax (Automatic VAT/Sales Tax) + 原生 Webhook 自闭环履约
 - **工作流**: 原生 Stripe Webhook（`/api/webhooks/stripe`：签名校验 → 幂等建单 → 库存扣减 → 优惠券计数 → 购物车清理）
 - **测试**: Playwright (E2E) + Vitest (Unit)
-- **代码质量**: ESLint 9 + Prettier 3 + Husky + lint-staged
-- **开发工具**: OpenCode / Antigravity + GitHub Spec Kit
+- **代码质量**: ESLint 9 + Prettier 3 + Husky + lint-staged + dependency-cruiser
+
 
 ---
 
-## 🧬 开发范式：规范驱动 (Spec-Driven Development)
+## 🧬 开发范式：领域驱动 (Domain-Driven)
 
-本项目采用 GitHub **Spec Kit** 流程，拒绝“感性编程”（Vibe Coding），所有功能迭代（包括 UI、后端逻辑、自动化流）遵循以下链路：
+代码按**限界上下文**组织，每个上下文拥有自己的语言与不变量。架构规则是**可执行的**，
+不是文档约定 —— `npm run depcruise` 会在提交前拦截违反分层与边界的导入。
 
-1.  **Constitution (宪法)**: `.specify/memory/constitution.md` 定义了项目的核心原则（如 Svelte 5 强制规范、Apple UX 风格、OCC 库存锁）。
-2.  **Specify (规范)**: 建立领域模型，定义系统边界与非功能性需求（安全性、并发性）。
-3.  **Plan (计划)**: 确定技术实现方案并进行 AI 架构审计。
-4.  **Implement (实现)**: 由 AI 代理（OpenCode）根据拆解的任务清单执行编码。
+完整词表、上下文清单与文件命名约定见 **[CONTEXT.md](./CONTEXT.md)**；
+架构决策记录见 **[docs/adr/](./docs/adr/)**。
 
-### 常用指令 (OpenCode Slash Commands)
-在 OpenCode 聊天框输入以下指令开始协作：
-- `/speckit.specify` - 创建功能规范 (架构&业务导向)
-- `/speckit.plan` - 制定技术计划
-- `/speckit.tasks` - 拆解具体任务
-- `/speckit.implement` - 执行代码实现
+### 目录结构
+
+```
+src/lib/domains/<context>/
+├── domain/          纯模型与规则（无框架依赖）
+├── application/     用例编排 (.server.ts)
+├── infrastructure/  适配器 (.server.ts)
+├── ui/              组件与 rune 状态
+├── index.ts         客户端 barrel（对外接口）
+└── server.ts        服务端 barrel（对外接口）
+```
+
+`src/routes/` 不含业务逻辑：路由解析输入后调用**一个**上下文 barrel。
 
 ### 质量保证指令 (Quality Assurance)
 - `npm run lint` - 运行 ESLint 静态代码分析
 - `npm run lint:fix` - 自动修复 ESLint 警告/错误
 - `npm run format` - 运行 Prettier 格式化代码
 - `npm run check` - 运行 svelte-check 类型与模板检查
+- `npm run depcruise` - **架构门禁**: 校验限界上下文边界与分层（提交时自动运行）
+- `npm test` - 运行 Vitest 单元测试
+- `npm run test:e2e` - 运行 Playwright 端到端测试
 
 ---
 
@@ -60,8 +69,8 @@ JEVARIE 是一个基于 **SvelteKit 2 + Svelte 5** 构建的现代化高性能�
 | 文档 | 说明 |
 |------|------|
 | [📜 项目宪法](.specify/memory/constitution.md) | **最高准则**: 包含核心规范、架构原则与代码准则 |
-| [🎯 功能规范](specs/) | 包含 [001-UX进化](specs/001-ux-evolution/spec.md), [002-购物车召回](specs/002-cart-recovery/spec.md), [004-订单历史](specs/004-003-order-history/spec.md) 等 |
-| [⚡ 原子 API 指南](.agent/docs/atomic-api-guide.md) | 库存扣减与优惠券递增的原子操作 API |
+| [🧭 CONTEXT.md](./CONTEXT.md) | 上下文清单、词表与文件命名约定 |
+| [📋 ADR](./docs/adr/) | 架构决策记录（边界强制、跨上下文行为注入等） |
 | [🔐 .env.example](./.env.example) | 环境变量配置与安全准则 |
 
 ---
@@ -86,8 +95,6 @@ git clone <repo-url>
 cd e-commerce
 npm install
 
-# （可选）若你要使用 Spec Kit 的 Python/uv 工作流，再安装 uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 安装 Playwright 浏览器 (用于测试)
 npx playwright install
@@ -129,7 +136,7 @@ npm run test:e2e
 
 ### ✅ Phase 12: 深度工程化重构 (Completed)
 - [x] **State Management 2.0**: 引入 TanStack Query v6。
-- [x] **Spec-Driven Integration**: 引入 Spec Kit 标准化工作流。
+- [x] **Architecture Gate**: 引入 dependency-cruiser 架构门禁，强制限界上下文边界。
 
 ### 🔄 Phase 13: 体验与自动化进化 (In Progress)
 - [x] **Core Architecture Audit**: 完成服务端认证 (Hooks) 修复与安全性审计 (npm audit 0 vulnerabilities)。
@@ -172,4 +179,4 @@ MIT
 
 ---
 
-*Built with ❤️ using SvelteKit, Spec Kit, and OpenCode*
+*Built with ❤️ using SvelteKit*
