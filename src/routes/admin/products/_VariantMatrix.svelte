@@ -27,6 +27,10 @@
 		generateVariantMatrix,
 		adjustStock,
 		sanitizeSkuSegment,
+		colorKeyOf,
+		groupRowsByColor,
+		needsGalleryNormalization,
+		normalizeGalleriesByColor,
 		type ColorPreset
 	} from '$domains/catalog';
 
@@ -55,10 +59,6 @@
 		productSlug?: string;
 	} = $props();
 
-	function colorKeyOf(row: VariantRow): string {
-		return row.color.trim().toLowerCase() || '(未命名颜色)';
-	}
-
 	interface ColorGroup {
 		key: string;
 		color: string;
@@ -69,61 +69,27 @@
 		stockTotal: number;
 	}
 
+	// Grouping is the catalog domain's job (`variant-matrix.ts`, unit tested).
+	// Pending file uploads are browser-only state, so they are layered on here
+	// rather than pushed into the domain type.
 	let colorGroups = $derived.by(() => {
-		const map = new SvelteMap<string, ColorGroup>();
-		variants.forEach((row, index) => {
-			const key = colorKeyOf(row);
-			let group = map.get(key);
-			if (!group) {
-				group = {
-					key,
-					color: row.color.trim() || '(未命名颜色)',
-					colorSwatch: row.colorSwatch,
-					entries: [],
-					gallery: [],
-					pendingFiles: [],
-					stockTotal: 0
-				};
-				map.set(key, group);
-			}
-			group.entries.push({ row, index });
-			if (!group.colorSwatch && row.colorSwatch) group.colorSwatch = row.colorSwatch;
-			for (const name of row.gallery ?? []) {
-				if (!group.gallery.includes(name)) group.gallery.push(name);
-			}
-			for (const file of row.galleryFiles ?? []) {
-				group.pendingFiles.push({ file, ownerIndex: index });
-			}
-			group.stockTotal += Number(row.stockQuantity) || 0;
-		});
-		return [...map.values()];
+		return groupRowsByColor(variants).map((group) => ({
+			...group,
+			pendingFiles: group.entries.flatMap(({ row, index }) =>
+				(row.galleryFiles ?? []).map((file) => ({ file, ownerIndex: index }))
+			)
+		}));
 	});
 
-	// One-time convergence: every row of a color carries the union gallery so
-	// saves round-trip without divergence.
+	// One-time convergence: every row of a colour carries the union gallery so
+	// saves round-trip without divergence. The union/divergence logic lives in
+	// the catalog domain (`variant-matrix.ts`), unit tested.
 	let galleryNormalized = false;
 	$effect(() => {
 		if (galleryNormalized || variants.length === 0) return;
 		galleryNormalized = true;
-		const unionByColor = new SvelteMap<string, string[]>();
-		for (const row of variants) {
-			const key = colorKeyOf(row);
-			const list = unionByColor.get(key) ?? [];
-			for (const name of row.gallery ?? []) {
-				if (!list.includes(name)) list.push(name);
-			}
-			unionByColor.set(key, list);
-		}
-		const needsFix = variants.some((row) => {
-			const union = unionByColor.get(colorKeyOf(row)) ?? [];
-			const current = [...(row.gallery ?? [])].sort();
-			return JSON.stringify(current) !== JSON.stringify([...union].sort());
-		});
-		if (needsFix) {
-			variants = variants.map((row) => ({
-				...row,
-				gallery: [...(unionByColor.get(colorKeyOf(row)) ?? [])].sort()
-			}));
+		if (needsGalleryNormalization(variants)) {
+			variants = normalizeGalleriesByColor(variants);
 		}
 	});
 
