@@ -9,6 +9,8 @@ export * from './domain/pricing';
 export * from './domain/filters';
 export * from './domain/query-keys';
 export * from './domain/admin-product-row';
+// Admin product table filtering / sorting / KPI counts (pure, unit tested).
+export * from './domain/admin-product-query';
 export * from './domain/category-hierarchy';
 // Admin toggles and the variant matrix editor both need these, and both were
 // reaching past the barrel to get them.

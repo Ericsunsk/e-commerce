@@ -36,13 +36,8 @@
 	import {
 		getCategoryTier,
 		sortCategoriesByHierarchy,
-		countActiveFilters,
-		selectProducts,
-		computeProductMetrics,
-		hasActiveControls as hasActiveControlsFn,
 		type CategoryHierarchyTier,
-		type AdminProductRow,
-		type ProductFilters
+		type AdminProductRow
 	} from '$domains/catalog';
 
 	let { data }: { data: PageData } = $props();
@@ -139,33 +134,89 @@
 		isSortOpen = false;
 	}
 
+	let activeFilterCount = $derived(
+		selectedCategoryIds.length + selectedStatuses.length + selectedStocks.length
+	);
+
+	let hasActiveControls = $derived(
+		Boolean(search || activeFilterCount > 0 || onlyFeatured || sortBy !== 'default')
+	);
+
 	// Quick drawer for variant inspection
 	let inspectProduct = $state<AdminProductRow | null>(null);
 
-	// Filtering, sorting and the KPI counts live in the catalog domain
-	// (`admin-product-query.ts`), unit tested without a component harness.
-	// The page owns only the reactive state and feeds it in.
-	let filterState = $derived<ProductFilters>({
-		search,
-		categoryIds: selectedCategoryIds,
-		statuses: selectedStatuses,
-		stocks: selectedStocks,
-		onlyFeatured,
-		sortBy
+	// Summary KPI Metrics
+	let totalProducts = $derived(rows.length);
+	let activeProducts = $derived(rows.filter((r) => r.isActive).length);
+	let inactiveProducts = $derived(rows.filter((r) => !r.isActive).length);
+	let inStockProducts = $derived(rows.filter((r) => r.totalStock > 5).length);
+	let lowStockProducts = $derived(rows.filter((r) => r.totalStock > 0 && r.totalStock <= 5).length);
+	let alertProducts = $derived(rows.filter((r) => r.totalStock <= 5).length);
+	let outOfStockProducts = $derived(rows.filter((r) => r.totalStock === 0).length);
+
+	// Filtered and sorted product rows
+	let visibleRows = $derived.by(() => {
+		const filtered = rows.filter((row) => {
+			// Search filter: title, slug, sku
+			const q = search.trim().toLowerCase();
+			if (q) {
+				const titleMatch = row.title.toLowerCase().includes(q);
+				const slugMatch = row.slug.toLowerCase().includes(q);
+				const skuMatch =
+					row.variants?.some((v: { sku: string }) => v.sku.toLowerCase().includes(q)) ?? false;
+				if (!titleMatch && !slugMatch && !skuMatch) return false;
+			}
+
+			// Category multi-select filter
+			if (selectedCategoryIds.length > 0) {
+				const matchesCategory = row.categories?.some(
+					(c: { id: string; slug: string }) =>
+						selectedCategoryIds.includes(c.id) || selectedCategoryIds.includes(c.slug)
+				);
+				if (!matchesCategory) return false;
+			}
+
+			// Status multi-select filter
+			if (selectedStatuses.length > 0) {
+				const statusMatch =
+					(selectedStatuses.includes('active') && row.isActive) ||
+					(selectedStatuses.includes('inactive') && !row.isActive);
+				if (!statusMatch) return false;
+			}
+
+			// Stock multi-select filter
+			if (selectedStocks.length > 0) {
+				const stockStatus =
+					row.totalStock === 0 ? 'out_of_stock' : row.totalStock <= 5 ? 'low_stock' : 'in_stock';
+				if (!selectedStocks.includes(stockStatus)) return false;
+			}
+
+			// Featured filter
+			if (onlyFeatured && !row.isFeatured) return false;
+
+			return true;
+		});
+
+		if (sortBy === 'default') return filtered;
+
+		const sorted = [...filtered];
+		switch (sortBy) {
+			case 'price_asc':
+				return sorted.sort((a, b) => a.priceValue - b.priceValue);
+			case 'price_desc':
+				return sorted.sort((a, b) => b.priceValue - a.priceValue);
+			case 'stock_asc':
+				return sorted.sort((a, b) => a.totalStock - b.totalStock);
+			case 'stock_desc':
+				return sorted.sort((a, b) => b.totalStock - a.totalStock);
+			case 'title_asc':
+				return sorted.sort((a, b) => a.title.localeCompare(b.title));
+			case 'title_desc':
+				return sorted.sort((a, b) => b.title.localeCompare(a.title));
+			default:
+				return sorted;
+		}
 	});
-
-	let activeFilterCount = $derived(countActiveFilters(filterState));
-	let hasActiveControls = $derived(hasActiveControlsFn(filterState));
-	let visibleRows = $derived(selectProducts(rows, filterState));
-	let metrics = $derived(computeProductMetrics(rows));
-
-	let totalProducts = $derived(metrics.total);
-	let activeProducts = $derived(metrics.active);
-	let inactiveProducts = $derived(metrics.inactive);
-	let inStockProducts = $derived(metrics.inStock);
-	let lowStockProducts = $derived(metrics.lowStock);
-	let alertProducts = $derived(metrics.needsAttention);
-	let outOfStockProducts = $derived(metrics.outOfStock);
 
 	async function toggleActive(id: string, next: boolean) {
 		const previous = rows;
