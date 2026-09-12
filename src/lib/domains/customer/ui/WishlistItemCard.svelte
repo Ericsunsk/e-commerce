@@ -2,7 +2,7 @@
 	import { X } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import type { WishlistItem } from '../domain/models';
-	import { CoverImageLayer } from '$domains/catalog';
+	import { CoverImageLayer } from '$shared/ui';
 	import { COLORS, BUTTON_STYLES, TYPOGRAPHY, formatCurrency } from '$shared/kernel';
 
 	interface Props {

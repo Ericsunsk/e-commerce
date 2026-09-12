@@ -15,7 +15,8 @@ export * from './domain/category-hierarchy';
 export { default as ProductCard } from './ui/ProductCard.svelte';
 export { default as ProductGrid } from './ui/ProductGrid.svelte';
 export { default as ProductListGrid } from './ui/ProductListGrid.svelte';
+// Grid wired to the bag + wishlist — the seam where Catalog meets Cart/Customer.
+export { default as ProductListGridConnected } from './ui/ProductListGridConnected.svelte';
 export { default as ProductCardSkeleton } from './ui/ProductCardSkeleton.svelte';
 export { default as ProductGridSkeleton } from './ui/ProductGridSkeleton.svelte';
-export { default as CoverImageLayer } from './ui/CoverImageLayer.svelte';
 export { default as LinkedImage } from './ui/LinkedImage.svelte';

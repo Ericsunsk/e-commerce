@@ -16,6 +16,7 @@ export { default as FormTextarea } from './FormTextarea.svelte';
 export { default as LoadingState } from './LoadingState.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as RemoteImage } from './RemoteImage.svelte';
+export { default as CoverImageLayer } from './CoverImageLayer.svelte';
 export { default as Skeleton } from './Skeleton.svelte';
 export { default as Toast } from './Toast.svelte';
 export { toastStore, type ToastItem, type ToastType } from './toast-state.svelte';

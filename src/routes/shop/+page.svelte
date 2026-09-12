@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ProductListGrid, ProductGridSkeleton } from '$domains/catalog';
+	import { ProductListGridConnected as ProductListGrid, ProductGridSkeleton } from '$domains/catalog';
 	import { SearchX } from 'lucide-svelte';
 	import { Drawer, Button, UiIcon } from '$shared/ui';
 	import { parsePrice } from '$shared/kernel';

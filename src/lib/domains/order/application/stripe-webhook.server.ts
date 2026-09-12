@@ -8,9 +8,8 @@
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
 import { withAdmin, withKeyedLock, getErrorStatus } from '$shared/infrastructure/server';
 import { getStripeClient, getPaymentConfig } from '$domains/payment/server';
-import { allocateInventory } from '$domains/catalog/domain/inventory-allocation';
-import { buildPocketBaseInventoryClient } from '$domains/catalog/infrastructure/inventory-deduction.server';
-import { incrementCouponUsageByCodeWithClient } from '$domains/checkout/infrastructure/coupon-repository.server';
+import { createInventoryAllocator } from '$domains/catalog/server';
+import { incrementCouponUsageByCodeWithClient } from '$domains/checkout/server';
 import {
 	findOrderByPaymentIntentId,
 	createOrderRecord
@@ -85,18 +84,14 @@ export async function handleStripeWebhookEvent(
 						},
 						inventory: {
 							deduct: async (orderId, items) => {
-								const result = await allocateInventory(
-									buildPocketBaseInventoryClient(pb),
-									withKeyedLock,
-									{
-										orderId,
-										items: items.map((item) => ({
-											productId: item.productId,
-											variantId: item.variantId,
-											quantity: item.quantity
-										}))
-									}
-								);
+								const result = await createInventoryAllocator(pb).allocate({
+									orderId,
+									items: items.map((item) => ({
+										productId: item.productId,
+										variantId: item.variantId,
+										quantity: item.quantity
+									}))
+								});
 								return { success: result.success };
 							}
 						},

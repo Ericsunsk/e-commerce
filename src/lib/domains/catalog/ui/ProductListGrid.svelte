@@ -10,6 +10,10 @@
 		cardWrapperClass?: string;
 		hrefPrefix?: string;
 		imageThumb?: string;
+		/** Forwarded to ProductCard — see its Props for why these are injected. */
+		onAddToBag?: (product: Product) => void;
+		wishlist?: { has: (id: string) => boolean; toggle: (product: Product) => void };
+		currencyCode?: string;
 	}
 
 	let {
@@ -18,7 +22,10 @@
 		gridClass = 'grid grid-cols-2 lg:grid-cols-3 gap-y-16 gap-x-4 md:gap-x-12',
 		cardWrapperClass = 'group flex flex-col gap-4',
 		hrefPrefix = '/shop/',
-		imageThumb = '800x0'
+		imageThumb = '800x0',
+		onAddToBag,
+		wishlist,
+		currencyCode
 	}: Props = $props();
 
 	function getProductHref(id: string) {
@@ -31,10 +38,22 @@
 		{#if variant === 'card'}
 			{#if cardWrapperClass}
 				<div class={cardWrapperClass}>
-					<ProductCard {product} href={getProductHref(product.id)} />
+					<ProductCard
+						{product}
+						href={getProductHref(product.id)}
+						{onAddToBag}
+						{wishlist}
+						{currencyCode}
+					/>
 				</div>
 			{:else}
-				<ProductCard {product} href={getProductHref(product.id)} />
+				<ProductCard
+					{product}
+					href={getProductHref(product.id)}
+					{onAddToBag}
+					{wishlist}
+					{currencyCode}
+				/>
 			{/if}
 		{:else}
 			<LinkedImage

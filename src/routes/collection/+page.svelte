@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ProductListGrid } from '$domains/catalog';
+	import { ProductListGridConnected as ProductListGrid } from '$domains/catalog';
 	import { RemoteImage } from '$shared/ui';
 	import { resolveSplitShowcase } from '$domains/content';
 

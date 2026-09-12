@@ -8,8 +8,7 @@
 import { Collections, type TypedPocketBase } from '$shared/infrastructure';
 import { withAdmin, withKeyedLock, getErrorStatus, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import { getStripeClient } from '$domains/payment/server';
-import { allocateInventory } from '$domains/catalog/domain/inventory-allocation';
-import { buildPocketBaseInventoryClient } from '$domains/catalog/infrastructure/inventory-deduction.server';
+import { createInventoryAllocator } from '$domains/catalog/server';
 import {
 	reconcileOrder,
 	type ReconciledOrderData,
@@ -113,18 +112,14 @@ export async function reconcileCheckoutOrder(
 				},
 				inventory: {
 					deduct: async (orderId: string, items: ReconciledOrderData['items']) => {
-						const result = await allocateInventory(
-							buildPocketBaseInventoryClient(pb),
-							withKeyedLock,
-							{
-								orderId,
-								items: items.map((item) => ({
-									productId: item.productId,
-									variantId: item.variantId,
-									quantity: item.quantity
-								}))
-							}
-						);
+						const result = await createInventoryAllocator(pb).allocate({
+							orderId,
+							items: items.map((item) => ({
+								productId: item.productId,
+								variantId: item.variantId,
+								quantity: item.quantity
+							}))
+						});
 						return { success: result.success };
 					}
 				},

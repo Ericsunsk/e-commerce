@@ -2,6 +2,10 @@
 export * from './domain/models';
 export * from './domain/schemas';
 
+// Post-login sync bus — the published seam other contexts use to run
+// reconciliation after authentication without importing the auth store.
+export * from './domain/post-login-sync';
+
 // UI state and stores (deep state modules - authoritative client interfaces)
 export * from './ui/auth-state.svelte';
 export * from './ui/wishlist-state.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CoverImageLayer } from '$domains/catalog';
+	import { CoverImageLayer } from '$shared/ui';
 	import SectionActionLinks from './SectionActionLinks.svelte';
 	import SectionHeadingContent from './SectionHeadingContent.svelte';
 	import type { UISection } from '../domain/models';

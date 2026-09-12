@@ -24,6 +24,14 @@ export default ts.config(
 		}
 	},
 	{
+		// Tooling configs are CommonJS by contract (dependency-cruiser loads them
+		// through require), so the require-imports rule does not apply.
+		files: ['**/.dependency-cruiser.cjs', '**/*.cjs'],
+		rules: {
+			'@typescript-eslint/no-require-imports': 'off'
+		}
+	},
+	{
 		rules: {
 			// Svelte 5 Runes - 禁止旧版 API
 			'no-restricted-imports': [

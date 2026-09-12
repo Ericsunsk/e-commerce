@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { RemoteImage } from '$shared/ui';
+	import RemoteImage from './RemoteImage.svelte';
 
 	interface Props {
 		src?: string;

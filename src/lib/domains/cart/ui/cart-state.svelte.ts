@@ -13,10 +13,10 @@ import {
 	type CartItem
 } from '../domain/models';
 import { mergeCartLists } from '../domain/list-mutations';
-import { registerPostLoginTask } from '$domains/customer/domain/post-login-sync';
+
 import { formatCurrency, parsePrice, DEFAULTS } from '$shared/kernel';
 import { createOptimisticQueryHelpers } from '$shared/infrastructure';
-import { auth } from '$domains/customer';
+import { auth, registerPostLoginTask } from '$domains/customer';
 
 export const CART_QUERY_KEY = ['cart'] as const;
 
