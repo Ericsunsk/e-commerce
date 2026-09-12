@@ -16,11 +16,14 @@ import {
 	normalizePaymentSettings,
 	resolveEffectiveConfig,
 	toMaskedSettings,
+	type ConnectionTestResult,
 	type EffectivePaymentConfig,
 	type MaskedPaymentSettings,
 	type NormalizedPaymentSettings,
 	type PaymentSettingsRecord
 } from '../domain/payment-settings';
+
+export type { ConnectionTestResult };
 
 interface PaymentSettingsRow {
 	id: string;
@@ -161,12 +164,6 @@ export async function savePaymentSettings(input: unknown): Promise<MaskedPayment
 	});
 	invalidatePaymentConfig();
 	return toMaskedSettings(config);
-}
-
-export interface ConnectionTestResult {
-	ok: boolean;
-	accountId?: string;
-	message: string;
 }
 
 /**

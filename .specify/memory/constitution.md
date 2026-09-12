@@ -199,8 +199,17 @@ contexts, and the rule forbidding it was silent.
       context's `domain/`, `application/`, or `infrastructure/` is forbidden — without
       exception, including for "just a pure helper".
     - `index.ts` MUST NOT export any `.server.ts` module.
-- **Contexts Are Server-Only By Default (MUST)**: A context has an `index.ts` only if it has a
-  `ui/` layer. `admin`, `payment`, and `platform` are server-only and expose only `server.ts`.
+- **Contexts Are Server-Only By Default (MUST)**: A context has a `ui/` layer only if it
+  renders components. `admin`, `payment`, and `platform` render no components.
+- **Browser Clients For Own Endpoints (MUST)**: A server-only context MAY expose an
+  `index.ts` containing **only** `*.client.ts` modules that call that context's own API
+  endpoints — e.g. `platform` owning the SMTP/S3 settings calls, `payment` owning the
+  Stripe key calls. This is not a `ui/` layer and MUST NOT export components, state
+  modules, or anything from `server/`. The point is that the endpoint paths and their
+  view types live in the context that owns the data, rather than being hand-written in
+  a route's `+page.svelte`.
+    - Such an `index.ts` MUST NOT export any `.server.ts` module (enforced by the
+      `no-server-leak-in-client-barrel` depcruise rule).
 - **Kernel Is Not A Context (MUST)**: `src/lib/shared/kernel/` holds cross-context primitives
   (price, date, slug, errors, messages, image URL building). Kernel code MUST be pure — it
   MUST NOT import `pocketbase`, any `.server.ts` module, Svelte, `$shared/infrastructure`,

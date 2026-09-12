@@ -3,6 +3,21 @@
 	import { Info, Eye, EyeOff, Copy, Check, PlugZap } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import { ADMIN_BUTTONS } from '$shared/kernel/design-tokens';
+	import {
+		fetchSmtpSettings,
+		saveSmtpSettings as saveSmtpSettingsApi,
+		sendSmtpTestEmail,
+		fetchStorageSettings,
+		saveStorageSettings,
+		testStorageConnection,
+		fetchBackupSchedule,
+		saveBackupSchedule
+	} from '$domains/platform';
+	import {
+		fetchPaymentSettings,
+		savePaymentSettings as savePaymentSettingsApi,
+		testStripeConnection
+	} from '$domains/payment';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -53,10 +68,7 @@
 
 	async function loadSmtp() {
 		try {
-			const res = await fetch('/api/admin/smtp-settings');
-			const body = await res.json();
-			if (!res.ok) throw new Error(body.error || '加载邮件配置失败');
-			const s = body.settings;
+			const s = await fetchSmtpSettings();
 			smtp = {
 				host: s.host,
 				port: s.port,
@@ -88,13 +100,7 @@
 				fromName: smtp.fromName.trim()
 			};
 			if (smtpPassword.trim()) payload.password = smtpPassword.trim();
-			const res = await fetch('/api/admin/smtp-settings', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			});
-			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存失败');
+			await saveSmtpSettingsApi(payload);
 			smtpPassword = '';
 			await loadSmtp();
 		} catch (e: unknown) {
@@ -108,13 +114,10 @@
 		mailTesting = true;
 		mailResult = null;
 		try {
-			const res = await fetch('/api/admin/smtp/test', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ toEmail: mailTo.trim(), template: mailTemplate })
+			const body = await sendSmtpTestEmail({
+				toEmail: mailTo.trim(),
+				template: mailTemplate
 			});
-			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '发送失败');
 			mailResult = { ok: body.ok === true, message: body.message || '已发送' };
 		} catch (e: unknown) {
 			mailResult = { ok: false, message: e instanceof Error ? e.message : '发送失败' };
@@ -128,10 +131,7 @@
 		await loadSmtp();
 		await loadAdvanced();
 		try {
-			const res = await fetch('/api/admin/payment-settings');
-			const body = await res.json();
-			if (!res.ok) throw new Error(body.error || '加载支付配置失败');
-			const settings = body.settings;
+			const settings = await fetchPaymentSettings();
 			gateway = {
 				source: settings.source,
 				secretMasked: settings.secretMasked,
@@ -152,21 +152,15 @@
 			if (form.publishableKey.trim()) payload.publishableKey = form.publishableKey.trim();
 			if (form.secretKey.trim()) payload.secretKey = form.secretKey.trim();
 			if (form.webhookSecret.trim()) payload.webhookSecret = form.webhookSecret.trim();
-			const res = await fetch('/api/admin/payment-settings', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			});
-			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存失败');
+			const settings = await savePaymentSettingsApi(payload);
 			gateway = {
-				source: body.settings.source,
-				secretMasked: body.settings.secretMasked,
-				webhookMasked: body.settings.webhookMasked
+				source: settings.source,
+				secretMasked: settings.secretMasked,
+				webhookMasked: settings.webhookMasked
 			};
 			form.secretKey = '';
 			form.webhookSecret = '';
-			form.enabled = body.settings.enabled;
+			form.enabled = settings.enabled;
 		} catch (e: unknown) {
 			gatewayError = e instanceof Error ? e.message : '保存失败';
 		} finally {
@@ -178,12 +172,7 @@
 		testing = true;
 		connection = null;
 		try {
-			const res = await fetch('/api/admin/payment/test', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(form.secretKey.trim() ? { secretKey: form.secretKey.trim() } : {})
-			});
-			const body = await res.json().catch(() => ({}));
+			const body = await testStripeConnection(form.secretKey.trim() || undefined);
 			connection = { ok: body.ok === true, message: body.message || '测试完成' };
 		} catch {
 			connection = { ok: false, message: '测试请求失败' };
@@ -227,16 +216,12 @@
 
 	async function loadAdvanced() {
 		try {
-			const [s3Res, schedRes] = await Promise.all([
-				fetch('/api/admin/s3-settings'),
-				fetch('/api/admin/backup-schedule')
+			const [s3Settings, sched] = await Promise.all([
+				fetchStorageSettings(),
+				fetchBackupSchedule()
 			]);
-			const s3Body = await s3Res.json();
-			if (!s3Res.ok) throw new Error(s3Body.error || '加载 S3 配置失败');
-			Object.assign(s3, s3Body.settings);
-			const schedBody = await schedRes.json();
-			if (!schedRes.ok) throw new Error(schedBody.error || '加载备份计划失败');
-			schedule = { cron: schedBody.settings.cron, cronMaxKeep: schedBody.settings.cronMaxKeep };
+			Object.assign(s3, s3Settings);
+			schedule = { cron: sched.cron, cronMaxKeep: sched.cronMaxKeep };
 		} catch (e: unknown) {
 			s3Error = e instanceof Error ? e.message : '加载高级配置失败';
 		}
@@ -255,14 +240,7 @@
 			};
 			if (s3AccessKey.trim()) payload.accessKey = s3AccessKey.trim();
 			if (s3Secret.trim()) payload.secret = s3Secret.trim();
-			const res = await fetch('/api/admin/s3-settings', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(payload)
-			});
-			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存失败');
-			Object.assign(s3, body.settings);
+			Object.assign(s3, await saveStorageSettings(payload));
 			s3AccessKey = '';
 			s3Secret = '';
 		} catch (e: unknown) {
@@ -272,12 +250,11 @@
 		}
 	}
 
-	async function testS3(filesystem: string) {
+	async function testS3(filesystem: 'storage' | 'backups') {
 		s3Testing = true;
 		s3Result = null;
 		try {
-			const res = await fetch(`/api/admin/s3/test?filesystem=${filesystem}`, { method: 'POST' });
-			const body = await res.json().catch(() => ({}));
+			const body = await testStorageConnection(filesystem);
 			s3Result = { ok: body.ok === true, message: body.message || '测试完成' };
 		} catch {
 			s3Result = { ok: false, message: '测试请求失败' };
@@ -290,17 +267,11 @@
 		scheduleSaving = true;
 		scheduleError = '';
 		try {
-			const res = await fetch('/api/admin/backup-schedule', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					cron: schedule.cron.trim(),
-					cronMaxKeep: Number(schedule.cronMaxKeep)
-				})
+			const settings = await saveBackupSchedule({
+				cron: schedule.cron.trim(),
+				cronMaxKeep: Number(schedule.cronMaxKeep)
 			});
-			const body = await res.json().catch(() => ({}));
-			if (!res.ok) throw new Error(body.error || '保存失败');
-			schedule = { cron: body.settings.cron, cronMaxKeep: body.settings.cronMaxKeep };
+			schedule = { cron: settings.cron, cronMaxKeep: settings.cronMaxKeep };
 		} catch (e: unknown) {
 			scheduleError = e instanceof Error ? e.message : '保存失败';
 		} finally {
@@ -473,12 +444,7 @@
 			</div>
 
 			<div class="flex flex-wrap items-center gap-3">
-				<button
-					type="button"
-					onclick={saveGateway}
-					disabled={saving}
-					class={ADMIN_BUTTONS.primary}
-				>
+				<button type="button" onclick={saveGateway} disabled={saving} class={ADMIN_BUTTONS.primary}>
 					{saving ? '保存中…' : '保存配置'}
 				</button>
 				<button
@@ -827,12 +793,7 @@
 			</label>
 
 			<div class="flex flex-wrap items-center gap-3">
-				<button
-					type="button"
-					onclick={saveS3}
-					disabled={s3Saving}
-					class={ADMIN_BUTTONS.primary}
-				>
+				<button type="button" onclick={saveS3} disabled={s3Saving} class={ADMIN_BUTTONS.primary}>
 					{s3Saving ? '保存中…' : '保存 S3'}
 				</button>
 				<button

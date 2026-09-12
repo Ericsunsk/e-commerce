@@ -174,3 +174,17 @@ export function createConfigCache<T>(deps: ConfigCacheDeps<T>) {
 
 	return { get, invalidate };
 }
+
+/**
+ * Result of probing a Stripe key or the stored key.
+ *
+ * Lives in `domain/` because it is a pure shape shared by the server adapter and
+ * the browser client. It was in `infrastructure/`, which forced the client
+ * module to `import type` from a `.server.ts` — one keystroke away from leaking
+ * server code into the client barrel.
+ */
+export interface ConnectionTestResult {
+	ok: boolean;
+	accountId?: string;
+	message: string;
+}
