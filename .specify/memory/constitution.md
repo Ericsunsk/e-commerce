@@ -16,9 +16,9 @@ List of modified principles:
   Hygiene, Workflow Reference Policy, Workflow Export Hygiene). n8n is no longer part of
   the system: the Stripe webhook is a closed loop inside SvelteKit. Also corrected the
   Orders state machine path (`src/lib/server/orders.ts` -> `order/domain/orders`).
-- III. Performance & Assets: Downgraded the `@sveltejs/enhanced-img` mandate to SHOULD.
-  The package is not installed (removed ahead of the Cloudflare deploy) but the rule was
-  still MUST, so the constitution was mandating an absent dependency.
+- III. Performance & Assets: Clarified the image-optimization rule. `@sveltejs/enhanced-img`
+  verified installed and registered in `vite.config.ts`; the rule now distinguishes local
+  static assets (enhanced-img) from remote/CDN images (RemoteImage + kernel transforms).
 Added sections:
 - IX. Bounded Contexts & Layering
 Removed sections:
@@ -76,11 +76,12 @@ Follow-up TODOs:
 ### III. Performance & Assets
 - **Preloading (MUST)**: Internal navigation links MUST set `data-sveltekit-preload-data="hover"`
   by default. Document any exceptions in code.
-- **Image Optimization (SHOULD)**: Prefer `@sveltejs/enhanced-img`, or explicit
-  `decoding="async"` / `loading="lazy"` with CDN transforms, unless above-the-fold content
-  requires eager loading.
-    - *Note*: `@sveltejs/enhanced-img` is not currently installed. Until it is, satisfy this
-      principle with `$shared/kernel/image` CDN transforms plus explicit `width`/`height`.
+- **Image Optimization (SHOULD)**: Prefer `@sveltejs/enhanced-img` for local static
+  assets. For remote/CDN images (PocketBase, R2) use `$shared/ui/RemoteImage` with
+  `$shared/kernel/image` transform helpers and explicit `width`/`height`, unless
+  above-the-fold content requires eager loading.
+    - *Note*: `@sveltejs/enhanced-img` IS installed and registered in `vite.config.ts`.
+      `RemoteImage.svelte` documents both paths.
 - **Layout Stability (MUST)**: Images MUST set explicit `width`/`height` or `aspect-ratio` to prevent CLS.
 - **Rationale**: These defaults protect LCP/CLS with minimal ongoing effort.
 
