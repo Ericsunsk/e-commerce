@@ -4,39 +4,35 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`CONTEXT.md`** at the repo root, or
-- **`CONTEXT-MAP.md`** at the repo root if it exists: it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
-- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
+- **`CONTEXT.md`** at the repo root — the glossary, the bounded-context list, and the file-naming conventions. Read it before exploring.
+- **`docs/adr/`**: read ADRs that touch the area you're about to work in.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
+Both exist and are current. They are **not** optional background: `CONTEXT.md`
+defines the vocabulary and `docs/adr/0001` defines the architecture rule that
+`npm run depcruise` enforces. A change that contradicts an ADR needs an
+amendment, not a silent override.
+
+If you find one of these files missing, that is a real problem — say so. Do not
+proceed silently, and do not re-derive the architecture from the code.
 
 ## File structure
 
-Single-context repo (most repos):
+This is a **single-context repo**: one `CONTEXT.md` at the root covers the whole
+system, and all ADRs live in one `docs/adr/`. There is no `CONTEXT-MAP.md`.
 
 ```
 /
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
+├── CONTEXT.md              ← glossary + bounded-context list + naming conventions
+├── docs/adr/               ← 0001-enforce-context-barrels, 0002-cross-context-behaviour-is-injected
+├── .dependency-cruiser.cjs ← the executable form of docs/adr/0001
+├── .specify/memory/constitution.md
+└── src/lib/domains/        ← the nine bounded contexts
 ```
 
-Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
-
-```
-/
-├── CONTEXT-MAP.md
-├── docs/adr/                          ← system-wide decisions
-└── src/
-    ├── ordering/
-    │   ├── CONTEXT.md
-    │   └── docs/adr/                  ← context-specific decisions
-    └── billing/
-        ├── CONTEXT.md
-        └── docs/adr/
-```
+Note the distinction: **nine bounded contexts, one `CONTEXT.md`.** "Single-context
+repo" refers to the documentation layout, not to the number of bounded contexts —
+those are different senses of the word "context", and `CONTEXT.md` disambiguates
+them in its glossary.
 
 ## Use the glossary's vocabulary
 
@@ -48,4 +44,4 @@ If the concept you need isn't in the glossary yet, that's a signal: either you'r
 
 If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
 
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_
+> _Contradicts ADR-0001 (cross-context imports must target a barrel), but worth reopening because…_
