@@ -36,19 +36,18 @@ Runtime docs (resolved in this amendment's accompanying work):
   documents the domain-driven structure and the architecture gate.
 - AGENTS.md — now states the architecture gate; CONTEXT.md and docs/adr/ exist.
 - CONTEXT.md / docs/adr/ — created (they were referenced but never written).
-- .agent/docs/atomic-api-guide.md — still documents /api/inventory/deduct and
-  /api/coupons/increment, which do not exist. NOT yet fixed; see follow-up.
+- .agent/docs/atomic-api-guide.md — deleted: it described the removed
+  /api/inventory/deduct and /api/coupons/increment endpoints and the n8n
+  workflow. Stock deduction now happens inside the Stripe webhook via the
+  catalog inventory capability, not through a public endpoint.
 Automation (resolved):
 - package.json — `depcruise` script added.
 - .dependency-cruiser.cjs — Principle IX rules added, alias resolution fixed.
 - .husky/pre-commit — gate wired to run on every commit.
-Follow-up TODOs:
-- TODO(DOCS): reconcile .agent/docs/atomic-api-guide.md with the live endpoint set
-  (it describes /api/inventory/deduct and /api/coupons/increment, which no longer
-  exist). Either rewrite it or delete it.
-- TODO(CI): the architecture gate runs on pre-commit only. Add a GitHub Actions
-  workflow running `depcruise` + `test` + `check` so the rule holds for changes
-  made outside a local checkout.
+- .github/workflows/ci.yml — fixed: it was running a [20, 22] Node matrix but
+  @cloudflare/kv-asset-handler requires >=22, so `npm ci` failed on the Node 20
+  leg and cancelled the whole job. None of its checks had ever actually run.
+  Now Node 22 only, and it runs lint + check + depcruise + test + build.
 -->
 
 # JEVARIE Project Constitution

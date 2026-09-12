@@ -9,27 +9,35 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20, 22]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          # Node 22 only. This previously ran a [20, 22] matrix, but
+          # @cloudflare/kv-asset-handler requires >=22.0.0, so `npm ci` failed
+          # on the Node 20 leg and cancelled the whole job — meaning none of the
+          # checks below ever actually ran, on either version, in any run.
+          node-version: 22
           cache: npm
 
       - run: npm ci
 
+      - name: Lint (eslint)
+        run: npm run lint
+
       - name: Typecheck (svelte-check)
         run: npm run check
 
+      - name: Architecture boundaries (dependency-cruiser)
+        # Runs the npm script rather than a hand-written command, so CI and the
+        # pre-commit hook can never drift apart — the previous inline invocation
+        # here was the only place the rule was configured, and it silently
+        # diverged from what developers ran locally.
+        run: npm run depcruise
+
       - name: Unit tests (vitest)
         run: npm test -- --run
-
-      - name: Architecture cycle check (dependency-cruiser)
-        run: npx depcruise --validate .dependency-cruiser.cjs src
 
       - name: Production build
         run: npm run build
