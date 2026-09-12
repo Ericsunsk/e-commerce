@@ -7,7 +7,7 @@ import {
 	toAdminCouponRow,
 	type Coupon
 } from './models';
-import { shippingAddressSchema } from './schemas';
+import { ShippingAddressSchema } from './schemas';
 
 describe('Checkout Domain Models and Rules', () => {
 	it('normalizes coupon code', () => {
@@ -68,7 +68,7 @@ describe('Checkout Domain Models and Rules', () => {
 	});
 
 	it('validates shipping address schema', () => {
-		const valid = shippingAddressSchema.safeParse({
+		const valid = ShippingAddressSchema.safeParse({
 			email: 'buyer@example.com',
 			firstName: 'John',
 			lastName: 'Doe',
@@ -80,7 +80,7 @@ describe('Checkout Domain Models and Rules', () => {
 		});
 		expect(valid.success).toBe(true);
 
-		const invalidZip = shippingAddressSchema.safeParse({
+		const invalidZip = ShippingAddressSchema.safeParse({
 			email: 'buyer@example.com',
 			firstName: 'John',
 			lastName: 'Doe',

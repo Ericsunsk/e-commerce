@@ -10,12 +10,9 @@ import {
 	mergeCartItemQuantity,
 	removeCartItemByIdentity,
 	setCartItemQuantityByIdentity,
-	type CartItem
+	type CartItem,
+	type CartItemIdentity
 } from './models';
-export interface CartItemIdentity {
-	id: string;
-	variantId?: string;
-}
 
 export interface CartItemQuantityPatch {
 	id: string;

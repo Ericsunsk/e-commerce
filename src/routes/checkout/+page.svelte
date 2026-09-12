@@ -8,8 +8,8 @@
 	import { cubicOut } from 'svelte/easing';
 	import {
 		ShippingOption,
-		shippingAddressSchema,
-		type ShippingAddressSchema
+		ShippingAddressSchema,
+		type ShippingAddressInput
 	} from '$domains/checkout';
 	import { OrderItemThumbnail } from '$domains/order';
 	import type { Stripe, StripeElements } from '@stripe/stripe-js';
@@ -24,8 +24,8 @@
 	// Superforms init - data.form is intentionally captured once at init
 	// svelte-ignore state_referenced_locally
 	// Type casting required due to ZodEffects not matching Adapter expectations perfectly in strict mode
-	const { form, errors, enhance } = superForm<ShippingAddressSchema>(data.form, {
-		validators: zodClient(shippingAddressSchema as unknown as Parameters<typeof zodClient>[0]),
+	const { form, errors, enhance } = superForm<ShippingAddressInput>(data.form, {
+		validators: zodClient(ShippingAddressSchema as unknown as Parameters<typeof zodClient>[0]),
 		onResult: ({ result }) => {
 			if (result.type === 'success') {
 				step = 2;

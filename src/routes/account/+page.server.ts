@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { getPage } from '$domains/content/server';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 as zod } from 'sveltekit-superforms/adapters';
-import { loginSchema, registerSchema, passwordRecoverySchema } from '$domains/customer';
+import { LoginSchema, RegisterSchema, PasswordRecoverySchema } from '$domains/customer';
 import { fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -11,25 +11,25 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user,
 		page,
-		loginForm: await superValidate(zod(loginSchema)),
-		registerForm: await superValidate(zod(registerSchema)),
-		recoverForm: await superValidate(zod(passwordRecoverySchema))
+		loginForm: await superValidate(zod(LoginSchema)),
+		registerForm: await superValidate(zod(RegisterSchema)),
+		recoverForm: await superValidate(zod(PasswordRecoverySchema))
 	};
 };
 
 export const actions: Actions = {
 	login: async ({ request }) => {
-		const form = await superValidate(request, zod(loginSchema));
+		const form = await superValidate(request, zod(LoginSchema));
 		if (!form.valid) return fail(400, { form });
 		return { form };
 	},
 	register: async ({ request }) => {
-		const form = await superValidate(request, zod(registerSchema));
+		const form = await superValidate(request, zod(RegisterSchema));
 		if (!form.valid) return fail(400, { form });
 		return { form };
 	},
 	recover: async ({ request }) => {
-		const form = await superValidate(request, zod(passwordRecoverySchema));
+		const form = await superValidate(request, zod(PasswordRecoverySchema));
 		if (!form.valid) return fail(400, { form });
 		return { form };
 	}

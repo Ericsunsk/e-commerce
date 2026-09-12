@@ -2,7 +2,7 @@
 	import { fade, fly } from 'svelte/transition';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { auth, loginSchema, registerSchema, passwordRecoverySchema } from '$domains/customer';
+	import { auth, LoginSchema, RegisterSchema, PasswordRecoverySchema } from '$domains/customer';
 	import { MailCheck, X } from 'lucide-svelte';
 	import { toastStore, RemoteImage, FormInput, UiIcon } from '$shared/ui';
 	import { MESSAGES, buildFullName } from '$shared/kernel';
@@ -22,7 +22,7 @@
 	} = superForm(data.loginForm, {
 		SPA: true,
 		id: 'login-form',
-		validators: zod(loginSchema),
+		validators: zod(LoginSchema),
 		onUpdate: async ({ form }) => {
 			if (form.valid) {
 				const success = await auth.login(form.data.email, form.data.password);
@@ -44,7 +44,7 @@
 	} = superForm(data.registerForm, {
 		SPA: true,
 		id: 'register-form',
-		validators: zod(registerSchema),
+		validators: zod(RegisterSchema),
 		onUpdate: async ({ form }) => {
 			if (form.valid) {
 				const fullName = buildFullName(form.data.firstName, form.data.lastName);
@@ -71,7 +71,7 @@
 	} = superForm(data.recoverForm, {
 		SPA: true,
 		id: 'recover-form',
-		validators: zod(passwordRecoverySchema),
+		validators: zod(PasswordRecoverySchema),
 		onUpdate: async ({ form }) => {
 			if (form.valid) {
 				const success = await auth.resetPassword(form.data.email);
