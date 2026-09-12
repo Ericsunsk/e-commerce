@@ -139,11 +139,18 @@ async function syncVariantsWithClient(
 	variants: NormalizedProductCreate['variants'],
 	galleryUploads?: Map<string, File[]>
 ): Promise<void> {
+	// Validate every variant up front: the loop below writes as it goes, so a
+	// rejection mid-loop would leave the product half-updated while the caller
+	// still receives a 400 and believes nothing was saved.
 	for (const variant of variants) {
 		const uploads = galleryUploads?.get(variant.sku) ?? [];
 		if (variant.gallery.length + uploads.length > 4) {
 			throw { status: 400, message: `规格 ${variant.sku} 图集最多 4 张` };
 		}
+	}
+
+	for (const variant of variants) {
+		const uploads = galleryUploads?.get(variant.sku) ?? [];
 		const payload: Record<string, unknown> = {
 			product: productId,
 			color: variant.color,
@@ -199,7 +206,9 @@ export async function createCatalogProduct(
 				stripe_price_id: stripePriceId
 			};
 			const attrs: Record<string, unknown> = {};
-			if (data.compareAtCents) attrs.compare_at_price = data.compareAtCents / 100;
+			if (data.compareAtCents !== null && data.compareAtCents !== undefined && data.compareAtCents > 0) {
+				attrs.compare_at_price = data.compareAtCents / 100;
+			}
 			if (data.material) attrs.material = data.material;
 			if (data.care) attrs.care = data.care;
 			if (data.details.length > 0) attrs.details = data.details;
@@ -348,8 +357,12 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 						size: v.size,
 						sku: v.sku,
 						stockQuantity: v.stock_quantity,
-						price: vp?.price !== undefined ? vp.price : priceDollars || undefined,
-						compareAt: vp?.compareAt !== undefined ? vp.compareAt : (readCompareAtDollars(record.attributes) ?? undefined),
+						// Blank means "no variant override" — the matrix leaves the
+						// input empty so it inherits the product-level price. Falling
+						// back to the product price here would echo it into every row
+						// and, on save, freeze it into `variant_pricing` for each SKU.
+						price: vp?.price,
+						compareAt: vp?.compareAt,
 						gallery: Array.isArray(v.gallery_images) ? v.gallery_images.filter(Boolean) : []
 					};
 				})
@@ -397,6 +410,11 @@ export async function updateCatalogProduct(
 				: 0);
 		const nextCurrency = (edit.currency ?? 'usd').toLowerCase();
 
+		// The product-level amount is the fallback for variants without their own
+		// price, so it always rolls when it is supplied — whether explicitly
+		// (`price`) or derived from the variant matrix (lowest variant price).
+		// Variant prices themselves are charged from `attributes.variant_pricing`
+		// at checkout and need no Stripe Price of their own.
 		if (edit.unitAmountCents !== undefined || edit.currency !== undefined) {
 			const current = stripePriceId
 				? await client.prices.retrieve(stripePriceId).catch(() => null)
@@ -537,7 +555,10 @@ export async function deleteCatalogProduct(productId: string): Promise<{ id: str
 			try {
 				await pb.collection(Collections.ProductVariants).delete(variant.id);
 			} catch (err: unknown) {
-				console.error('[deleteCatalogProduct] variant delete failed:', variant.id);
+				console.error(
+					`[deleteCatalogProduct] variant delete failed for ${variant.id}:`,
+					(err as Error).message
+				);
 				throw err;
 			}
 		}

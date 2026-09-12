@@ -48,7 +48,11 @@ export async function handlePaymentIntentRequest(request: Request) {
 								color: v.color,
 								size: v.size,
 								image: v.image,
-								stockQuantity: v.stockQuantity
+								stockQuantity: v.stockQuantity,
+								// Carried through so checkout charges the variant's own
+								// price instead of silently falling back to the
+								// product-level one.
+								price: v.price
 							}))
 						}
 					};

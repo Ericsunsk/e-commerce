@@ -121,6 +121,8 @@ export interface IntakeVariant {
 	size?: string;
 	image?: string;
 	stockQuantity?: number;
+	/** Variant-level price in dollars; undefined inherits `IntakeProduct.priceValue`. */
+	price?: number;
 }
 
 export interface IntakeProduct {
@@ -267,7 +269,14 @@ export async function createCheckoutSession(
 			);
 		}
 
-		let unitPrice = product.priceValue;
+		// A variant may carry its own price (colour/size pricing). When it does,
+		// that is the price charged; otherwise the variant inherits the
+		// product-level price.
+		const variantPrice = variant?.price;
+		let unitPrice =
+			typeof variantPrice === 'number' && Number.isFinite(variantPrice) && variantPrice > 0
+				? variantPrice
+				: product.priceValue;
 		if ((!Number.isFinite(unitPrice) || unitPrice <= 0) && ports.catalog.isDev) {
 			unitPrice = ports.catalog.devFallbackUnitPrice ?? 0;
 		}

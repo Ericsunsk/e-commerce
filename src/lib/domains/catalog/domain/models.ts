@@ -36,7 +36,16 @@ export const ProductVariantSchema = z.object({
 	stockStatus: z.enum(['in_stock', 'low_stock', 'out_of_stock']).optional(),
 	galleryImages: z.array(z.string()).optional(),
 	image: z.string().optional(),
-	stockQuantity: z.number().optional()
+	stockQuantity: z.number().optional(),
+	/**
+	 * Variant-level selling price in dollars, from the product's
+	 * `attributes.variant_pricing` map (keyed by SKU). `undefined` means the
+	 * variant inherits the product-level price — checkout falls back to
+	 * `Product.priceValue`.
+	 */
+	price: z.number().optional(),
+	/** Optional strikethrough original price for this variant, in dollars. */
+	compareAt: z.number().optional()
 });
 
 export type ProductVariant = z.infer<typeof ProductVariantSchema>;

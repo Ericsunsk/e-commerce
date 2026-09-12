@@ -281,6 +281,8 @@ export function normalizeProductEdit(input: unknown): NormalizedProductEdit {
 	if (data.details !== undefined) edit.details = normalizeDetailBullets(data.details);
 	if (data.variants !== undefined) edit.variants = normalizeVariants(data.variants);
 
+	// The product-level price is the fallback for variants that carry no price
+	// of their own, so it is derived from the lowest variant price when absent.
 	if (data.price !== undefined) {
 		edit.unitAmountCents = normalizePriceDollars(data.price);
 	} else if (edit.variants && edit.variants.length > 0) {

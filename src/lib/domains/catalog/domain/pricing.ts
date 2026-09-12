@@ -31,3 +31,51 @@ export function getDiscountPercent(product: PricedProduct): number | null {
 	if (compareAt <= price) return null;
 	return Math.round(((compareAt - price) / compareAt) * 100);
 }
+
+/** Per-SKU price overrides, as stored in `attributes.variant_pricing`. */
+export type VariantPricingMap = Record<string, { price?: number; compareAt?: number }>;
+
+function readPositiveNumber(raw: unknown): number | undefined {
+	if (raw === undefined || raw === null || raw === '') return undefined;
+	const value = typeof raw === 'number' ? raw : Number(raw);
+	if (!Number.isFinite(value) || value <= 0) return undefined;
+	return value;
+}
+
+/**
+ * Read the variant price overrides off a product's attributes. Malformed
+ * entries are dropped rather than thrown on — a partially-bad map must not
+ * break the storefront render or take the whole product offline.
+ */
+export function readVariantPricing(attributes: unknown): VariantPricingMap {
+	if (!attributes || typeof attributes !== 'object') return {};
+	const raw = (attributes as Record<string, unknown>).variant_pricing;
+	if (!raw || typeof raw !== 'object') return {};
+
+	const out: VariantPricingMap = {};
+	for (const [sku, entry] of Object.entries(raw as Record<string, unknown>)) {
+		if (!sku || !entry || typeof entry !== 'object') continue;
+		const record = entry as Record<string, unknown>;
+		const price = readPositiveNumber(record.price);
+		const compareAt = readPositiveNumber(record.compareAt);
+		if (price === undefined && compareAt === undefined) continue;
+		out[sku] = {
+			...(price !== undefined ? { price } : {}),
+			...(compareAt !== undefined ? { compareAt } : {})
+		};
+	}
+	return out;
+}
+
+/**
+ * Selling price in dollars for one variant, or `undefined` when it inherits
+ * the product-level price. Checkout must use this so a colour/size with its
+ * own price is actually charged that price.
+ */
+export function getVariantPrice(
+	variant: { sku?: string },
+	pricing: VariantPricingMap
+): number | undefined {
+	if (!variant.sku) return undefined;
+	return pricing[variant.sku]?.price;
+}

@@ -157,6 +157,31 @@ describe('product input', () => {
 		}
 	});
 
+	it('derives the product price from the lowest variant price as a fallback', () => {
+		const base = { color: '红', size: 'M', stockQuantity: 1 };
+
+		// Variant prices differ by colour/size; the product-level price follows
+		// the cheapest one so list pages can advertise a "from" price.
+		expect(
+			normalizeProductEdit({
+				variants: [
+					{ ...base, sku: 'A', price: 80 },
+					{ ...base, sku: 'B', price: 55 },
+					{ ...base, sku: 'C', price: 99 }
+				]
+			})
+		).toMatchObject({ unitAmountCents: 5500 });
+
+		// An explicit product price always wins over the derived fallback.
+		expect(
+			normalizeProductEdit({ price: 42, variants: [{ ...base, sku: 'A', price: 80 }] })
+		).toMatchObject({ unitAmountCents: 4200 });
+
+		// Variants without their own price leave the fallback unset.
+		const none = normalizeProductEdit({ variants: [{ ...base, sku: 'A' }] });
+		expect(none.unitAmountCents).toBeUndefined();
+	});
+
 	it('detects price rolls only on real money changes', () => {
 		expect(
 			needsPriceRoll(

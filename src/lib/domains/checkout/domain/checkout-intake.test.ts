@@ -146,6 +146,33 @@ describe('checkout intake', () => {
 		expect(ok.subtotalAmount).toBe(100);
 	});
 
+	it('charges the variant price when the variant overrides the product price', async () => {
+		const variantProduct = product({
+			priceValue: 50,
+			hasVariants: true,
+			variants: [
+				{ id: 'v1', sku: 'RED-L', stockQuantity: 5, price: 79.5 },
+				{ id: 'v2', sku: 'BLU-L', stockQuantity: 5 }
+			]
+		});
+		const p = ports({
+			catalog: {
+				resolveProduct: async () => ({ recordId: 'rec-p1', product: variantProduct })
+			}
+		});
+
+		// v1 has its own price; v2 inherits the product-level 50.
+		const priced = await createCheckoutSession(p, {
+			items: [{ id: 'p1', variantId: 'v1', quantity: 2 }]
+		});
+		expect(priced.subtotalAmount).toBe(159);
+
+		const inherited = await createCheckoutSession(p, {
+			items: [{ id: 'p1', variantId: 'v2', quantity: 2 }]
+		});
+		expect(inherited.subtotalAmount).toBe(100);
+	});
+
 	it('rejects unsupported currency and dust amounts', async () => {
 		const p = ports();
 		await expect(

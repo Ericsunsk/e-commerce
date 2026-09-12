@@ -4,6 +4,7 @@
 
 import { getFileUrl } from '$shared/kernel';
 import { computeStockStatus } from '../domain/stock-status';
+import { readVariantPricing } from '../domain/pricing';
 import type { Product, Category, ProductVariant } from '../domain/models';
 import type {
 	ProductsResponse,
@@ -27,7 +28,7 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 	const expandedVariants = (record.expand as unknown as ProductExpand | undefined)?.[
 		'product_variants(product)'
 	];
-	const rawVariants = mapVariantsFromExpand(expandedVariants);
+	const rawVariants = mapVariantsFromExpand(expandedVariants, record.attributes);
 
 	const mediaByColor = new Map<
 		string,
@@ -127,15 +128,19 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 }
 
 export function mapVariantsFromExpand(
-	expandedVariants: ProductVariantsResponse[] | undefined
+	expandedVariants: ProductVariantsResponse[] | undefined,
+	productAttributes?: unknown
 ): ProductVariant[] {
 	if (!expandedVariants) return [];
+
+	const pricing = readVariantPricing(productAttributes);
 
 	return expandedVariants.map((v) => {
 		const galleryImages: string[] = Array.isArray(v.gallery_images)
 			? v.gallery_images.map((img) => getFileUrl(v.collectionId, v.id, img))
 			: [];
 		const image = galleryImages[0] || undefined;
+		const override = v.sku ? pricing[v.sku] : undefined;
 
 		return {
 			id: v.id,
@@ -149,7 +154,10 @@ export function mapVariantsFromExpand(
 			galleryImages,
 			stockStatus: computeStockStatus(Number(v.stock_quantity) || 0),
 			image,
-			stockQuantity: v.stock_quantity
+			stockQuantity: v.stock_quantity,
+			// Undefined means "inherit the product-level price".
+			price: override?.price,
+			compareAt: override?.compareAt
 		};
 	});
 }
