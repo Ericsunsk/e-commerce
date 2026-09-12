@@ -4,12 +4,9 @@
 		CircleAlert,
 		CircleCheck,
 		FileText,
-		Image as ImageIcon,
 		Layers,
 		ExternalLink,
-		Upload,
 		Trash2,
-		RefreshCw,
 		Tag
 	} from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';

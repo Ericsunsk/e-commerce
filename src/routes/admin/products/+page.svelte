@@ -1199,7 +1199,7 @@
 										{ id: 'gender', label: '一级类目' },
 										{ id: 'primary', label: '二级类目' },
 										{ id: 'subcategory', label: '三级类目' }
-									] as opt}
+									] as opt (opt.id)}
 										<button
 											type="button"
 											onclick={() => onCategoryTierChange(opt.id as CategoryTierOption)}

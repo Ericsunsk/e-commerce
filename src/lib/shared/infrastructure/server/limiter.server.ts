@@ -12,3 +12,13 @@ export const checkoutLimiter = new RateLimiter({
 export const apiLimiter = new RateLimiter({
 	IP: [60, 'm']
 });
+
+// 3. Anonymous Checkout Intake Limiter (Strict)
+//
+// `/api/payment-intent` accepts unauthenticated traffic and each call can
+// create a Stripe Customer and bill a Stripe Tax lookup, so it is limited per
+// IP *and* per submitted email — the two resources an abuser would consume.
+export const intakeLimiter = new RateLimiter({
+	IP: [10, 'm'],
+	IPUA: [10, 'm']
+});

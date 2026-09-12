@@ -122,10 +122,9 @@ export async function listAdminSections(pageId?: string): Promise<SectionRow[]> 
 		});
 		return (records as Array<UiSectionsResponse & { updated?: string }>).map((r) => {
 			const images = Array.isArray(r.image) ? r.image : r.image ? [r.image] : [];
-			const settings = (r.settings && typeof r.settings === 'object' ? r.settings : {}) as Record<
-				string,
-				any
-			>;
+			const settings = (r.settings && typeof r.settings === 'object' ? r.settings : {}) as {
+				external?: { image_url?: unknown };
+			};
 			let imageUrl = images[0] ? getFileUrl(Collections.UiSections, r.id, images[0]) : '';
 			if (!imageUrl && settings.external?.image_url) {
 				imageUrl = String(settings.external.image_url);

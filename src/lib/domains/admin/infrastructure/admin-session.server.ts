@@ -9,6 +9,7 @@ import PocketBase from 'pocketbase';
 import { env as privateEnv } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 import { isSuperuserRecord } from '../domain/admin-auth';
+import { AdminSessionCache } from '../domain/session-cache';
 
 function resolvePbUrl(): string {
 	return privateEnv.POCKETBASE_URL || publicEnv.PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090';
@@ -40,22 +41,17 @@ export async function createAdminSession(email: string, password: string): Promi
 	return { token, email: record?.email ?? email.trim() };
 }
 
-// In-memory cache for validated tokens to avoid round-trips on every request
-interface ValidatedSession {
-	email: string;
-	expiresAt: number;
-}
-const sessionCache = new Map<string, ValidatedSession>();
+const SESSION_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/** Bounded cache of validated tokens (see `session-cache.ts`). */
+const sessionCache = new AdminSessionCache();
 
 /** Validate a session token; returns the admin email or null. */
 export async function validateAdminSessionToken(token: string): Promise<string | null> {
 	if (!token) return null;
 
-	const now = Date.now();
-	const cached = sessionCache.get(token);
-	if (cached && cached.expiresAt > now) {
-		return cached.email;
-	}
+	const cachedEmail = sessionCache.get(token);
+	if (cachedEmail) return cachedEmail;
 
 	const pb = new PocketBase(resolvePbUrl());
 	pb.autoCancellation(false);
@@ -76,8 +72,7 @@ export async function validateAdminSessionToken(token: string): Promise<string |
 
 		const email = typeof record?.email === 'string' ? record.email : null;
 		if (email) {
-			// Cache for 5 minutes
-			sessionCache.set(token, { email, expiresAt: now + 5 * 60 * 1000 });
+			sessionCache.set(token, email, SESSION_CACHE_TTL_MS);
 		}
 		return email;
 	} catch {
@@ -85,4 +80,12 @@ export async function validateAdminSessionToken(token: string): Promise<string |
 		sessionCache.delete(token);
 		return null;
 	}
+}
+
+/**
+ * Drop a validated token from the cache (logout). Without this the token would
+ * keep authorizing requests for up to the cache TTL after the cookie is gone.
+ */
+export function invalidateAdminSessionToken(token: string): void {
+	if (token) sessionCache.delete(token);
 }
