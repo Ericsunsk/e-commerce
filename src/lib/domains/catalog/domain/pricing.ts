@@ -7,6 +7,8 @@
  * original price is strictly above the selling price.
  */
 
+import type { VariantPricing } from './models';
+
 interface PricedProduct {
 	priceValue?: number;
 	attributes?: Record<string, unknown> | null;
@@ -32,8 +34,14 @@ export function getDiscountPercent(product: PricedProduct): number | null {
 	return Math.round(((compareAt - price) / compareAt) * 100);
 }
 
-/** Per-SKU price overrides, as stored in `attributes.variant_pricing`. */
-export type VariantPricingMap = Record<string, { price?: number; compareAt?: number }>;
+/**
+ * Per-SKU price overrides, as stored in `attributes.variant_pricing`.
+ *
+ * Aliased to the model's schema-derived type so the shape has one owner —
+ * `models.ts`. `readVariantPricing` is still the only reader: it validates
+ * against this shape and *drops* malformed entries instead of trusting them.
+ */
+export type VariantPricingMap = VariantPricing;
 
 function readPositiveNumber(raw: unknown): number | undefined {
 	if (raw === undefined || raw === null || raw === '') return undefined;

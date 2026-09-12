@@ -1,7 +1,7 @@
 /**
  * CMS pages + navigation admin (server-only).
  */
-import { withAdmin } from '$shared/infrastructure/server';
+import { withAdmin, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import { getFileUrl } from '$shared/kernel';
 import {
 	Collections,
@@ -62,7 +62,9 @@ export async function listAdminNav(location?: string): Promise<NavRow[]> {
 	return withAdmin(async (pb) => {
 		const records = await pb.collection(Collections.Navigation).getFullList({
 			sort: 'order',
-			...(location ? { filter: `location = "${location}"` } : {})
+			...(location
+				? { filter: buildPocketBaseFilter(pb, 'location = {:location}', { location }) }
+				: {})
 		});
 		return (records as NavigationResponse[]).map((r) =>
 			toNavRow({
@@ -116,7 +118,7 @@ export async function listAdminSections(pageId?: string): Promise<SectionRow[]> 
 	return withAdmin(async (pb) => {
 		const records = await pb.collection(Collections.UiSections).getFullList({
 			sort: 'sort_order',
-			...(pageId ? { filter: `page = "${pageId}"` } : {})
+			...(pageId ? { filter: buildPocketBaseFilter(pb, 'page = {:pageId}', { pageId }) } : {})
 		});
 		return (records as Array<UiSectionsResponse & { updated?: string }>).map((r) => {
 			const images = Array.isArray(r.image) ? r.image : r.image ? [r.image] : [];

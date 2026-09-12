@@ -1,7 +1,7 @@
 /**
  * Category admin (server-only).
  */
-import { withAdmin } from '$shared/infrastructure/server';
+import { withAdmin, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import { Collections, type CategoriesResponse, type TypedPocketBase } from '$shared/infrastructure';
 import { normalizeCategory, toCategoryRow, type CategoryRow } from '../domain/category-admin';
 import {
@@ -13,7 +13,7 @@ import {
 async function countProductsWithClient(pb: TypedPocketBase, categoryId: string): Promise<number> {
 	try {
 		const result = await pb.collection(Collections.Products).getList(1, 1, {
-			filter: `category ?~ "${categoryId}"`,
+			filter: buildPocketBaseFilter(pb, 'category ?~ {:categoryId}', { categoryId }),
 			fields: 'id'
 		});
 		return result.totalItems;
@@ -81,11 +81,7 @@ export async function saveAdminCategory(
 				sort_order: Number(r.sort_order) || 0
 			}));
 
-		const { targetSortOrder, shifts } = calculateTierSortShifts(
-			sameTierItems,
-			id,
-			data.sort_order
-		);
+		const { targetSortOrder, shifts } = calculateTierSortShifts(sameTierItems, id, data.sort_order);
 
 		// Execute cascade shifts for items that collide
 		for (const shift of shifts) {

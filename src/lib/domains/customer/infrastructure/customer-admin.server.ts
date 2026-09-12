@@ -1,7 +1,7 @@
 /**
  * Customer read-only admin (server-only, zero write path).
  */
-import { withAdmin } from '$shared/infrastructure/server';
+import { withAdmin, buildPocketBaseFilter } from '$shared/infrastructure/server';
 import {
 	Collections,
 	type TypedPocketBase,
@@ -24,14 +24,10 @@ export interface CustomerListPage {
 	totalItems: number;
 }
 
-function escapeFilterValue(value: string): string {
-	return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
 async function countOrdersWithClient(pb: TypedPocketBase, userId: string): Promise<number> {
 	try {
 		const result = await pb.collection(Collections.Orders).getList(1, 1, {
-			filter: `user = "${userId}"`,
+			filter: buildPocketBaseFilter(pb, 'user = {:userId}', { userId }),
 			fields: 'id'
 		});
 		return result.totalItems;
@@ -46,7 +42,7 @@ export async function listAdminCustomers(query: string, page: number): Promise<C
 	const safePage = Math.min(Math.max(page || 1, 1), 1000);
 	return withAdmin(
 		async (pb) => {
-			const filter = query ? `email ~ "${escapeFilterValue(query)}"` : undefined;
+			const filter = query ? buildPocketBaseFilter(pb, 'email ~ {:query}', { query }) : undefined;
 			const result = await pb.collection(Collections.Users).getList(safePage, perPage, {
 				sort: '-id',
 				...(filter ? { filter } : {})
@@ -99,7 +95,7 @@ export async function getAdminCustomerById(userId: string): Promise<CustomerDeta
 		let addresses: UserAddressesResponse[] = [];
 		try {
 			addresses = (await pb.collection(Collections.UserAddresses).getFullList({
-				filter: `user = "${userId}"`
+				filter: buildPocketBaseFilter(pb, 'user = {:userId}', { userId })
 			})) as UserAddressesResponse[];
 		} catch {
 			// Address read failure must not block the detail view.
@@ -108,7 +104,7 @@ export async function getAdminCustomerById(userId: string): Promise<CustomerDeta
 		let orders: OrdersResponse[] = [];
 		try {
 			orders = (await pb.collection(Collections.Orders).getFullList({
-				filter: `user = "${userId}"`,
+				filter: buildPocketBaseFilter(pb, 'user = {:userId}', { userId }),
 				sort: '-placed_at_override,-placed_at'
 			})) as OrdersResponse[];
 		} catch {

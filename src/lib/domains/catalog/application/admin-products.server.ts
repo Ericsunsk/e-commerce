@@ -24,6 +24,7 @@ import {
 	type NormalizedProductEdit
 } from '../domain/product-input';
 import { toAdminProductRow, type AdminProductRow } from '../domain/admin-product-row';
+import { getCompareAtPrice, readVariantPricing } from '../domain/pricing';
 import type { ProductsResponse, ProductVariantsResponse } from '$shared/infrastructure';
 
 const PRODUCT_EXPAND = 'category,product_variants(product)';
@@ -206,7 +207,11 @@ export async function createCatalogProduct(
 				stripe_price_id: stripePriceId
 			};
 			const attrs: Record<string, unknown> = {};
-			if (data.compareAtCents !== null && data.compareAtCents !== undefined && data.compareAtCents > 0) {
+			if (
+				data.compareAtCents !== null &&
+				data.compareAtCents !== undefined &&
+				data.compareAtCents > 0
+			) {
 				attrs.compare_at_price = data.compareAtCents / 100;
 			}
 			if (data.material) attrs.material = data.material;
@@ -285,15 +290,6 @@ export interface AdminProductEdit {
 	}>;
 }
 
-/** Read the compare-at price (dollars) from the attributes JSON blob. */
-function readCompareAtDollars(attributes: unknown): number | null {
-	if (!attributes || typeof attributes !== 'object') return null;
-	const raw = (attributes as Record<string, unknown>).compare_at_price;
-	const value = typeof raw === 'number' ? raw : Number(raw);
-	if (!Number.isFinite(value) || value <= 0) return null;
-	return value;
-}
-
 /** Admin: load one product with editable fields and current Stripe money. */
 export async function getAdminProductForEdit(productId: string): Promise<AdminProductEdit | null> {
 	return withAdmin(async (pb) => {
@@ -322,10 +318,7 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 				}
 			}
 
-			const variantPricing =
-				attrs.variant_pricing && typeof attrs.variant_pricing === 'object'
-					? (attrs.variant_pricing as Record<string, { price?: number; compareAt?: number }>)
-					: {};
+			const variantPricing = readVariantPricing(record.attributes);
 
 			return {
 				id: record.id,
@@ -338,7 +331,7 @@ export async function getAdminProductForEdit(productId: string): Promise<AdminPr
 					? (attrs.details as unknown[]).filter((d): d is string => typeof d === 'string')
 					: [],
 				priceDollars,
-				compareAtDollars: readCompareAtDollars(record.attributes),
+				compareAtDollars: getCompareAtPrice({ attributes: attrs }),
 				currency,
 				isActive: record.is_active !== false,
 				isFeatured: record.is_featured === true,
