@@ -1,24 +1,22 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { error } from '@sveltejs/kit';
+import type { RequestEvent } from './$types';
 import { setCouponActive } from '$domains/checkout/server';
+import { apiHandler, parseAndNormalizeJsonBody } from '$shared/infrastructure/server';
 
-export const PATCH: RequestHandler = async ({ locals, params, request }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
+export const PATCH = apiHandler<RequestEvent>(
+	async ({ params, request }) => {
+		const body = await parseAndNormalizeJsonBody(
+			request,
+			(input) => input as Record<string, unknown>
+		);
 
-	let body: unknown;
-	try {
-		body = await request.json();
-	} catch {
-		throw error(400, '请求格式错误');
-	}
+		const isActive = body.is_active;
+		if (typeof isActive !== 'boolean') {
+			throw error(400, 'is_active 必须是布尔值');
+		}
 
-	const isActive = (body as Record<string, unknown> | null)?.is_active;
-	if (typeof isActive !== 'boolean') {
-		throw error(400, 'is_active 必须是布尔值');
-	}
-
-	const result = await setCouponActive(params.id, isActive);
-	return json({ success: true, ...result });
-};
+		const result = await setCouponActive(params.id, isActive);
+		return { success: true, ...result };
+	},
+	{ admin: true }
+);

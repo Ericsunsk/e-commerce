@@ -1,78 +1,21 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
-import {
-	updateCatalogProduct,
-	deleteCatalogProduct,
-	extractGalleryUploads
-} from '$domains/catalog/server';
-import { getErrorStatus } from '$shared/infrastructure/server';
+import type { RequestEvent } from './$types';
+import { updateCatalogProduct, deleteCatalogProduct } from '$domains/catalog/server';
+import { apiHandler } from '$shared/infrastructure/server';
+import { parseProductRequest } from '../_parse-product-body';
 
-export const PATCH: RequestHandler = async ({ locals, params, request }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
-
-	const contentType = request.headers.get('content-type') || '';
-	let body: unknown;
-	let mainImageFile: File | null | 'CLEAR' = undefined as unknown as null;
-	let galleryUploads = new Map<string, File[]>();
-
-	if (contentType.includes('multipart/form-data')) {
-		const formData = await request.formData();
-		const rawData = formData.get('data');
-		if (typeof rawData === 'string') {
-			try {
-				body = JSON.parse(rawData);
-			} catch {
-				throw error(400, '请求数据格式错误');
-			}
-		} else {
-			throw error(400, '缺少 data 表单数据');
-		}
-		if (formData.has('main_image')) {
-			const file = formData.get('main_image');
-			if (file instanceof File && file.size > 0) {
-				mainImageFile = file;
-			} else if (file === '' || file === 'null' || file === null) {
-				mainImageFile = 'CLEAR';
-			}
-		}
-		// Per-variant gallery uploads: fields named `gallery:<sku>`.
-		galleryUploads = extractGalleryUploads(formData);
-	} else {
-		try {
-			body = await request.json();
-		} catch {
-			throw error(400, '请求格式错误');
-		}
-	}
-
-	try {
+export const PATCH = apiHandler<RequestEvent>(
+	async ({ params, request }) => {
+		const { body, mainImageFile, galleryUploads } = await parseProductRequest(request);
 		const product = await updateCatalogProduct(params.id, body, mainImageFile, galleryUploads);
-		return json({ success: true, product });
-	} catch (err: unknown) {
-		const status = getErrorStatus(err) ?? 500;
-		const message =
-			typeof err === 'object' && err !== null && 'message' in err
-				? String((err as { message: unknown }).message)
-				: '保存商品失败';
-		throw error(status, message);
-	}
-};
+		return { success: true, product };
+	},
+	{ admin: true }
+);
 
-export const DELETE: RequestHandler = async ({ locals, params }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
-	try {
-		const result = await deleteCatalogProduct(params.id);
-		return json({ success: true, ...result });
-	} catch (err: unknown) {
-		const status = getErrorStatus(err) ?? 500;
-		const message =
-			typeof err === 'object' && err !== null && 'message' in err
-				? String((err as { message: unknown }).message)
-				: '删除商品失败';
-		throw error(status, message);
-	}
-};
+export const DELETE = apiHandler<RequestEvent>(
+	async ({ params }) => {
+		await deleteCatalogProduct(params.id);
+		return { success: true };
+	},
+	{ admin: true }
+);

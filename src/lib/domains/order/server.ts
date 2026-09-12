@@ -3,6 +3,7 @@
  */
 
 export * from './domain/models';
+export * from './domain/order-fulfillment';
 export * from './infrastructure/order-repository.server';
 export * from './application/order-service.server';
 export * from './infrastructure/order-reconciliation.server';

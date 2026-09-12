@@ -1,29 +1,12 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import { json } from '@sveltejs/kit';
 import { createAdminCoupon } from '$domains/checkout/server';
-import { getErrorStatus } from '$shared/infrastructure/server';
+import { apiHandler, parseAndNormalizeJsonBody } from '$shared/infrastructure/server';
 
-export const POST: RequestHandler = async ({ locals, request }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
-
-	let body: unknown;
-	try {
-		body = await request.json();
-	} catch {
-		throw error(400, '请求格式错误');
-	}
-
-	try {
+export const POST = apiHandler(
+	async ({ request }) => {
+		const body = await parseAndNormalizeJsonBody(request, (input) => input);
 		const coupon = await createAdminCoupon(body);
 		return json({ success: true, coupon }, { status: 201 });
-	} catch (err: unknown) {
-		const status = getErrorStatus(err) ?? 500;
-		const message =
-			typeof err === 'object' && err !== null && 'message' in err
-				? String((err as { message: unknown }).message)
-				: '创建优惠券失败';
-		throw error(status, message);
-	}
-};
+	},
+	{ admin: true }
+);

@@ -10,6 +10,10 @@ export * from './domain/filters';
 export * from './domain/query-keys';
 export * from './domain/admin-product-row';
 export * from './domain/category-hierarchy';
+// Admin toggles and the variant matrix editor both need these, and both were
+// reaching past the barrel to get them.
+export * from './domain/product-visibility';
+export * from './domain/variant-matrix';
 
 // UI Components
 export { default as ProductCard } from './ui/ProductCard.svelte';

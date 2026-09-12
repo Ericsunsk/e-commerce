@@ -47,6 +47,25 @@ const noCrossContextDeepImport = contexts.map((context) => ({
 	to: { path: `^src/lib/domains/(?!${context}/)[^/]+/${CONTEXT_LAYERS}/` }
 }));
 
+/**
+ * Everything outside `src/lib/domains/` — routes, hooks, app — is a *consumer*
+ * of contexts and holds no context of its own, so it may never reach past a
+ * barrel either. Without this rule the per-context rules above are trivially
+ * bypassed from src/routes/, which is exactly where a bypass is most likely
+ * (a route that needs "just one pure helper").
+ */
+const noConsumerDeepImport = {
+	name: 'no-deep-import-into-a-context',
+	severity: 'error',
+	comment:
+		'Consumers (src/routes, src/hooks, entry points) MUST import a context ' +
+		'through its barrel ($domains/<ctx> or $domains/<ctx>/server), never into ' +
+		'domain/ application/ infrastructure/. If the thing you need is not ' +
+		'exported, widen the owning barrel. See Constitution Principle IX.',
+	from: { pathNot: ['^src/lib/domains/', '^src/lib/shared/'] },
+	to: { path: '^src/lib/domains/[^/]+/' + CONTEXT_LAYERS + '/' }
+};
+
 module.exports = {
 	forbidden: [
 		{
@@ -58,6 +77,7 @@ module.exports = {
 		},
 
 		...noCrossContextDeepImport,
+		noConsumerDeepImport,
 
 		{
 			// Principle IX: "domain/ MUST NOT import ... another context's domain/."

@@ -3,7 +3,7 @@
 	import { useCart } from '$domains/cart';
 	import { useWishlist } from '$domains/customer';
 	import { ProductListGridConnected as ProductListGrid } from '$domains/catalog';
-	import { getCompareAtPrice, getDiscountPercent } from '$domains/catalog/domain/pricing';
+	import { getCompareAtPrice, getDiscountPercent } from '$domains/catalog';
 	import { Heart } from 'lucide-svelte';
 	import { RemoteImage, toastStore, UiIcon } from '$shared/ui';
 	import { MESSAGES, COLORS, formatCurrency } from '$shared/kernel';

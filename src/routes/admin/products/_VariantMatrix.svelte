@@ -29,7 +29,7 @@
 		adjustStock,
 		sanitizeSkuSegment,
 		type ColorPreset
-	} from '$domains/catalog/domain/variant-matrix';
+	} from '$domains/catalog';
 
 	export interface VariantRow {
 		id?: string;
@@ -216,9 +216,7 @@
 			skuPrefixTouched.delete(key);
 			skuPrefixOverride.delete(key);
 		}
-		variants = variants.map((row) =>
-			colorKeyOf(row) === key ? { ...row, ...patch } : row
-		);
+		variants = variants.map((row) => (colorKeyOf(row) === key ? { ...row, ...patch } : row));
 	}
 
 	function removeColor(key: string) {
@@ -493,9 +491,7 @@
 	<!-- Top Controls Toolbar -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-1">
 		<div class="flex items-center gap-2 flex-wrap">
-			<span class="text-xs font-bold text-zinc-900 tracking-wide uppercase">
-				规格矩阵清单
-			</span>
+			<span class="text-xs font-bold text-zinc-900 tracking-wide uppercase"> 规格矩阵清单 </span>
 			<span class="text-xs text-zinc-500 font-mono">
 				({colorGroups.length} 颜色 · {variants.length} 细分规格 · 共 {totalStock} 件在库)
 			</span>
@@ -517,7 +513,9 @@
 			<button
 				type="button"
 				onclick={() => (showGenerator = !showGenerator)}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer {showGenerator ? 'bg-zinc-900 border-zinc-900 text-white' : 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'}"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer {showGenerator
+					? 'bg-zinc-900 border-zinc-900 text-white'
+					: 'bg-white border-zinc-200 text-zinc-700 hover:text-zinc-900 hover:border-zinc-300'}"
 			>
 				<UiIcon icon={Wand2} size={12} />
 				<span>预设批量生成</span>
@@ -618,12 +616,17 @@
 			</div>
 
 			<!-- Step 3: Generator Footer -->
-			<div class="pt-2.5 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+			<div
+				class="pt-2.5 border-t border-zinc-200/80 flex flex-col sm:flex-row items-center justify-between gap-3"
+			>
 				<div class="flex items-center gap-3 flex-wrap">
 					<div class="flex items-center gap-1.5">
 						<span class="text-xs text-zinc-600 font-medium">默认售价:</span>
 						<div class="relative w-20">
-							<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+							<span
+								class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+								>$</span
+							>
 							<input
 								type="number"
 								min="0"
@@ -638,7 +641,10 @@
 					<div class="flex items-center gap-1.5">
 						<span class="text-xs text-zinc-600 font-medium">划线原价:</span>
 						<div class="relative w-20">
-							<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+							<span
+								class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+								>$</span
+							>
 							<input
 								type="number"
 								min="0"
@@ -701,7 +707,9 @@
 				{@const gallerySlots = getGroupGallerySlots(group)}
 				<div class={ADMIN_MATRIX.colorCard}>
 					<!-- Color Banner Header -->
-					<div class="bg-zinc-50/70 border-b border-zinc-200/80 rounded-t-xl px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+					<div
+						class="bg-zinc-50/70 border-b border-zinc-200/80 rounded-t-xl px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-3"
+					>
 						<!-- Left: Color Swatch + Color Name + SKU Prefix -->
 						<div class="flex items-center gap-3 flex-wrap">
 							<!-- Color swatch circle with native picker -->
@@ -738,8 +746,7 @@
 							<!-- SKU Prefix Input: auto-width based on value -->
 							<input
 								value={skuPrefixOf(group)}
-								oninput={(e) =>
-									applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
+								oninput={(e) => applySkuPrefixInput(group, (e.target as HTMLInputElement).value)}
 								placeholder="SKU"
 								spellcheck={false}
 								style="width: {Math.max(6, (skuPrefixOf(group) || 'SKU').length + 2)}ch;"
@@ -748,9 +755,14 @@
 							/>
 
 							<!-- Compact 4-Photo Gallery Strip (No divider line) -->
-							<div class="flex items-center gap-1.5" title="该颜色专属图集（前台选中该颜色时联动，最多 4 张）">
+							<div
+								class="flex items-center gap-1.5"
+								title="该颜色专属图集（前台选中该颜色时联动，最多 4 张）"
+							>
 								{#each gallerySlots as item}
-									<div class="relative w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-100 group/thumb shrink-0">
+									<div
+										class="relative w-8 h-8 rounded-lg border border-zinc-200 bg-zinc-100 group/thumb shrink-0"
+									>
 										{#if item.url}
 											<img
 												src={item.url}
@@ -759,7 +771,9 @@
 												loading="lazy"
 											/>
 										{:else}
-											<div class="w-full h-full flex items-center justify-center text-[8px] text-zinc-400 font-mono">
+											<div
+												class="w-full h-full flex items-center justify-center text-[8px] text-zinc-400 font-mono"
+											>
 												IMG
 											</div>
 										{/if}
@@ -769,7 +783,9 @@
 											<div
 												class="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 hidden group-hover/thumb:block z-50 animate-in fade-in zoom-in-95 duration-100"
 											>
-												<div class="bg-white border border-zinc-200 rounded-xl p-1.5 w-48 h-48 flex items-center justify-center">
+												<div
+													class="bg-white border border-zinc-200 rounded-xl p-1.5 w-48 h-48 flex items-center justify-center"
+												>
 													<img
 														src={item.zoomUrl || item.url}
 														alt=""
@@ -785,7 +801,11 @@
 											onclick={() => {
 												if (item.kind === 'existing' && item.name) {
 													removeGroupGalleryImage(group, item.name);
-												} else if (item.kind === 'pending' && item.file && item.ownerIndex !== undefined) {
+												} else if (
+													item.kind === 'pending' &&
+													item.file &&
+													item.ownerIndex !== undefined
+												) {
 													removeGroupGalleryFile(item.ownerIndex, item.file);
 												}
 											}}
@@ -798,7 +818,7 @@
 									</div>
 								{/each}
 
-								{#each Array.from({ length: Math.max(0, MAX_GALLERY_PER_VARIANT - gallerySlots.length) }) as _, slotIdx (slotIdx)}
+								{#each Array.from( { length: Math.max(0, MAX_GALLERY_PER_VARIANT - gallerySlots.length) } ) as _, slotIdx (slotIdx)}
 									<label
 										class="w-8 h-8 rounded-lg border border-dashed border-zinc-300 hover:border-zinc-800 text-zinc-400 hover:text-zinc-800 flex items-center justify-center shrink-0 cursor-pointer transition-colors bg-white"
 										title="上传颜色图集（最多 4 张）"
@@ -899,7 +919,10 @@
 										<!-- Current Price ($) Input -->
 										<td class={ADMIN_TABLE.cell}>
 											<div class="relative w-28">
-												<span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+												<span
+													class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+													>$</span
+												>
 												<input
 													type="number"
 													min="0"
@@ -924,7 +947,10 @@
 										<!-- Compare At Price ($) Input -->
 										<td class={ADMIN_TABLE.cell}>
 											<div class="relative w-28">
-												<span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+												<span
+													class="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+													>$</span
+												>
 												<input
 													type="number"
 													min="0"
@@ -983,7 +1009,10 @@
 														if (next)
 															variants[entry.index] = {
 																...next,
-																stockQuantity: Math.max(0, Math.floor(Number((e.target as HTMLInputElement).value) || 0))
+																stockQuantity: Math.max(
+																	0,
+																	Math.floor(Number((e.target as HTMLInputElement).value) || 0)
+																)
 															};
 													}}
 													class={ADMIN_MATRIX.stock}
@@ -1039,7 +1068,10 @@
 												/>
 												<span class="text-xs font-medium text-zinc-500 ml-1">售价:</span>
 												<div class="relative w-20">
-													<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+													<span
+														class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+														>$</span
+													>
 													<input
 														type="number"
 														min="0"
@@ -1051,7 +1083,10 @@
 												</div>
 												<span class="text-xs font-medium text-zinc-500 ml-1">原价:</span>
 												<div class="relative w-20">
-													<span class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none">$</span>
+													<span
+														class="absolute left-2 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-xs pointer-events-none"
+														>$</span
+													>
 													<input
 														type="number"
 														min="0"
@@ -1124,8 +1159,12 @@
 		</div>
 	{:else}
 		<!-- Clean Empty State -->
-		<div class="py-10 px-6 text-center border border-dashed border-zinc-200 rounded-xl bg-white space-y-3">
-			<div class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 mx-auto">
+		<div
+			class="py-10 px-6 text-center border border-dashed border-zinc-200 rounded-xl bg-white space-y-3"
+		>
+			<div
+				class="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-400 mx-auto"
+			>
 				<UiIcon icon={Layers} size={20} />
 			</div>
 			<div class="space-y-1 max-w-sm mx-auto">
