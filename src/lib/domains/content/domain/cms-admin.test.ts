@@ -6,7 +6,8 @@ import {
 	toNavRow,
 	normalizeSectionInput,
 	toSectionRow,
-	swapSectionRank
+	swapSectionRank,
+	buildSectionSettings
 } from './cms-admin';
 
 describe('cms admin model', () => {
@@ -97,9 +98,7 @@ describe('cms admin model', () => {
 		});
 
 		// Rejects invalid type
-		expect(() =>
-			normalizeSectionInput({ page: 'p1', type: 'invalid_type_unknown' })
-		).toThrow();
+		expect(() => normalizeSectionInput({ page: 'p1', type: 'invalid_type_unknown' })).toThrow();
 	});
 
 	it('swaps a section with its neighbour', () => {
@@ -134,5 +133,102 @@ describe('cms admin model', () => {
 			{ id: 'a', sortOrder: 11 },
 			{ id: 'b', sortOrder: 10 }
 		]);
+	});
+});
+
+describe('buildSectionSettings', () => {
+	it('drops blank action rows but keeps partially filled ones', () => {
+		const out = buildSectionSettings({
+			settingsRest: {},
+			externalRest: {},
+			actions: [
+				{ text: 'Shop', link: '/shop' },
+				{ text: '', link: '' }, // blank → dropped
+				{ text: 'Only label', link: '' }, // partial → kept
+				{ text: '', link: '/only-link' } // partial → kept
+			],
+			externalImageUrl: ''
+		});
+
+		expect(out.validActions).toHaveLength(3);
+		expect(out.validActions[0]).toEqual({ text: 'Shop', link: '/shop' });
+	});
+
+	it('treats whitespace-only action rows as blank', () => {
+		const out = buildSectionSettings({
+			settingsRest: {},
+			externalRest: {},
+			actions: [{ text: '   ', link: '  ' }],
+			externalImageUrl: ''
+		});
+
+		expect(out.validActions).toEqual([]);
+	});
+
+	it('sets external.image_url when an image URL is given', () => {
+		const out = buildSectionSettings({
+			settingsRest: {},
+			externalRest: {},
+			actions: [],
+			externalImageUrl: '  https://cdn.example/a.jpg  '
+		});
+
+		expect(out.imageUrl).toBe('https://cdn.example/a.jpg');
+		expect((out.settings.external as Record<string, unknown>).image_url).toBe(
+			'https://cdn.example/a.jpg'
+		);
+	});
+
+	it('DELETES image_url rather than blanking it when the field is cleared', () => {
+		// The meaningful case: setting '' would leave a reference pointing at
+		// nothing, instead of removing it. Clearing must remove the key.
+		const out = buildSectionSettings({
+			settingsRest: {},
+			externalRest: { image_url: 'https://old.example/x.jpg', other: 1 },
+			actions: [],
+			externalImageUrl: ''
+		});
+
+		const external = out.settings.external as Record<string, unknown>;
+		expect('image_url' in external).toBe(false);
+		// Sibling external fields survive.
+		expect(external.other).toBe(1);
+	});
+
+	it('omits the external bag entirely when it would be empty', () => {
+		const out = buildSectionSettings({
+			settingsRest: {},
+			externalRest: {},
+			actions: [],
+			externalImageUrl: ''
+		});
+
+		expect('external' in out.settings).toBe(false);
+	});
+
+	it('carries unsurfaced settings fields through untouched', () => {
+		const out = buildSectionSettings({
+			settingsRest: { heading_size: 'lg', layout: 'grid' },
+			externalRest: {},
+			actions: [],
+			externalImageUrl: ''
+		});
+
+		expect(out.settings.heading_size).toBe('lg');
+		expect(out.settings.layout).toBe('grid');
+		// actions is always present, even when empty.
+		expect(out.settings.actions).toEqual([]);
+	});
+
+	it('does not mutate the rest bags it is given', () => {
+		const externalRest = { image_url: 'https://old.example/x.jpg' };
+		buildSectionSettings({
+			settingsRest: {},
+			externalRest,
+			actions: [],
+			externalImageUrl: ''
+		});
+
+		expect(externalRest.image_url).toBe('https://old.example/x.jpg');
 	});
 });

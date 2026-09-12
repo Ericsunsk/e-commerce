@@ -166,7 +166,9 @@ export function normalizeSectionInput(input: unknown): NormalizedSection {
 	const content = String(data.content ?? '');
 	const sort_order = Number(data.sort_order ?? 10);
 	const is_active = data.is_active === undefined ? true : data.is_active === true;
-	const settings = (data.settings && typeof data.settings === 'object' ? data.settings : {}) as UISectionSettings;
+	const settings = (
+		data.settings && typeof data.settings === 'object' ? data.settings : {}
+	) as UISectionSettings;
 
 	return {
 		page,
@@ -210,11 +212,7 @@ export function toSectionRow(record: {
 	settings?: unknown;
 	updated?: string;
 }): SectionRow {
-	const imageList = Array.isArray(record.image)
-		? record.image
-		: record.image
-			? [record.image]
-			: [];
+	const imageList = Array.isArray(record.image) ? record.image : record.image ? [record.image] : [];
 	return {
 		id: record.id,
 		pageId: record.page || '',
@@ -261,4 +259,67 @@ export function swapSectionRank(
 		{ id: a.id, sortOrder: b.sortOrder },
 		{ id: b.id, sortOrder: a.sortOrder }
 	];
+}
+
+// ---------------------------------------------------------------------------
+// Section settings assembly (extracted from admin/content/sections/+page.svelte)
+//
+// The editor keeps "rest" bags (`settingsRest`, `externalRest`) holding fields it
+// does not surface, plus its own form fields. Assembling the save payload means
+// merging those, dropping blank action rows, and omitting `image_url` entirely
+// when cleared — the last part matters because an empty string would overwrite
+// an existing image rather than remove the reference.
+// ---------------------------------------------------------------------------
+
+export interface SectionAction {
+	text: string;
+	link: string;
+}
+
+export interface SectionSettingsInput {
+	/** Fields the form does not surface, carried through untouched. */
+	settingsRest: Record<string, unknown>;
+	externalRest: Record<string, unknown>;
+	actions: SectionAction[];
+	/** External image URL typed into the form; blank means "clear it". */
+	externalImageUrl: string;
+}
+
+export interface SectionSettingsPayload {
+	/** Action rows that carry any content, in order. */
+	validActions: SectionAction[];
+	imageUrl: string;
+	settings: Record<string, unknown>;
+}
+
+/**
+ * Build the settings payload for a section save.
+ *
+ * Two deliberate behaviours:
+ *   - Blank action rows are dropped, but a row with only a label or only a link
+ *     is kept (a partially filled row is usually mid-edit, not garbage).
+ *   - `image_url` is **deleted** rather than set to `''` when the input is
+ *     blank, so clearing the field removes the reference instead of pointing it
+ *     at nothing. `external` is omitted entirely when it would be empty.
+ */
+export function buildSectionSettings(input: SectionSettingsInput): SectionSettingsPayload {
+	const validActions = input.actions.filter((a) => a.text.trim() || a.link.trim());
+	const imageUrl = input.externalImageUrl.trim();
+
+	const external: Record<string, unknown> = { ...input.externalRest };
+	if (imageUrl) {
+		external.image_url = imageUrl;
+	} else {
+		delete external.image_url;
+	}
+
+	return {
+		validActions,
+		imageUrl,
+		settings: {
+			...input.settingsRest,
+			actions: validActions,
+			...(Object.keys(external).length > 0 ? { external } : {})
+		}
+	};
 }

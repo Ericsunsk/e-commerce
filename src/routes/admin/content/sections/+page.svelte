@@ -17,6 +17,7 @@
 		SECTION_TYPES,
 		SECTION_TYPE_LABELS,
 		swapSectionRank,
+		buildSectionSettings,
 		type SectionType,
 		type UISectionAction
 	} from '$domains/content';
@@ -61,16 +62,13 @@
 	let externalRest = $state<Record<string, unknown>>({});
 
 	// Page mapping for easy lookup
-	let pageMap = $derived(
-		new Map(data.pages.map((p) => [p.id, p]))
-	);
+	let pageMap = $derived(new Map(data.pages.map((p) => [p.id, p])));
 
 	// Filtered sections (ordered by sortOrder)
 	let filteredSections = $derived(
-		(selectedPageId === 'all'
-			? sections
-			: sections.filter((s) => s.pageId === selectedPageId)
-		).slice().sort((a, b) => a.sortOrder - b.sortOrder)
+		(selectedPageId === 'all' ? sections : sections.filter((s) => s.pageId === selectedPageId))
+			.slice()
+			.sort((a, b) => a.sortOrder - b.sortOrder)
 	);
 
 	let previewUrl = $derived.by(() => {
@@ -150,10 +148,15 @@
 			const body = await res.json();
 			const sec = body.section;
 			const actions: UISectionAction[] = sec.settings?.actions || [];
-			const { actions: _dropActions, external: _dropExternal, ...rest } =
-				(sec.settings && typeof sec.settings === 'object'
+			const {
+				actions: _dropActions,
+				external: _dropExternal,
+				...rest
+			} = (
+				sec.settings && typeof sec.settings === 'object'
 					? (sec.settings as Record<string, unknown>)
-					: {}) as Record<string, unknown>;
+					: {}
+			) as Record<string, unknown>;
 			settingsRest = rest;
 			const ext =
 				sec.settings && typeof sec.settings === 'object'
@@ -163,8 +166,7 @@
 					: undefined;
 			const { image_url: _dropImageUrl, ...extRest } = ext ?? {};
 			externalRest = extRest;
-			externalImageUrl =
-				typeof ext?.image_url === 'string' ? (ext.image_url as string) : '';
+			externalImageUrl = typeof ext?.image_url === 'string' ? (ext.image_url as string) : '';
 			form = {
 				page: sec.page ?? '',
 				type: sec.type ?? 'hero',
@@ -189,21 +191,14 @@
 		form.actions = form.actions.filter((_, idx) => idx !== index);
 	}
 
+	// Payload assembly lives in the content domain (`cms-admin.ts`), unit tested.
 	function buildSettings() {
-		const validActions = form.actions.filter((a) => a.text.trim() || a.link.trim());
-		const imageUrl = externalImageUrl.trim();
-		const external = { ...externalRest };
-		if (imageUrl) external.image_url = imageUrl;
-		else delete external.image_url;
-		return {
-			validActions,
-			imageUrl,
-			settings: {
-				...settingsRest,
-				actions: validActions,
-				...(Object.keys(external).length > 0 ? { external } : {})
-			}
-		};
+		return buildSectionSettings({
+			settingsRest,
+			externalRest,
+			actions: form.actions,
+			externalImageUrl
+		});
 	}
 
 	async function save() {
@@ -224,9 +219,7 @@
 			};
 
 			const isNew = inlineId === 'new';
-			const url = isNew
-				? '/api/admin/content/sections'
-				: `/api/admin/content/sections/${inlineId}`;
+			const url = isNew ? '/api/admin/content/sections' : `/api/admin/content/sections/${inlineId}`;
 			const res = await fetch(url, {
 				method: isNew ? 'POST' : 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -487,9 +480,7 @@
 	<!-- Actions / Buttons -->
 	<div class="space-y-3 pt-2 border-t border-zinc-100">
 		<div class="flex items-center justify-between">
-			<span class="text-xs font-semibold uppercase tracking-wider text-zinc-700">
-				操作按钮
-			</span>
+			<span class="text-xs font-semibold uppercase tracking-wider text-zinc-700"> 操作按钮 </span>
 			<button
 				type="button"
 				onclick={addAction}
@@ -552,9 +543,7 @@
 						class="absolute inset-0 w-full h-full object-cover opacity-60"
 					/>
 				{:else}
-					<div
-						class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800"
-					>
+					<div class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-800">
 						<div
 							class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"
 						></div>
@@ -769,8 +758,7 @@
 				<p
 					class="text-xs text-zinc-600 line-clamp-3 leading-relaxed font-serif italic max-w-md mx-auto"
 				>
-					{content ||
-						'“真正的奢华无需繁复的堆砌，而是经由纯粹线条与高级质感唤醒的内在从容。”'}
+					{content || '“真正的奢华无需繁复的堆砌，而是经由纯粹线条与高级质感唤醒的内在从容。”'}
 				</p>
 			</div>
 		{/if}
@@ -785,12 +773,7 @@
 <div class="space-y-6 max-w-6xl">
 	<!-- Top Navigation Tabs -->
 	<nav class={ADMIN_SEGMENTED.wrapper} aria-label="内容管理">
-		{#each [
-			{ href: '/admin/content', label: '站点配置' },
-			{ href: '/admin/content/sections', label: '页面排版' },
-			{ href: '/admin/content/pages', label: '页面管理' },
-			{ href: '/admin/content/navigation', label: '导航管理' }
-		] as tab (tab.href)}
+		{#each [{ href: '/admin/content', label: '站点配置' }, { href: '/admin/content/sections', label: '页面排版' }, { href: '/admin/content/pages', label: '页面管理' }, { href: '/admin/content/navigation', label: '导航管理' }] as tab (tab.href)}
 			<a
 				href={tab.href}
 				aria-current={tab.href === '/admin/content/sections' ? 'page' : undefined}
@@ -822,11 +805,7 @@
 				<UiIcon icon={ExternalLink} size={13} />
 				<span>预览前台</span>
 			</a>
-			<button
-				type="button"
-				onclick={openNew}
-				class={ADMIN_BUTTONS.primary}
-			>
+			<button type="button" onclick={openNew} class={ADMIN_BUTTONS.primary}>
 				<UiIcon icon={Plus} size={14} />
 				<span>新建区块</span>
 			</button>
@@ -838,9 +817,7 @@
 		<button
 			type="button"
 			onclick={() => (selectedPageId = 'all')}
-			class={selectedPageId === 'all'
-				? ADMIN_BUTTONS.pillActive
-				: ADMIN_BUTTONS.pillInactive}
+			class={selectedPageId === 'all' ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 		>
 			<span>全部</span>
 			<span class="opacity-60 font-mono text-[10px]">({sections.length})</span>
@@ -850,9 +827,7 @@
 			<button
 				type="button"
 				onclick={() => (selectedPageId = page.id)}
-				class={selectedPageId === page.id
-					? ADMIN_BUTTONS.pillActive
-					: ADMIN_BUTTONS.pillInactive}
+				class={selectedPageId === page.id ? ADMIN_BUTTONS.pillActive : ADMIN_BUTTONS.pillInactive}
 				title={page.title || page.slug}
 			>
 				<span class="max-w-[240px] truncate">{page.title || page.slug}</span>
@@ -867,7 +842,10 @@
 		</p>
 	{/if}
 	{#if successMsg}
-		<p role="status" class="text-xs text-emerald-600 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+		<p
+			role="status"
+			class="text-xs text-emerald-600 bg-emerald-50 p-3 rounded-lg border border-emerald-200"
+		>
 			{successMsg}
 		</p>
 	{/if}
@@ -923,19 +901,10 @@
 					{@render sectionFormFields()}
 
 					<div class="flex items-center justify-end gap-3 pt-2">
-						<button
-							type="button"
-							onclick={() => (inlineId = null)}
-							class={ADMIN_BUTTONS.secondary}
-						>
+						<button type="button" onclick={() => (inlineId = null)} class={ADMIN_BUTTONS.secondary}>
 							取消
 						</button>
-						<button
-							type="button"
-							onclick={save}
-							disabled={saving}
-							class={ADMIN_BUTTONS.primary}
-						>
+						<button type="button" onclick={save} disabled={saving} class={ADMIN_BUTTONS.primary}>
 							{saving ? '创建中…' : '创建区块'}
 						</button>
 					</div>
@@ -947,27 +916,19 @@
 			<div class="bg-white border border-zinc-200 rounded-card p-12 text-center text-zinc-400">
 				<UiIcon icon={Layers} size={36} className="mx-auto mb-3 opacity-30" />
 				<p class="text-sm font-medium text-zinc-600">当前页面暂无已配置的区块</p>
-				<button
-					type="button"
-					onclick={openNew}
-					class="{ADMIN_BUTTONS.secondary} mt-4"
-				>
+				<button type="button" onclick={openNew} class="{ADMIN_BUTTONS.secondary} mt-4">
 					<UiIcon icon={Plus} size={14} />
 					<span>新建区块</span>
 				</button>
 			</div>
 		{:else}
 			{#each filteredSections as row, idx (row.id)}
-				{@const activeHeading =
-					inlineId === row.id && form.heading ? form.heading : row.heading}
+				{@const activeHeading = inlineId === row.id && form.heading ? form.heading : row.heading}
 				{@const activeSubheading =
 					inlineId === row.id && form.subheading ? form.subheading : row.subheading}
-				{@const activeContent =
-					inlineId === row.id && form.content ? form.content : row.content}
+				{@const activeContent = inlineId === row.id && form.content ? form.content : row.content}
 				{@const activeImageUrl =
-					inlineId === row.id && externalImageUrl.trim()
-						? externalImageUrl.trim()
-						: row.imageUrl}
+					inlineId === row.id && externalImageUrl.trim() ? externalImageUrl.trim() : row.imageUrl}
 				{@const activeActions =
 					inlineId === row.id && form.actions.some((a) => a.text.trim())
 						? form.actions.filter((a) => a.text.trim())
