@@ -26,7 +26,11 @@ vi.mock('$shared/infrastructure', () => ({
 }));
 
 vi.mock('$shared/infrastructure/server', () => ({
-	withAdmin: <T>(fn: () => Promise<T>) => fn()
+	withAdmin: <T>(fn: () => Promise<T>) => fn(),
+	// Needed because the product mapper sanitizes `description` at its exit.
+	// Kept as a pass-through so this test asserts resolution behaviour, not
+	// sanitization (which has its own coverage in sanitize.server).
+	sanitizeCmsHtml: (input: string | null | undefined) => input ?? ''
 }));
 
 vi.mock('../infrastructure/stripe-pricing.server', () => ({

@@ -3,6 +3,7 @@
  */
 
 import { getFileUrl } from '$shared/kernel';
+import { sanitizeCmsHtml } from '$shared/infrastructure/server';
 import { computeStockStatus } from '../domain/stock-status';
 import { readVariantPricing } from '../domain/pricing';
 import type { Product, Category, ProductVariant } from '../domain/models';
@@ -96,12 +97,14 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 
 	type CategoryExpand = { category?: CategoriesResponse[] | CategoriesResponse };
 	const expandedCats = (record.expand as unknown as CategoryExpand | undefined)?.category;
-	const resolvedCategories = categories && categories.length > 0 ? categories : mapCategoriesFromExpand(expandedCats);
+	const resolvedCategories =
+		categories && categories.length > 0 ? categories : mapCategoriesFromExpand(expandedCats);
 
 	let gender: 'mens' | 'womens' | 'unisex' = 'unisex';
 	if (resolvedCategories && resolvedCategories.length > 0) {
 		if (resolvedCategories.some((c) => c.slug === 'mens' || c.slug === 'men')) gender = 'mens';
-		else if (resolvedCategories.some((c) => c.slug === 'womens' || c.slug === 'women')) gender = 'womens';
+		else if (resolvedCategories.some((c) => c.slug === 'womens' || c.slug === 'women'))
+			gender = 'womens';
 	}
 
 	return {
@@ -110,7 +113,7 @@ export function mapRecordToProduct(record: ProductsResponse, categories?: Catego
 		collectionName: record.collectionName,
 		title: record.title,
 		slug: record.slug,
-		description: record.description,
+		description: sanitizeCmsHtml(record.description),
 		price: 'Loading...',
 		priceValue: 0,
 		image: baseImage,
@@ -173,6 +176,8 @@ export function mapRecordToCategory(record: CategoriesResponse): Category {
 		image: record.image ? getFileUrl('categories', record.id, record.image) : undefined,
 		isVisible: !!record.is_visible,
 		sortOrder: record.sort_order || 0,
+		// NOT sanitized: category descriptions render as text, never via @html.
+		// Only product.description reaches an HTML sink (shop/[id]/+page.svelte).
 		description: record.description
 	};
 }
