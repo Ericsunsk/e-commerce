@@ -2,7 +2,7 @@
 	import { ArrowUpRight } from 'lucide-svelte';
 	import { UiIcon } from '$shared/ui';
 	import type { OrderSummary } from '../domain/models';
-	import { getOrderStatusColor } from '../domain/models';
+	import { getOrderStatusColor } from './order-status-style';
 	import { parsePocketBaseDate, formatCurrency } from '$shared/kernel';
 
 	let { order } = $props<{ order: OrderSummary }>();

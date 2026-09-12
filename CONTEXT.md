@@ -90,6 +90,25 @@ Domain vocabulary:
 | **Normalize** | Coercing an untyped/external payload into a typed domain value. | sanitize, clean, parse |
 | **Mask** | Redacting a secret for display (`maskSecret`, `AdminCouponRow`-style projections). | hide, obfuscate |
 
+## File suffix conventions
+
+Two conventions coexist and are **not** interchangeable — the punctuation carries
+the meaning:
+
+| Suffix | Means | Examples |
+|---|---|---|
+| `*.server.ts` | Server-only. Never importable from a client barrel. | `pocketbase.server.ts`, `order-repository.server.ts` |
+| `*.client.ts` | Browser-side **HTTP transport** — talks to our own API via `apiClient`. | `cart-api.client.ts`, `wishlist-api.client.ts` |
+| `*-client.ts` | Browser-side **PocketBase SDK** wrapper (`pb.collection(...)`). | `auth-client.ts`, `address-client.ts` |
+| `*.svelte.ts` | Rune-based reactive state module. | `cart-state.svelte.ts` |
+| `*.svelte` | Component. | `ProductCard.svelte` |
+
+A file with neither suffix is isomorphic: safe in both contexts. `domain/` files
+are always isomorphic by rule (see Principle IX).
+
+`_`-prefixed files under `src/routes/` are colocated helpers, not routes, and are
+excluded from routing by SvelteKit — e.g. `admin/products/_parse-product-body.ts`.
+
 ## Where things live
 
 ```

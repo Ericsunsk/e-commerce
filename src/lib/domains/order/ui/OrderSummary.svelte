@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { OrderDetail } from '../domain/models';
-	import { getOrderStatusColor } from '../domain/models';
+	import { getOrderStatusColor } from './order-status-style';
 	import { CheckCircle, Truck, XCircle, Clock } from 'lucide-svelte';
 	import UiIcon from '$shared/ui/UiIcon.svelte';
 	import { parsePocketBaseDate } from '$shared/kernel';

@@ -95,33 +95,3 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 export function getOrderStatusLabel(status: string): string {
 	return ORDER_STATUS_LABELS[status.toLowerCase()] ?? status;
 }
-
-export function getOrderStatusBadgeClass(status: string): string {
-	switch (status.toLowerCase()) {
-		case 'paid':
-		case 'processing':
-			return 'bg-amber-50 text-amber-700 border-amber-200';
-		case 'shipped':
-			return 'bg-sky-50 text-sky-700 border-sky-200';
-		case 'delivered':
-			return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-		case 'refunded':
-		case 'cancelled':
-			return 'bg-rose-50 text-rose-700 border-rose-200';
-		default:
-			return 'bg-zinc-100 text-zinc-700 border-zinc-200';
-	}
-}
-
-const ORDER_STATUS_COLOR_MAP = {
-	paid: 'text-emerald-600 dark:text-emerald-400',
-	delivered: 'text-emerald-600 dark:text-emerald-400',
-	shipped: 'text-blue-600 dark:text-blue-400',
-	processing: 'text-blue-600 dark:text-blue-400',
-	cancelled: 'text-red-600 dark:text-red-400',
-	refunded: 'text-red-600 dark:text-red-400'
-} as const;
-
-export function getOrderStatusColor(status: string, fallbackClass = 'text-neutral-500'): string {
-	return ORDER_STATUS_COLOR_MAP[status as keyof typeof ORDER_STATUS_COLOR_MAP] ?? fallbackClass;
-}
