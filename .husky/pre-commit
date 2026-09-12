@@ -1,0 +1,6 @@
+# Architecture gate first: it is fast (sub-second) and its failure is the most
+# important to see. This is the check that previously existed but never ran.
+npm run depcruise
+
+# Then lint/format only the staged files.
+npx lint-staged
