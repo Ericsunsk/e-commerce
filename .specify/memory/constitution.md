@@ -1,6 +1,6 @@
 <!--
 SYNC IMPACT REPORT
-Version: 1.5.4 -> 1.6.0
+Version: 1.5.4 -> 1.6.0 -> 1.7.0
 List of modified principles:
 - IX. Bounded Contexts & Layering (NEW): Codifies the DDD structure that the codebase
   already implements but that no principle previously governed. Defines the four layers,
@@ -23,24 +23,32 @@ Added sections:
 - IX. Bounded Contexts & Layering
 Removed sections:
 - n8n dependent rules within V (see above)
-Templates requiring updates:
-- .specify/templates/plan-template.md (⚠ no Constitution Check gate for Principle IX)
-- .specify/templates/spec-template.md (✅ verified — no change needed)
-- .specify/templates/tasks.md (⚠ deleted from repo; not applicable)
-Command files requiring updates:
-- .opencode/command/*.md (⚠ .opencode/ removed from repo; not applicable)
-Runtime docs requiring updates:
-- README.md (⚠ still describes the Spec Kit chain + n8n; needs a follow-up pass)
-- AGENTS.md (⚠ points at CONTEXT.md and docs/adr/, neither of which exists)
-- .agent/docs/atomic-api-guide.md (⚠ documents /api/inventory/deduct and
-  /api/coupons/increment endpoints that no longer exist)
-Automation/scripts requiring updates:
-- package.json (MUST add a `depcruise` script — the config exists but has never run)
-- .dependency-cruiser.cjs (MUST gain the Principle IX cross-context rules)
+Note on the Spec Kit toolchain:
+- `.specify/templates/` and `specs/` do NOT exist in this repository, and
+  `.opencode/` does not either. The Spec Kit scaffolding was removed in cce54ce
+  and is not coming back. Do not reference templates, spec trees, or slash
+  commands in this constitution — there is nothing for them to point at.
+  Principle VIII's traceability rule is satisfied by linking to the PR and the
+  ADR, not to a `specs/<feature>/tasks.md`.
+
+Runtime docs (resolved in this amendment's accompanying work):
+- README.md — rewritten: described the deleted Spec Kit chain and n8n; now
+  documents the domain-driven structure and the architecture gate.
+- AGENTS.md — now states the architecture gate; CONTEXT.md and docs/adr/ exist.
+- CONTEXT.md / docs/adr/ — created (they were referenced but never written).
+- .agent/docs/atomic-api-guide.md — still documents /api/inventory/deduct and
+  /api/coupons/increment, which do not exist. NOT yet fixed; see follow-up.
+Automation (resolved):
+- package.json — `depcruise` script added.
+- .dependency-cruiser.cjs — Principle IX rules added, alias resolution fixed.
+- .husky/pre-commit — gate wired to run on every commit.
 Follow-up TODOs:
-- TODO(CONTEXT): create CONTEXT.md and docs/adr/ as AGENTS.md promises
 - TODO(DOCS): reconcile .agent/docs/atomic-api-guide.md with the live endpoint set
-- TODO(ENHANCED-IMG): finish or revert the enhanced-img migration
+  (it describes /api/inventory/deduct and /api/coupons/increment, which no longer
+  exist). Either rewrite it or delete it.
+- TODO(CI): the architecture gate runs on pre-commit only. Add a GitHub Actions
+  workflow running `depcruise` + `test` + `check` so the rule holds for changes
+  made outside a local checkout.
 -->
 
 # JEVARIE Project Constitution
@@ -149,12 +157,18 @@ Follow-up TODOs:
   earn its place.
 - **Rationale**: Lower complexity increases velocity and reduces regression risk.
 
-### VIII. Spec-Driven Workflow (The Law)
-- **Traceability (MUST)**: Every code change MUST trace back to an approved task. Where a
-  `specs/<feature>/` tree exists, cite its `tasks.md` task ID.
+### VIII. Traceable Change (The Law)
+- **Traceability (MUST)**: Every code change MUST trace back to an approved plan or issue.
+  Cite it in the PR description. There is no `specs/` tree in this repo (see the note
+  above), so the link is to the PR and, where a decision was made, its ADR.
 - **Plan Fidelity (MUST)**: Deviations from the approved plan during implementation require a
   documented amendment to the plan; silent drift is a violation.
-- **Rationale**: Spec-driven constraints prevent scope creep and keep implementation deterministic.
+- **Architecture Decisions (MUST)**: A change that contradicts an existing ADR in
+  `docs/adr/` MUST either amend that ADR or add one superseding it. Silent override is a
+  violation — the ADRs are load-bearing, not commentary.
+- **Rationale**: Constraints that are written down and cited prevent scope creep. The
+  previous version of this principle pointed at a `specs/` tree that had been deleted,
+  which made it unenforceable in practice.
 
 ### IX. Bounded Contexts & Layering (The Seam)
 
@@ -221,4 +235,4 @@ contexts, and the rule forbidding it was silent.
     - PRs MUST NOT include secrets.
     - Reviewers MUST reject PRs violating MUST-level rules, regardless of functional correctness.
 
-**Version**: 1.6.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-09-12
+**Version**: 1.7.0 | **Ratified**: 2026-01-27 | **Last Amended**: 2026-09-13
