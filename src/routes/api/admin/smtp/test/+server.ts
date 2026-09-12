@@ -1,30 +1,20 @@
-import { error, json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
 import { sendSmtpTestEmail } from '$domains/platform/server';
-import { getErrorStatus } from '$shared/infrastructure/server';
+import { apiHandler } from '$shared/infrastructure/server';
 
 /** Send a template test email via the stored SMTP settings. */
-export const POST: RequestHandler = async ({ locals, request }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
+export const POST = apiHandler(
+	async ({ request }) => {
+		// Empty body is meaningful: validation will complain about the missing
+		// address. Do not 400 here — see payment/test for the same reasoning.
+		let body: unknown = {};
+		try {
+			body = await request.json();
+		} catch {
+			// Empty body → validation will complain about the missing address.
+		}
 
-	let body: unknown = {};
-	try {
-		body = await request.json();
-	} catch {
-		// Empty body → validation will complain about the missing address.
-	}
-
-	try {
 		const result = await sendSmtpTestEmail(body);
-		return json({ success: true, ...result });
-	} catch (err: unknown) {
-		const status = getErrorStatus(err) ?? 500;
-		const message =
-			typeof err === 'object' && err !== null && 'message' in err
-				? String((err as { message: unknown }).message)
-				: '发送测试邮件失败';
-		throw error(status, message);
-	}
-};
+		return { success: true, ...result };
+	},
+	{ admin: true }
+);

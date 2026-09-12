@@ -1,42 +1,25 @@
-import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
 	getMaskedPaymentSettings,
 	savePaymentSettings,
 	invalidateStripeClient
 } from '$domains/payment/server';
-import { getErrorStatus } from '$shared/infrastructure/server';
+import { apiHandler, parseAndNormalizeJsonBody } from '$shared/infrastructure/server';
 
-export const GET: RequestHandler = async ({ locals }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
-	return json({ success: true, settings: await getMaskedPaymentSettings() });
-};
+export const GET: RequestHandler = apiHandler(
+	async () => {
+		return { success: true, settings: await getMaskedPaymentSettings() };
+	},
+	{ admin: true }
+);
 
-export const PUT: RequestHandler = async ({ locals, request }) => {
-	if (!locals.admin) {
-		throw error(401, '需要管理员登录');
-	}
-
-	let body: unknown;
-	try {
-		body = await request.json();
-	} catch {
-		throw error(400, '请求格式错误');
-	}
-
-	try {
+export const PUT: RequestHandler = apiHandler(
+	async ({ request }) => {
+		const body = await parseAndNormalizeJsonBody(request, (input) => input);
 		const settings = await savePaymentSettings(body);
 		// Hot-rotate the Stripe client so follow-up requests use the new keys.
 		invalidateStripeClient();
-		return json({ success: true, settings });
-	} catch (err: unknown) {
-		const status = getErrorStatus(err) ?? 500;
-		const message =
-			typeof err === 'object' && err !== null && 'message' in err
-				? String((err as { message: unknown }).message)
-				: '保存支付配置失败';
-		throw error(status, message);
-	}
-};
+		return { success: true, settings };
+	},
+	{ admin: true }
+);
