@@ -1,0 +1,22 @@
+{
+	"//": "Dependency-cruiser only. Exists so the layering rules in .dependency-cruiser.cjs can resolve the $domains/* and $shared/* aliases.",
+	"//_why": "SvelteKit generates .svelte-kit/tsconfig.json with those paths, but its include/exclude are relative to .svelte-kit/, so pointing dependency-cruiser at it fails with TS18003. This file re-declares the same two aliases with a root-relative include.",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"$domains": ["./src/lib/domains"],
+			"$domains/*": ["./src/lib/domains/*"],
+			"$shared": ["./src/lib/shared"],
+			"$shared/*": ["./src/lib/shared/*"],
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"]
+		},
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"target": "esnext",
+		"allowJs": true,
+		"noEmit": true,
+		"skipLibCheck": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.svelte", "src/**/*.js"]
+}

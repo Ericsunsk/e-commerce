@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
-	import { UiIcon } from '$shared/ui';
+	import UiIcon from './UiIcon.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { TRANSITIONS } from '$shared/kernel';
 

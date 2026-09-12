@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ChevronDown } from 'lucide-svelte';
-	import { UiIcon } from '$shared/ui';
+	import UiIcon from './UiIcon.svelte';
 	import FormField from './FormField.svelte';
 
 	interface Option {
